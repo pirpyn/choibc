@@ -1,0 +1,96 @@
+{
+  "build_systems":
+  [
+    {
+      "name" : "Build hoibc",
+      "linux": {
+        "shell_cmd" : "echo \"Chose a variant\"",
+      },
+      "windows": {
+        "cmd": "@echo Chose a variant",
+      },
+      "variants": [
+          {
+            "name" : "g++",
+            "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):(.*)$",
+            "syntax": "",
+            "linux": {
+              "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug",
+            },
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug'",
+            },
+          },
+          {
+            "name" : "main",
+            "file_regex" : "^([^:\n]+):([0-9]+):([0-9]+):(.+)$",
+            "syntax": "",
+            "linux": {
+              "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug main",
+            },
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug main'",
+            },
+          },
+          {
+            "name" : "lapack",
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c './get_lapack.sh'",
+            },
+          },
+          {
+            "name": "clean",
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make clean'",
+            },
+            "linux": {
+              "shell_cmd": "make clean",
+            }
+          },
+          {
+            "name": "Run this file",
+            "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):()$",
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make run MODE=prod ARGS=\\$(wslpath \"$file\")'",
+            },
+            "linux": {
+              "shell_cmd": "make run MODE=prod ARGS=$file",
+            }
+          },
+        ],
+      "working_dir" : "$project_path",
+    },
+  ],
+  "folder_exclude_patterns": [
+    ".git",
+     "docs",
+   ],
+  "folders":
+  [
+    {
+      "path": ".",
+    }
+  ],
+  "settings":
+  {
+    // The number of spaces a tab is considered equal to
+    "tab_size": 2,
+    // Set to false to disable detection of tabs vs. spaces on load
+    "detect_indentation": true,
+    // Calculates indentation automatically when pressing enter
+    "auto_indent": true,
+    // Disables horizontal scrolling if enabled.
+    // May be set to true, false, or "auto", where it will be disabled for
+    // source code, and otherwise enabled.
+    "word_wrap": "false",
+    // By default, auto complete will commit the current completion on enter.
+    // This setting can be used to make it complete on tab instead.
+    // Completing on tab is generally a superior option, as it removes
+    // ambiguity between committing the completion and inserting a newline.
+    "auto_complete_commit_on_tab": true,
+    // Display file encoding in the status bar
+    "show_encoding": true,
+    // Display line endings in the status bar
+    "show_line_endings": true,
+  },
+}
