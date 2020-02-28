@@ -30,7 +30,7 @@ int main() {
   hoibc::main(data,hoibc_list);
 
   std::cout << std::endl;
-  std::cout << "================================================="  << std::endl;
+  std::cout << "=================================================" << std::endl;
   std::cout << "HOIBC: All IBC coefficients computed with success" << std::endl;
   std::cout << "=================================================" << std::endl;
   std::cout << std::endl;

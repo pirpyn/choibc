@@ -62,11 +62,11 @@ endif
 
 MODE=optim
 ifeq ($(MODE),debug)
-	CXXFLAGS+=$(DFLAGS) -g -O0
+	CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
 else ifeq ($(MODE),dev)
-	CXXFLAGS+=-g -O2
+	CXXFLAGS+=-g -O2 -D_DEV
 else ifeq ($(MODE),optim)
-	CXXFLAGS+=-O2
+	CXXFLAGS+=-O2 -D_OPTIM
 endif
 blddir:=$(blddir)/$(MODE)
 
