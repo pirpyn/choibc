@@ -6,9 +6,9 @@ help:
 	@echo "Compilation rules"
 	@echo "   make              	# Basic compilation"
 	@echo "   make CXXC=g++  	# compiler: g++ accepted"
-	@echo "   make MODE=prod    	# prod/dev/debug provides different compilation option"
+	@echo "   make MODE=optim    	# optim/dev/debug provides different compilation option"
 	@echo "   make SHARED=static 	# static/shared for for dynamic or static libraries / binaries"
-	@echo "   make all CXXCS=\"g++\" MODES=\"prod debug\" SHAREDS=\"static shared\" # Loop over each CXXC/MODE pair and compile with it"
+	@echo "   make all CXXCS=\"g++\" MODES=\"optim debug\" SHAREDS=\"static shared\" # Loop over each CXXC/MODE pair and compile with it"
 	@echo "   make test           # compile the unit test"
 	@echo ""
 	@echo "Running rules"
@@ -19,20 +19,20 @@ help:
 	@echo "   make info         # Prints compiler flags, link flags, library used etc."
 	@echo ""
 	@echo "Cleaning rules"
-	@echo "   make clean CXXC=g++ MODE=prod                   # Remove the build folder associated with the CXXC/MODE chosen" 
-	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"prod ...\" # Same for every CXXC/MODE pair possible" 
+	@echo "   make clean CXXC=g++ MODE=optim                   # Remove the build folder associated with the CXXC/MODE chosen" 
+	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible" 
 	@echo ""
 
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=
-#./src/hoibc ./src/bessel ./src/slsqp/src
-LIBNAMES:=
-#hoibc bessel slsqp
+SRCDIRS:=./src/hoibc
+# ./src/bessel ./src/slsqp/src
+LIBNAMES:=hoibc
+# bessel slsqp
 
 EXTENSIONS:=.cpp
-
+SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
 
@@ -113,17 +113,18 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 .PHONY: hoibc
 hoibc: info
 	@echo "Compiling the HOIBC library"
+	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) depend
+	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
-#@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) depend
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main depend
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES=main lib prog
+	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main depend
+	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES=main lib
+	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
 
 MODES=$(MODE)
 CXXCS=$(CXXC)
@@ -156,33 +157,10 @@ $(dirs):
 	mkdir -p $@;
 
 #############################################################################
-# Rules for dependencies
-# https://stackoverflow.com/a/313787/8506658
-
-# Corresponding dependencies
-dependencies:=$(patsubst %.o,%.d,$(objects))
-
-.PHONY: depend
-depend: $(dependencies) | $(dirs)
-	@echo "Dependencies done"
-
-# Don't create dependencies when we're cleaning, for instance
-ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
-    #Chances are, these files don't exist.  GMake will create them and
-    #clean up automatically afterwards
-    -include $(depfiles)
-endif
-
-# This is the rule for creating the dependency files
-$(objdir)/%.d: %.cpp | $(dirs) 
-	@echo "  $@"
-	@$(CXX) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
-
-#############################################################################
 
 $(objdir)/%.o: %.cpp %.hpp %.d
 	@echo "  $<"
-	$(CXXC) $(CXXFLAGS) -o $@ -c $<
+	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(libdir)/%.a: $(objects)
 	@echo "Creating $@"
@@ -194,9 +172,34 @@ $(libdir)/%.so: $(objects)
 
 $(bindir)/%: $(objdir)/%.o $(libs)
 	@echo "Linking $@"
-	$(CXXC) -o $@ $^ $(LDFLAGS)
+	@$(CXXC) -o $@ $< $(LDFLAGS)
 
 #############################################################################
+# Rules for dependencies
+# https://stackoverflow.com/a/313787/8506658
+
+# # Corresponding dependencies
+dependencies:=$(objects:%.o=%.d)
+
+#We don't need to clean up when we're making these targets
+nodeps:=clean clean_all info
+
+.PHONY: depend
+depend: $(dependencies) | $(dirs)
+	@echo "Dependencies done"
+
+# Don't create dependencies when we're cleaning, for instance
+ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
+    #Chances are, these files don't exist.  GMake will create them and
+    #clean up automatically afterwards
+    -include $(dependencies)
+endif
+
+# This is the rule for creating the dependency files
+$(objdir)/%.d: %.cpp | $(dirs)
+	@echo "  $@"
+	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
+
 #############################################################################
 TEST_SRCDIR:=./src/test
 TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wildcard $(TEST_SRCDIR)/*$(ext))))
@@ -204,9 +207,8 @@ TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wil
 .PHONY: test
 test: hoibc
 	@echo "Compiling the unit tests"
-
-#@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc bessel slsqp" prog
+	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
+	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
 
 .PHONY: run_test
 run_test: test
@@ -222,7 +224,7 @@ run_test: test
 # Other rules
 .PHONY: clean
 clean:
-	rm -rf $(blddir)
+	$(RM) -rf $(blddir)
 
 .PHONY: clean_all
 clean_all:

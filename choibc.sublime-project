@@ -33,6 +33,29 @@
             },
           },
           {
+            "name" : "run tests",
+            "file_regex" : "^([^:\n]+):([0-9]+):([0-9]+):(.+)$",
+            "syntax": "",
+            "linux": {
+              "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug run_test",
+            },
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run_test'",
+            },
+          },
+
+          {
+            "name" : "run",
+            "file_regex" : "^([^:\n]+):([0-9]+):([0-9]+):(.+)$",
+            "syntax": "",
+            "linux": {
+              "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug run",
+            },
+            "windows": { // for linux subsystem
+              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run'",
+            },
+          },
+          {
             "name" : "lapack",
             "windows": { // for linux subsystem
               "cmd": "bash.exe -c './get_lapack.sh'",
@@ -41,20 +64,20 @@
           {
             "name": "clean",
             "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make clean'",
+              "cmd": "bash.exe -c 'make FC=g++ MODE=debug clean'",
             },
             "linux": {
-              "shell_cmd": "make clean",
+              "shell_cmd": "make FC=g++ MODE=debug clean",
             }
           },
           {
             "name": "Run this file",
-            "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):()$",
+            "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):(.*)$",
             "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make run MODE=prod ARGS=\\$(wslpath \"$file\")'",
+              "cmd": "bash.exe -c 'make run MODE=optim ARGS=\\$(wslpath \"$file\")'",
             },
             "linux": {
-              "shell_cmd": "make run MODE=prod ARGS=$file",
+              "shell_cmd": "make run MODE=optim ARGS=$file",
             }
           },
         ],
