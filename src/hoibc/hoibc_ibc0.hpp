@@ -4,6 +4,7 @@
 #include "hoibc_class.hpp"
 #include "hoibc_types.hpp"
 #include <vector>
+#include <map>
 
 namespace hoibc
 {
@@ -11,11 +12,15 @@ namespace hoibc
   class hoibc_ibc0 : public hoibc_class {
     public:
 
+      std::map<std::string,complex> coeff{
+         {"a0",{complex(0.,0.)}}
+      };
+
       hoibc_ibc0(){};
 
       ~hoibc_ibc0(){};
 
-      void get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrices<complex>& gex, const real& k0);
+      void get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrix<complex>& gex, const real& k0);
 
       void get_impedance();
 
@@ -25,7 +30,7 @@ namespace hoibc
 
       void get_suc();
       
-      void disp_coeff();
+      void disp_coeff(std::ostream& out=std::cout);
 
   };
 

@@ -2,11 +2,15 @@
 
 using namespace hoibc;
 
-struct hoibc_ibc0::coeff {
-  complex a0 = complex(0.,0.);
-};
-
-void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrices<complex>& gex, const real& k0){
+void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrix<complex>& gex, const real& k0){
+  switch (this->mode)  {
+  case 2:
+    this->coeff["a0"] = gex[0][0][0][0];
+    break;
+  default:
+    std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << this->mode << " unknown" << std::endl;
+    break;
+  }
   std::cout << "hoibc_ibc0::get_coeff_no_suc: i do nothing" << std::endl;
 }
 
@@ -26,6 +30,7 @@ void hoibc::hoibc_ibc0::get_suc(){
   std::cout << "hoibc_ibc0::get_suc: i do nothing" << std::endl;
 }
 
-void hoibc::hoibc_ibc0::disp_coeff(){
-  std::cout << "hoibc_ibc0::disp_coeff: i do nothing" << std::endl;
+void hoibc::hoibc_ibc0::disp_coeff(std::ostream& out){
+  out << "# Z = a0*I" << std::endl;
+  print_complex(out,this->coeff["a0"],"    a0");
 }

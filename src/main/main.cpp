@@ -11,13 +11,13 @@ int main() {
   data.material.epsr      = {hoibc::complex(1.,-1.)};
   data.material.mur       = {hoibc::complex(1.,0.)};
 
-  data.hoibc.name         = {"ibc0","ibc0","ibc0"};
-  data.hoibc.label        = {"ibc0-1","ibc0-2","ibc0-3"};
-  data.hoibc.suc          = {false,false,true};
-  data.hoibc.type         = {'P','P','P'};
-  data.hoibc.inner_radius = {0.,0.,0.};
-  data.hoibc.mode         = {1,1,2};
-  data.hoibc.normalised   = {true,false,true};
+  data.hoibc.name         = {"ibc0","ibc0"};
+  data.hoibc.label        = {"ibc0-1","ibc0-2"};
+  data.hoibc.suc          = {false,false};
+  data.hoibc.type         = {'P','P'};
+  data.hoibc.inner_radius = {0.,0.};
+  data.hoibc.mode         = {2,2};
+  data.hoibc.normalised   = {true,false};
 
   // prints the parameters to stdout
   hoibc::disp_data(data);
@@ -37,6 +37,8 @@ int main() {
 
   // Write results (impedance, coeff, ...) to screen and csv files
   write_impedance_errors(data, hoibc_list);
+
+  hoibc::free_hoibc_list(hoibc_list);
 
   std::cout << "main: ended successfully " << std::endl ;
   return 0;
@@ -58,7 +60,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     ! and the character format string for IBC coefficient
     call set_backend(data_extended%out%backend)
 
-    ! To print the impédance we will need the value of the Fourier variables
+    ! To print the impedance we will need the value of the Fourier variables
     ! depending on the IBC
     */
   for ( const auto& ibc : hoibc_list ) {

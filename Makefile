@@ -36,7 +36,7 @@ SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
 
-# Fortran compiler
+# C++ compiler
 CXXC:=g++
 
 CXXFLAGS:=
@@ -50,8 +50,11 @@ INCFLAGS:=
 
 # Processor architecture for separate building
 release:=$(shell uname -r)
-fcvers:=$(shell bash -c "$(CXXC) -v 2>&1 | tail -n 1 | cut -d ' ' -f 3")
-
+ifeq ($(CXXC),g++)
+fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
+else ifeq ($(CXXC),clang)
+fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 |cut -d '-' -f 1)
+endif
 blddir:=./build/$(release)/$(CXXC)/$(fcvers)
 
 ifeq ($(DEBUG),1)
@@ -75,7 +78,7 @@ ifeq ($(SHARED),1)
 	libext=so
 	CXXFLAGS+=-fPIC
 	blddir:=$(blddir)/shared
-	run_prefix=LD_LIBRARY_PATH=$(libdir):$${LD_LIBRARY_PATH}
+	LDFLAGS+=-Wl,-R(libdir)
 else
 	libext=a
 	blddir:=$(blddir)/static
@@ -113,8 +116,8 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 .PHONY: hoibc
 hoibc: info
 	@echo "Compiling the HOIBC library"
-	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) depend
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
+	@$(MAKE) depend
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
@@ -122,9 +125,9 @@ hoibc: info
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
-	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main depend
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES=main lib
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
+	@$(MAKE) SRCDIRS=./src/main depend
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
 
 MODES=$(MODE)
 CXXCS=$(CXXC)
@@ -134,7 +137,7 @@ all:
 	@for MODE in $(MODES); do \
 	  for CXXC in $(CXXCS); do \
 	    for SHARED in $(SHAREDS); do \
-	      $(MAKE) -sj CXXC=$${CXXC} MODE=$${MODE} SHARED=$${SHARED} main; \
+	      $(MAKE) CXXC=$${CXXC} MODE=$${MODE} SHARED=$${SHARED} main; \
 	    done; \
 	  done; \
 	done
@@ -207,8 +210,8 @@ TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wil
 .PHONY: test
 test: hoibc
 	@echo "Compiling the unit tests"
-	@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
+	@$(MAKE) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
+	@$(MAKE) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
 
 .PHONY: run_test
 run_test: test
@@ -216,7 +219,7 @@ run_test: test
 	echo "Running the $${#TESTS[@]} tests"; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
 		printf  "[%3d / %3d] " $$(($${i}+1)) $${#TESTS[@]}; \
-		$(run_prefix) ./$${TESTS[$$i]}; \
+		./$${TESTS[$$i]}; \
 	done
 
 #############################################################################
@@ -231,7 +234,7 @@ clean_all:
 	@for MODE in $(MODES); do \
 	  for CXXC in $(CXXCS); do \
 	    for SHARED in $(SHAREDS); do \
-		    $(MAKE) -s CXXC=$${CXXC} SHARED=$${SHARED} MODE=$${MODE} clean; \
+		    $(MAKE) CXXC=$${CXXC} SHARED=$${SHARED} MODE=$${MODE} clean; \
 		  done; \
 	  done; \
 	done
@@ -242,7 +245,7 @@ run: main
 		echo ; \
 		echo ">> $(PREFIX) $${bin} $(ARGS)"; \
 		echo ; \
-		$(run_prefix) $(PREFIX) $${bin} $(ARGS); \
+		$(PREFIX) $${bin} $(ARGS); \
 	done
 
 %.cpp: ;

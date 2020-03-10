@@ -6,7 +6,7 @@
 #include "hoibc_math_sphere.hpp"
 #include <iostream>
 #include <algorithm>
-#include <cstdlib>
+//#include <cstdlib>
 
 using namespace hoibc;
 using std::vector;
@@ -19,7 +19,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
 
   // gex contains all the exact impedance or reflexion matrices for every (f1,f2) couple
   // i.e. for a plane type and mode 2 so gex[i][j][k][l] represents Z(kx[i],ky[j])_kl
-  big_matrices<complex> gex;
+  big_matrix<complex> gex;
 
   const real k0 = free_space_impedance(data.main.frequency);
 
@@ -40,7 +40,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
     case 2 :
       switch (this->type) {
         case 'P' :
-          impedance_infinite_plane();
+          gex = impedance_infinite_plane(f1,f2,k0,data.material);
           break;
         case 'C' :
           impedance_infinite_cylinder();
@@ -51,7 +51,6 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
       }
       break;
   }
-
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
   std::cout << "hoibc_class::get_coeff: not finished" << std::endl;
@@ -59,15 +58,15 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
 
 /*
     ! Then if SUC, use slsqp
-    if (self%suc) then
+    if (this->suc) then
 
       write(output_unit,'(a)',advance='no') '# Executing the constrained optimisation algorithm ... '
 
       ! Allocate x with the right number of element, depending on the HOIBC
-      call self%coeff_to_array(x)
+      call this->coeff_to_array(x)
       n = size(x)
       ! Get the number of constraints
-      call self%get_suc(cle,ceq,cne,sle,seq,sne)
+      call this->get_suc(cle,ceq,cne,sle,seq,sne)
       meq = size(ceq)
       m = meq + size(cle)
 
@@ -90,7 +89,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
       g => gradf
 
       if (.not.allocated(g_ex)) then
-        write(error_unit,'(*(a))') 'error:get_coeff: forgot to set g_ex for type ',self%type,' ibc'
+        write(error_unit,'(*(a))') 'error:get_coeff: forgot to set g_ex for type ',this->type,' ibc'
         error stop
       end if
       if (allocated(g_f1)) deallocate(g_f1)
@@ -110,7 +109,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
       g_no_constraints = optim%no_constraints
 
       if (g_no_constraints) then
-        write(output_unit,'(3(a))') 'IBC ',self%name,' has no constraints'
+        write(output_unit,'(3(a))') 'IBC ',this->name,' has no constraints'
       end if
 
       if (optim%show_iter) then
@@ -149,13 +148,16 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
       deallocate(xu)
       deallocate(g_xlast)
       ! Save the solution in the IBC
-      call self%array_to_coeff(x)
+      call this->array_to_coeff(x)
     end if
   end subroutine
   */
 
-void hoibc_class::print_coeff(){
-  std::cout << "hoibc_class::print_coeff: i do nothing" << std::endl;
+void hoibc_class::print_coeff(std::ostream& out){
+  std::noshowpos(out);
+  out << "# IBC " << this->name << " type " << this->type << " suc " << (this->suc ? "T": "F") << " mode " << this->mode << " (" << this->label << ")" << std::endl;
+  std::showpos(out);
+  this->disp_coeff(out);
 }
 
 void hoibc_class::print_suc(){
@@ -170,12 +172,12 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   // s1, = f1 / free_space_wavenumber
   // s2  = f2 / free_space_wavenumber */
 
-  const real k0 = 2.*pi*data.main.frequency*1.E9/speed_of_light; // the free space impedance
+  const real k0 = hoibc::free_space_impedance(data.main.frequency);
   integer n1, n2;
 
   // This function will be called several times, so we compute at compile time the square root of two
   // for the spheric 'S' case
-  constexpr real sqrt_two = static_cast<real>(std::sqrt(2.));
+  constexpr const real sqrt_two = 1.4142135623730951;
   switch (this->type) {
     case 'P' :
       // f1 = kx, f2 = ky
@@ -233,4 +235,8 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   vector<real> s1;
   vector<real> s2;
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
+}
+
+void hoibc::print_complex(std::ostream& out, const complex& z, const std::string& name){
+  out << name << " = " << z << std::endl;
 }

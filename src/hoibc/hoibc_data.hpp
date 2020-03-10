@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <string>
 
 
@@ -23,14 +24,14 @@ namespace hoibc
     std::vector<complex> mur;        // Relative permeability
     std::vector<real>    thickness;  // Thickness in meter
     real                 loss { 0. }; // Artificial loss to add to epsr & mur
-    complex              initial_impedance[2][2] { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
+    std::array<std::array<complex,2>,2> initial_impedance { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
   };
 
   struct hoibc_t
   {
     std::vector<std::string> name;
     std::vector<std::string> label;
-    std::vector<char>        type;
+    std::vector<short>       type;
     std::vector<bool>        suc;
     std::vector<real> inner_radius;
     std::vector<bool> normalised;

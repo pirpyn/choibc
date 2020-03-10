@@ -29,21 +29,20 @@ void hoibc::main(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
 }
 
 void hoibc::setup(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
-  hoibc_list.resize(data.hoibc.name.size());
 
-  for (unsigned int i = 0; i < hoibc_list.size();i++) {
+  for (unsigned int i = 0; i < data.hoibc.name.size();i++) {
     std::string name = data.hoibc.name[i];
+    hoibc_class* ibc = nullptr;
     switch (resolve_names(name)) {
       case hoibc_names::ibc0 :
-        hoibc_list[i] = new hoibc_ibc0();
+        ibc = new hoibc_ibc0();
         break;
       default :
         std::cerr << "warning: hoibc::setup: hoibc '" + name + "'' is unknown. Skipping." << std::endl;;
-        hoibc_list[i] = nullptr;
         continue;
         break;
     }
-    hoibc_class* ibc  = hoibc_list[i];
+    hoibc_list.push_back(ibc);
     ibc->name         = name;
     ibc->label        = data.hoibc.label[i];
     if (ibc->label == "") {
@@ -67,4 +66,10 @@ hoibc_names hoibc::resolve_names(const std::string name) {
   if (name == "ibc0") return hoibc_names::ibc0;
   if (name == "ibc3") return hoibc_names::ibc3;
   return hoibc_names::unknown;
+}
+
+void hoibc::free_hoibc_list(std::vector<hoibc_class*>& hoibc_list) {
+  for (auto& ibc: hoibc_list) {
+    if (ibc) delete ibc;
+  }
 }

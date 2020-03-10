@@ -3,12 +3,14 @@
 
 #include <complex>
 #include <vector>
+#include <array>
 
 namespace hoibc
 {
   using integer = long int;
   using real = double;
   using complex = std::complex<real>;
-  template<typename T> using big_matrices = std::vector<std::vector<T[2][2]>>;
+  template<typename T> using matrix = std::array<std::array<T,2>,2>;
+  template<typename T> using big_matrix = std::vector<std::vector<matrix<T>>>;
 }
 #endif

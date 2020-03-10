@@ -47,5 +47,74 @@ namespace hoibc {
     return w;
   }
 
+  template<typename T>
+  matrix<T> operator*(const matrix<T>& A, const T& x){
+    matrix<T> C;
+    C[0][0] = A[0][0]*x;
+    C[1][0] = A[1][0]*x;
+    C[0][1] = A[0][1]*x;
+    C[1][1] = A[1][1]*x;
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> operator*(const T& x, const matrix<T>& A){
+    return A*x;
+  }
+
+  template<typename T>
+  matrix<T> operator/(const matrix<T>& A, const T& x){
+    matrix<T> C;
+    C[0][0] = A[0][0]/x;
+    C[1][0] = A[1][0]/x;
+    C[0][1] = A[0][1]/x;
+    C[1][1] = A[1][1]/x;
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> operator+(const matrix<T>& A, const matrix<T>& B){
+    matrix<T> C;
+    C[0][0] = A[0][0] + B[0][0];
+    C[1][0] = A[1][0] + B[1][0];
+    C[0][1] = A[0][1] + B[0][1];
+    C[1][1] = A[1][1] + B[1][1];
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> operator-(const matrix<T>& A, const matrix<T>& B){
+    matrix<T> C;
+    C[0][0] = A[0][0] - B[0][0];
+    C[1][0] = A[1][0] - B[1][0];
+    C[0][1] = A[0][1] - B[0][1];
+    C[1][1] = A[1][1] - B[1][1];
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
+    matrix<T> C;
+    for (short i=0;i<2;i++) {
+      for (short j=0;j<2;j++) {
+        C[i][j] = A[i][0]*B[0][j] + A[i][1]*B[1][j];
+      }
+    }
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> inv(const matrix<T>& A){
+    matrix<T> B;
+    T delta = A[0][0]*A[1][1] - A[1][0]*A[0][1];
+
+    B[1][1] = 1./delta * A[0][0];
+    B[0][1] = -1./delta * A[0][1];
+    B[1][0] = -1./delta * A[1][0];
+    B[0][0] = 1./delta * A[1][1];
+
+    return B;
+  }
+
 }
 #endif
