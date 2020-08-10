@@ -100,9 +100,6 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
       z = material.initial_impedance;
     }
   }
-  std::cout << "DODO";
-  std::cout << impedance_ex.size() ;
-
   const std::vector<real>& thickness = material.thickness;
 
   real h = - std::accumulate(thickness.begin(),thickness.end(),0);
@@ -146,7 +143,6 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
     }
     h+=d;
   }
-  std::cout << impedance_ex[0][0][0][0];
   return impedance_ex;
 }
 

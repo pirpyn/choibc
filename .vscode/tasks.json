@@ -1,0 +1,43 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make debug run",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} MODE=debug run",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "make debug main",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} MODE=debug main",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "make_run",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} run",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "make_main",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} main",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
