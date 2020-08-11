@@ -1,7 +1,7 @@
 #include "hoibc_math_plane.hpp"
 #include "hoibc_types.hpp"
 #include "hoibc_constants.hpp"
-#include "hoibc_math.hpp" // matmul
+#include "hoibc_math.hpp" // matmul, inv
 #include <iostream>
 #include <numeric> // std::accumulate
 #include <cmath> // pow, sqrt, imag, abs
