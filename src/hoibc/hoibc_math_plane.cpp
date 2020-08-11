@@ -40,8 +40,8 @@ matrix<complex> hoibc::BE(const real& kx, const real& ky, const complex& k, cons
   matrix<complex> BE;
   BE[0][0] = std::exp(-ci*k3*z)*ci*k3;
   BE[1][0] = 0.;
-  BE[0][1] = BE[0][1];
-  BE[1][1] = BE[1][1];
+  BE[0][1] = BE[1][0];
+  BE[1][1] = BE[0][0];
   return BE;
 }
 
@@ -57,7 +57,7 @@ matrix<complex> hoibc::AH(const real& kx, const real& ky, const complex& k, cons
   matrix<complex> AH;
   AH[0][0] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
   AH[1][0] = std::exp(ci*k3*z)*ci/k/etar*(-kx*ky);
-  AH[0][1] = AH[0][1];
+  AH[0][1] = AH[1][0];
   AH[1][1] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return AH;
 }
@@ -74,7 +74,7 @@ matrix<complex> hoibc::BH(const real& kx, const real& ky, const complex& k, cons
   matrix<complex> BH;
   BH[0][0] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
   BH[1][0] = std::exp(-ci*k3*z)*ci/k/etar*(-kx*ky);
-  BH[0][1] = BH[0][1];
+  BH[0][1] = BH[1][0];
   BH[1][1] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return BH;
 }
@@ -91,7 +91,7 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
   big_matrix<complex> impedance_ex;
   impedance_ex.resize(vkx.size()); // impedance_ex[:][][2][2]
-  for (auto&& row : impedance_ex ) {
+  for (auto& row : impedance_ex ) {
     row.resize(vky.size());  // impedance_ex[:][:][2][2]
   }
 
@@ -102,7 +102,7 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
   }
   const std::vector<real>& thickness = material.thickness;
 
-  real h = - std::accumulate(thickness.begin(),thickness.end(),0);
+  real h = - std::accumulate(thickness.begin(),thickness.end(),static_cast<real>(0));
 
   for (unsigned int i=0;i<thickness.size();i++) {
     complex mu = material.mur[i];
@@ -135,9 +135,16 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
         const matrix<complex>& B = impedance_ex[i][j];
 
+        const matrix<complex> mBE = BE(kx,ky,k,h+d);
+        const matrix<complex> mAE = AE(kx,ky,k,h+d);
+        const matrix<complex> mBH = BH(kx,ky,k,etar,h+d);
+        const matrix<complex> mAH = AH(kx,ky,k,etar,h+d);
+        const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
+        const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
+
         impedance_ex[i][j] = matmul<complex>(
-          matmul<complex>(BE(kx,ky,k,h+d),inv<complex>(MB(kx,ky,k,etar,h,B))) - matmul<complex>(AE(kx,ky,k,h+d),inv<complex>(MA(kx,ky,k,etar,h,B))) ,
-          inv<complex>(matmul<complex>(BH(kx,ky,k,etar,h+d),inv<complex>(MB(kx,ky,k,etar,h,B))) - matmul<complex>(AH(kx,ky,k,etar,h+d),inv<complex>(MA(kx,ky,k,etar,h,B))))
+          matmul<complex>(mBE,mMB) - matmul<complex>(mAE,mMA),
+          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,inv<complex>(mMA)))
           );
       }
     }
