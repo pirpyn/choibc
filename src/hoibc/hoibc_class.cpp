@@ -177,7 +177,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
 
   // This function will be called several times, so we compute at compile time the square root of two
   // for the spheric 'S' case
-  constexpr const real sqrt_two = 1.4142135623730951;
+
   switch (this->type) {
     case 'P' :
       // f1 = kx, f2 = ky
