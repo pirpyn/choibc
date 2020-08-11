@@ -160,8 +160,78 @@ void hoibc_class::print_coeff(std::ostream& out){
   this->disp_coeff(out);
 }
 
-void hoibc_class::print_suc(){
-  std::cout << "hoibc_class::get_print_suc: i do nothing" << std::endl;
+#define any(T,vector,logical) \
+std::any_of(vector.begin(), vector.end(), [](T x){return logical;})
+
+void hoibc_class::print_suc(const real& tol, std::ostream& out){
+
+  vector<real> cle;
+  vector<real> ceq;
+  vector<real> cne;
+  vector<std::string> sle;
+  vector<std::string> seq;
+  vector<std::string> sne;
+
+  this->get_suc(cle,ceq,cne,sle,seq,sne);
+
+  out << "# Verifying the Sufficient Uniqueness Conditions (SUC)" << std::endl;
+
+  if (!cle.empty()){
+    if (any(real, cle, x <= 0.)){
+      out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
+      for (std::size_t i = 0; i < cle.size(); i++){
+        if (cle[i] <= tol){
+        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, cle, x > 0.)){
+      out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
+      for (std::size_t i = 0; i < cle.size(); i++){
+        if (cle[i] > tol){
+        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        }
+      }
+    }
+  }
+
+  if (!ceq.empty()){
+    if (any(real, ceq, std::abs(x) <= 0.)){
+      out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
+      for (std::size_t i = 0; i < ceq.size(); i++){
+        if (ceq[i] <= tol){
+        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, ceq, std::abs(x) > 0.)){
+      out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
+      for (std::size_t i = 0; i < ceq.size(); i++){
+        if (cle[i] > tol){
+        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        }
+      }
+    }
+  }
+
+  if (!cne.empty()){
+    if (any(real, cne, std::abs(x) <= 0.)){
+      out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
+      for (std::size_t i = 0; i < cne.size(); i++){
+        if (cne[i] <= tol){
+        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, cne, std::abs(x) > 0.)){
+      out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
+      for (std::size_t i = 0; i < cne.size(); i++){
+        if (cne[i] > tol){
+        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        }
+      }
+    }
+  }
 }
 
 // Reads a data struct and creates two array with the values of the Fourier variables 
@@ -245,6 +315,33 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
 }
 
-void hoibc::print_complex(std::ostream& out, const complex& z, const std::string& name){
+void hoibc::print_complex(const complex& z, const std::string& name, std::ostream& out){
   out << name << " = " << z << std::endl;
+}
+
+void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_matrix<real>& I, big_matrix<real>& I1, big_matrix<real>& I2){
+  I.clear();
+  I1.clear();
+  I2.clear();
+  matrix<real> sI;
+
+  sI[0][0] = 1.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 1.;
+  I  = big_init<real>(n1,n2,sI);
+
+  matrix<real> sI1;
+  sI[0][0] = 1.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 0.;
+  I1 = big_init<real>(n1,n2,sI1);
+
+  matrix<real> sI2;
+  sI[0][0] = 0.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 1.;
+  I2 = big_init<real>(n1,n2,sI2);
 }
