@@ -6,7 +6,7 @@
         {
             "label": "make debug run",
             "type": "shell",
-            "command": "make -C ${workspaceFolder} MODE=debug run",
+            "command": "make -C ${workspaceFolder} MODE=debug -s run",
             "problemMatcher": [
                 "$gcc"
             ]
@@ -14,15 +14,23 @@
         {
             "label": "make debug main",
             "type": "shell",
-            "command": "make -C ${workspaceFolder} MODE=debug main",
+            "command": "make -C ${workspaceFolder} MODE=debug -s main",
             "problemMatcher": [
                 "$gcc"
             ]
         },
         {
-            "label": "make_run",
+            "label": "make debug link",
             "type": "shell",
-            "command": "make -C ${workspaceFolder} run",
+            "command": "make -C ${workspaceFolder} MODE=debug -s link",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "make run",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} -s run",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -32,9 +40,9 @@
             ]
         },
         {
-            "label": "make_main",
+            "label": "make main",
             "type": "shell",
-            "command": "make -C ${workspaceFolder} main",
+            "command": "make -C ${workspaceFolder} -s main",
             "problemMatcher": [
                 "$gcc"
             ]

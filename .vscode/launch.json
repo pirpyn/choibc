@@ -6,22 +6,22 @@
     "configurations": [
 
         {
-            "name": "(gdb) Launch",
+            "name": "main",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/4.4.0-18362-Microsoft/g++/7.4.0/debug/static/bin/main",
+            "program": "${workspaceFolder}/build/bin/main",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "make debug main",
-            "setupCommands": [
+            "preLaunchTask": "make debug link",
+            "setupCommands": [ 
                 {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
+                    "description": "Skip standard function",
+                    "text": "skip -rfu ^std::",
+                    "ignoreFailures": true,
                 }
             ]
         }

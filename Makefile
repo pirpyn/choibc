@@ -4,22 +4,22 @@ SHELL:=/bin/bash
 .PHONY: help
 help:
 	@echo "Compilation rules"
-	@echo "   make              	# Basic compilation"
-	@echo "   make CXXC=g++  	# compiler: g++ accepted"
-	@echo "   make MODE=optim    	# optim/dev/debug provides different compilation option"
-	@echo "   make SHARED=static 	# static/shared for for dynamic or static libraries / binaries"
+	@echo "   make                  # Basic compilation"
+	@echo "   make CXXC=g++         # compiler: g++ accepted"
+	@echo "   make MODE=optim       # optim/dev/debug provides different compilation option"
+	@echo "   make SHARED=static    # static/shared for for dynamic or static libraries / binaries"
 	@echo "   make all CXXCS=\"g++\" MODES=\"optim debug\" SHAREDS=\"static shared\" # Loop over each CXXC/MODE pair and compile with it"
-	@echo "   make test           # compile the unit test"
+	@echo "   make test             # compile the unit test"
 	@echo ""
 	@echo "Running rules"
 	@echo "   make run CXXC=... MODE=... ARGS=\"arg1 arg2 ...\"    # Compile then execute the program with ARGS as argument"
 	@echo "   make run_test"
 	@echo ""
 	@echo "Help rules"
-	@echo "   make info         # Prints compiler flags, link flags, library used etc."
+	@echo "   make info             # Prints compiler flags, link flags, library used etc."
 	@echo ""
 	@echo "Cleaning rules"
-	@echo "   make clean CXXC=g++ MODE=optim                   # Remove the build folder associated with the CXXC/MODE chosen" 
+	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen" 
 	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible" 
 	@echo ""
 
@@ -55,8 +55,10 @@ fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
 else ifeq ($(CXXC),clang)
 fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 |cut -d '-' -f 1)
 endif
-blddir:=./build/$(release)/$(CXXC)/$(fcvers)
 
+blddir:=./build/$(release)/$(CXXC)/$(fcvers)
+lklibdir:=./build/lib
+lkbindir:=./build/bin
 ifeq ($(DEBUG),1)
 	MODE=debug
 else
@@ -93,7 +95,7 @@ bindir:=$(blddir)/bin
 LDFLAGS:=-L$(libdir) $(foreach lib,$(LIBNAMES),$(patsubst %,-l%,$(lib))) $(LDFLAGS)
 CXXFLAGS+=$(INCFLAGS)
 
-dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir)
+dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
 # Static libraries to build
 libs:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
@@ -128,6 +130,22 @@ main: hoibc
 	@$(MAKE) SRCDIRS=./src/main depend
 	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
 	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
+
+
+.PHONY: link
+link: main $(lklibdir) $(lkbindir)
+	@echo "Simlinking binaries and libraries"
+	@for lib in $(libs); do \
+	    rm -rf $(lklibdir)/$$(basename $${lib}); \
+	    ln -s $$(readlink -m $${lib}) $(lklibdir); \
+	done;
+	@echo "Libraries linked at $(lklibdir)"
+	@for bin in $(bins); do \
+	    rm -rf $(lkbindir)/$$(basename $${bin}); \
+	    ln -s $$(readlink -m $${bin}) $(lkbindir); \
+	done;
+	@echo "Binaries linked at $(lkbindir)"
+
 
 MODES=$(MODE)
 CXXCS=$(CXXC)
@@ -189,7 +207,7 @@ nodeps:=clean clean_all info
 
 .PHONY: depend
 depend: $(dependencies) | $(dirs)
-	@echo "Dependencies done"
+	@echo "Dependencies done for $(SRCDIRS)"
 
 # Don't create dependencies when we're cleaning, for instance
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
