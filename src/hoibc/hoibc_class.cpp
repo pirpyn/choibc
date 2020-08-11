@@ -181,11 +181,19 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   switch (this->type) {
     case 'P' :
       // f1 = kx, f2 = ky
-      n1 = static_cast<integer>((data.main.s1[1]-data.main.s1[0])/data.main.s1[2]) + 1;
+      if (data.main.s1[2] != 0){
+        n1 = static_cast<integer>((data.main.s1[1]-data.main.s1[0])/data.main.s1[2]) + 1;
+      } else {
+        n1 = 1;
+      }
       s1 = linspace(data.main.s1[0],data.main.s1[1],n1);
       f1 = s1 * k0;
 
-      n2 = int((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      if (data.main.s2[2] != 0){
+        n2 = static_cast<integer>((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      } else {
+        n2 = 1;
+      }
       s2 = linspace(data.main.s2[0],data.main.s2[1],n2);
       f2 = s2 * k0;
       break;
