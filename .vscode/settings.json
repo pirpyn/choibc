@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.sublime-project": "jsonc",
+        "*.d": "makefile",
+    }
+}
