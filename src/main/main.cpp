@@ -89,7 +89,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // Display the coefficient to the standard output (stdout)
     ibc->print_coeff();
     // Display the SUC to stdout
-    ibc->print_suc();
+    ibc->print_suc(1.);
 
     /*
       if (data_extended%out%coeff) then
