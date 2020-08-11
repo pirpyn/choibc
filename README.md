@@ -11,5 +11,5 @@ Compute High Order Impedance Boundary Condition (HOIBC) coefficients by a constr
 ### Quick Build
 
 ```shell
-    make CPPC=g++ MODE=prod -j
+    make CXXC=g++ MODE=prod -j
 ```

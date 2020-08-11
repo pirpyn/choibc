@@ -4,39 +4,39 @@ SHELL:=/bin/bash
 .PHONY: help
 help:
 	@echo "Compilation rules"
-	@echo "   make              	# Basic compilation"
-	@echo "   make CXXC=g++  	# compiler: g++ accepted"
-	@echo "   make MODE=prod    	# prod/dev/debug provides different compilation option"
-	@echo "   make SHARED=static 	# static/shared for for dynamic or static libraries / binaries"
-	@echo "   make all CXXCS=\"g++\" MODES=\"prod debug\" SHAREDS=\"static shared\" # Loop over each CXXC/MODE pair and compile with it"
-	@echo "   make test           # compile the unit test"
+	@echo "   make                  # Basic compilation"
+	@echo "   make CXXC=g++         # compiler: g++ accepted"
+	@echo "   make MODE=optim       # optim/dev/debug provides different compilation option"
+	@echo "   make SHARED=static    # static/shared for for dynamic or static libraries / binaries"
+	@echo "   make all CXXCS=\"g++\" MODES=\"optim debug\" SHAREDS=\"static shared\" # Loop over each CXXC/MODE pair and compile with it"
+	@echo "   make test             # compile the unit test"
 	@echo ""
 	@echo "Running rules"
 	@echo "   make run CXXC=... MODE=... ARGS=\"arg1 arg2 ...\"    # Compile then execute the program with ARGS as argument"
 	@echo "   make run_test"
 	@echo ""
 	@echo "Help rules"
-	@echo "   make info         # Prints compiler flags, link flags, library used etc."
+	@echo "   make info             # Prints compiler flags, link flags, library used etc."
 	@echo ""
 	@echo "Cleaning rules"
-	@echo "   make clean CXXC=g++ MODE=prod                   # Remove the build folder associated with the CXXC/MODE chosen" 
-	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"prod ...\" # Same for every CXXC/MODE pair possible" 
+	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen" 
+	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible" 
 	@echo ""
 
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=
-#./src/hoibc ./src/bessel ./src/slsqp/src
-LIBNAMES:=
-#hoibc bessel slsqp
+SRCDIRS:=./src/hoibc
+# ./src/bessel ./src/slsqp/src
+LIBNAMES:=hoibc
+# bessel slsqp
 
 EXTENSIONS:=.cpp
-
+SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
 
-# Fortran compiler
+# C++ compiler
 CXXC:=g++
 
 CXXFLAGS:=
@@ -50,10 +50,15 @@ INCFLAGS:=
 
 # Processor architecture for separate building
 release:=$(shell uname -r)
-fcvers:=$(shell bash -c "$(CXXC) -v 2>&1 | tail -n 1 | cut -d ' ' -f 3")
+ifeq ($(CXXC),g++)
+fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
+else ifeq ($(CXXC),clang)
+fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 |cut -d '-' -f 1)
+endif
 
 blddir:=./build/$(release)/$(CXXC)/$(fcvers)
-
+lklibdir:=./build/lib
+lkbindir:=./build/bin
 ifeq ($(DEBUG),1)
 	MODE=debug
 else
@@ -62,11 +67,11 @@ endif
 
 MODE=optim
 ifeq ($(MODE),debug)
-	CXXFLAGS+=$(DFLAGS) -g -O0
+	CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
 else ifeq ($(MODE),dev)
-	CXXFLAGS+=-g -O2
+	CXXFLAGS+=-g -O2 -D_DEV
 else ifeq ($(MODE),optim)
-	CXXFLAGS+=-O2
+	CXXFLAGS+=-O2 -D_OPTIM
 endif
 blddir:=$(blddir)/$(MODE)
 
@@ -75,7 +80,7 @@ ifeq ($(SHARED),1)
 	libext=so
 	CXXFLAGS+=-fPIC
 	blddir:=$(blddir)/shared
-	run_prefix=LD_LIBRARY_PATH=$(libdir):$${LD_LIBRARY_PATH}
+	LDFLAGS+=-Wl,-R(libdir)
 else
 	libext=a
 	blddir:=$(blddir)/static
@@ -90,7 +95,7 @@ bindir:=$(blddir)/bin
 LDFLAGS:=-L$(libdir) $(foreach lib,$(LIBNAMES),$(patsubst %,-l%,$(lib))) $(LDFLAGS)
 CXXFLAGS+=$(INCFLAGS)
 
-dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir)
+dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
 # Static libraries to build
 libs:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
@@ -113,17 +118,34 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 .PHONY: hoibc
 hoibc: info
 	@echo "Compiling the HOIBC library"
+	@$(MAKE) depend
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
-#@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) depend
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main depend
-	@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/main LIBNAMES=main lib prog
+	@$(MAKE) SRCDIRS=./src/main depend
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
+
+
+.PHONY: link
+link: main $(lklibdir) $(lkbindir)
+	@echo "Simlinking binaries and libraries"
+	@for lib in $(libs); do \
+	    rm -rf $(lklibdir)/$$(basename $${lib}); \
+	    ln -s $$(readlink -m $${lib}) $(lklibdir); \
+	done;
+	@echo "Libraries linked at $(lklibdir)"
+	@for bin in $(bins); do \
+	    rm -rf $(lkbindir)/$$(basename $${bin}); \
+	    ln -s $$(readlink -m $${bin}) $(lkbindir); \
+	done;
+	@echo "Binaries linked at $(lkbindir)"
+
 
 MODES=$(MODE)
 CXXCS=$(CXXC)
@@ -133,7 +155,7 @@ all:
 	@for MODE in $(MODES); do \
 	  for CXXC in $(CXXCS); do \
 	    for SHARED in $(SHAREDS); do \
-	      $(MAKE) -sj CXXC=$${CXXC} MODE=$${MODE} SHARED=$${SHARED} main; \
+	      $(MAKE) CXXC=$${CXXC} MODE=$${MODE} SHARED=$${SHARED} main; \
 	    done; \
 	  done; \
 	done
@@ -156,33 +178,10 @@ $(dirs):
 	mkdir -p $@;
 
 #############################################################################
-# Rules for dependencies
-# https://stackoverflow.com/a/313787/8506658
-
-# Corresponding dependencies
-dependencies:=$(patsubst %.o,%.d,$(objects))
-
-.PHONY: depend
-depend: $(dependencies) | $(dirs)
-	@echo "Dependencies done"
-
-# Don't create dependencies when we're cleaning, for instance
-ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
-    #Chances are, these files don't exist.  GMake will create them and
-    #clean up automatically afterwards
-    -include $(depfiles)
-endif
-
-# This is the rule for creating the dependency files
-$(objdir)/%.d: %.cpp | $(dirs) 
-	@echo "  $@"
-	@$(CXX) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
-
-#############################################################################
 
 $(objdir)/%.o: %.cpp %.hpp %.d
 	@echo "  $<"
-	$(CXXC) $(CXXFLAGS) -o $@ -c $<
+	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(libdir)/%.a: $(objects)
 	@echo "Creating $@"
@@ -194,9 +193,34 @@ $(libdir)/%.so: $(objects)
 
 $(bindir)/%: $(objdir)/%.o $(libs)
 	@echo "Linking $@"
-	$(CXXC) -o $@ $^ $(LDFLAGS)
+	@$(CXXC) -o $@ $< $(LDFLAGS)
 
 #############################################################################
+# Rules for dependencies
+# https://stackoverflow.com/a/313787/8506658
+
+# # Corresponding dependencies
+dependencies:=$(objects:%.o=%.d)
+
+#We don't need to clean up when we're making these targets
+nodeps:=clean clean_all info
+
+.PHONY: depend
+depend: $(dependencies) | $(dirs)
+	@echo "Dependencies done for $(SRCDIRS)"
+
+# Don't create dependencies when we're cleaning, for instance
+ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
+    #Chances are, these files don't exist.  GMake will create them and
+    #clean up automatically afterwards
+    -include $(dependencies)
+endif
+
+# This is the rule for creating the dependency files
+$(objdir)/%.d: %.cpp | $(dirs)
+	@echo "  $@"
+	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
+
 #############################################################################
 TEST_SRCDIR:=./src/test
 TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wildcard $(TEST_SRCDIR)/*$(ext))))
@@ -204,9 +228,8 @@ TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wil
 .PHONY: test
 test: hoibc
 	@echo "Compiling the unit tests"
-
-#@$(MAKE) -s CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc bessel slsqp" prog
+	@$(MAKE) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
+	@$(MAKE) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
 
 .PHONY: run_test
 run_test: test
@@ -214,7 +237,7 @@ run_test: test
 	echo "Running the $${#TESTS[@]} tests"; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
 		printf  "[%3d / %3d] " $$(($${i}+1)) $${#TESTS[@]}; \
-		$(run_prefix) ./$${TESTS[$$i]}; \
+		./$${TESTS[$$i]}; \
 	done
 
 #############################################################################
@@ -222,14 +245,14 @@ run_test: test
 # Other rules
 .PHONY: clean
 clean:
-	rm -rf $(blddir)
+	$(RM) -rf $(blddir)
 
 .PHONY: clean_all
 clean_all:
 	@for MODE in $(MODES); do \
 	  for CXXC in $(CXXCS); do \
 	    for SHARED in $(SHAREDS); do \
-		    $(MAKE) -s CXXC=$${CXXC} SHARED=$${SHARED} MODE=$${MODE} clean; \
+		    $(MAKE) CXXC=$${CXXC} SHARED=$${SHARED} MODE=$${MODE} clean; \
 		  done; \
 	  done; \
 	done
@@ -240,7 +263,7 @@ run: main
 		echo ; \
 		echo ">> $(PREFIX) $${bin} $(ARGS)"; \
 		echo ; \
-		$(run_prefix) $(PREFIX) $${bin} $(ARGS); \
+		$(PREFIX) $${bin} $(ARGS); \
 	done
 
 %.cpp: ;
