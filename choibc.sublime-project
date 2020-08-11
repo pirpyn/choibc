@@ -11,14 +11,14 @@
       },
       "variants": [
           {
-            "name" : "g++",
+            "name" : "hoibc",
             "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):(.*)$",
             "syntax": "",
             "linux": {
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug",
             },
             "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug'",
+              "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug\"",
             },
           },
           {
@@ -29,7 +29,7 @@
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug main",
             },
             "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug main'",
+              "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug main\"",
             },
           },
           {
@@ -53,12 +53,6 @@
             },
             "windows": { // for linux subsystem
               "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run'",
-            },
-          },
-          {
-            "name" : "lapack",
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c './get_lapack.sh'",
             },
           },
           {
