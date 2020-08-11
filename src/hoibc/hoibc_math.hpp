@@ -95,11 +95,10 @@ namespace hoibc {
   template<typename T>
   matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
     matrix<T> C;
-    for (short i=0;i<2;i++) {
-      for (short j=0;j<2;j++) {
-        C[i][j] = A[i][0]*B[0][j] + A[i][1]*B[1][j];
-      }
-    }
+    C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
+    C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
+    C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
+    C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
     return C;
   }
 
