@@ -1,7 +1,7 @@
 #include "hoibc_math_plane.hpp"
 #include "hoibc_types.hpp"
 #include "hoibc_constants.hpp"
-#include "hoibc_math.hpp" // matmul
+#include "hoibc_math.hpp" // matmul, inv
 #include <iostream>
 #include <numeric> // std::accumulate
 #include <cmath> // pow, sqrt, imag, abs
@@ -91,7 +91,7 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
   big_matrix<complex> impedance_ex;
   impedance_ex.resize(vkx.size()); // impedance_ex[:][][2][2]
-  for (auto& row : impedance_ex ) {
+  for (auto&& row : impedance_ex ) {
     row.resize(vky.size());  // impedance_ex[:][:][2][2]
   }
 
