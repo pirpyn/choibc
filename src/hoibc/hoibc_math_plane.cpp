@@ -89,17 +89,8 @@ matrix<complex> hoibc::MB(const real& kx, const real& ky, const complex& k, cons
 
 big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx, const  std::vector<real> &vky, const real& k0, const material_t& material){
 
-  big_matrix<complex> impedance_ex;
-  impedance_ex.resize(vkx.size()); // impedance_ex[:][][2][2]
-  for (auto& row : impedance_ex ) {
-    row.resize(vky.size());  // impedance_ex[:][:][2][2]
-  }
+  big_matrix<complex> impedance_ex = big_init(vkx.size(), vky.size(), material.initial_impedance);
 
-  for (auto&& row : impedance_ex) {
-    for (auto&& z : row) {
-      z = material.initial_impedance;
-    }
-  }
   const std::vector<real>& thickness = material.thickness;
 
   real h = - std::accumulate(thickness.begin(),thickness.end(),static_cast<real>(0));
