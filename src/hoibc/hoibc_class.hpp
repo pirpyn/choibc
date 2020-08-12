@@ -39,7 +39,7 @@ namespace hoibc
 
         virtual void disp_coeff(std::ostream& out) = 0;
 
-        void get_reflexion();
+        big_matrix<complex> get_reflexion(const real& k0, std::vector<real>& f1, std::vector<real>& f2);
 
         void get_coeff(const data_t& data, const std::vector<real>& f1, const std::vector<real>& f2);
 
