@@ -181,7 +181,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] <= tol){
-        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -189,7 +189,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] > tol){
-        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -200,15 +200,15 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
       for (std::size_t i = 0; i < ceq.size(); i++){
         if (ceq[i] <= tol){
-        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
     if (any(real, ceq, std::abs(x) > 0.)){
       out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
-      for (std::size_t i = 0; i < ceq.size(); i++){
+      for (std::size_t i = 0; i+1 < ceq.size(); i++){
         if (cle[i] > tol){
-        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
@@ -219,7 +219,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] <= tol){
-        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
@@ -227,7 +227,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] > tol){
-        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
