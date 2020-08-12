@@ -64,8 +64,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     ! depending on the IBC
     */
   for ( const auto& ibc : hoibc_list ) {
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::endl << std::string(60,'#') << std::endl;
+    std::cout << std::string(60,'#') << std::endl << std::endl;
 
 
 
