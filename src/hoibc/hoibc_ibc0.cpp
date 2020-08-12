@@ -1,11 +1,37 @@
 #include "hoibc_ibc0.hpp"
 #include "hoibc_math.hpp"
+#include "hoibc_math_plane.hpp"
 
 using namespace hoibc;
 
 void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrix<complex>& gex, const real& k0){
-  switch (this->mode)  {
-  case 2:
+  // The IBC0 is such that a0 = Z11(0,0) = Z22(0,0)
+
+  // We're in the vaccum
+  const complex k = k0;
+  const complex etar = 1.;
+  const real z = 0.;
+
+  big_matrix<complex> mAE,mBE,mAH,mBH;
+
+  switch (this->mode){
+  case 1: // if reflexion
+      switch (this->type){
+        case ('P'):    // For the plane we fit with respect to the reflexion coefficent
+          // we only need the first element of the big matrices, so pass only firs telement of f1 & f2
+          plane::get_matrices_AB_EH(std::vector<real>({f1[0]}),std::vector<real>({f2[0]}),k,etar,z,mAE,mBE,mAH,mBH);
+          break;
+        default:
+          std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << this->mode << " type = " << this->type << "unknown" << std::endl;
+          break;
+      }
+      this->coeff.a0 = 
+        matmul(
+          inv(mAH[0][0] + matmul(mBH[0][0],gex[0][0])),
+          mAE[0][0] + matmul(mBE[0][0],gex[0][0])
+        )[0][0];
+        break;
+  case 2: // if impedance
     this->coeff.a0 = gex[0][0][0][0];
     break;
   default:

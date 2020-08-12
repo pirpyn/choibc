@@ -5,10 +5,12 @@
 #include <iostream>
 #include <numeric> // std::accumulate
 #include <cmath> // pow, sqrt, imag, abs
+#include <limits> // epsilon
 
 using namespace hoibc;
+using namespace hoibc::plane;
 
-matrix<complex> hoibc::AE(const real& kx, const real& ky, const complex& k, const real& z){
+matrix<complex> hoibc::plane::AE(const real& kx, const real& ky, const complex& k, const real& z){
   complex k3;
   if ((z>=0.)&&(std::abs(std::imag(k))<=0.)) {
     // On the outside  where z >= 0 and k = k0 is real, we need non-infinite solution 
@@ -23,12 +25,12 @@ matrix<complex> hoibc::AE(const real& kx, const real& ky, const complex& k, cons
   matrix<complex> AE;
   AE[0][0] = std::exp(ci*k3*z)*ci*k3;
   AE[1][0] = 0.;
-  AE[0][1] = AE[0][1];
+  AE[0][1] = AE[1][0];
   AE[1][1] = AE[0][0];
   return AE;
 }
 
-matrix<complex> hoibc::BE(const real& kx, const real& ky, const complex& k, const real& z){
+matrix<complex> hoibc::plane::BE(const real& kx, const real& ky, const complex& k, const real& z){
   complex k3;
   if ((z>=0.)&&(std::abs(std::imag(k))<=0.)) {
     // See AE above
@@ -38,14 +40,14 @@ matrix<complex> hoibc::BE(const real& kx, const real& ky, const complex& k, cons
     k3 = std::sqrt(std::pow(k,2) - std::pow(kx,2) - std::pow(ky,2));
   }
   matrix<complex> BE;
-  BE[0][0] = std::exp(-ci*k3*z)*ci*k3;
+  BE[0][0] = -std::exp(-ci*k3*z)*ci*k3;
   BE[1][0] = 0.;
   BE[0][1] = BE[1][0];
   BE[1][1] = BE[0][0];
   return BE;
 }
 
-matrix<complex> hoibc::AH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z){
+matrix<complex> hoibc::plane::AH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z){
   complex k3;
   if ((z>=0.)&&(std::abs(std::imag(k))<=0.)) {
     // See AE above
@@ -56,13 +58,13 @@ matrix<complex> hoibc::AH(const real& kx, const real& ky, const complex& k, cons
   }
   matrix<complex> AH;
   AH[0][0] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
-  AH[1][0] = std::exp(ci*k3*z)*ci/k/etar*(-kx*ky);
+  AH[1][0] = std::exp(ci*k3*z)*ci/k/etar*kx*ky;
   AH[0][1] = AH[1][0];
   AH[1][1] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return AH;
 }
 
-matrix<complex> hoibc::BH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z){
+matrix<complex> hoibc::plane::BH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z){
   complex k3;
   if ((z>=0.)&&(std::abs(std::imag(k))<=0.)) {
     // See AE above
@@ -73,11 +75,35 @@ matrix<complex> hoibc::BH(const real& kx, const real& ky, const complex& k, cons
   }
   matrix<complex> BH;
   BH[0][0] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
-  BH[1][0] = std::exp(-ci*k3*z)*ci/k/etar*(-kx*ky);
+  BH[1][0] = std::exp(-ci*k3*z)*ci/k/etar*kx*ky;
   BH[0][1] = BH[1][0];
   BH[1][1] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return BH;
 }
+
+void hoibc::plane::get_matrices_AB_EH(const std::vector<real>& f1, const std::vector<real>& f2, const complex& k, const complex& etar, const real& z, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH){
+  // return big 4 rank arrays that store AE, BE, AH, BH matrices
+  // for every kx and ky
+  //
+  // e.g.
+  //
+  //    mAE[i][j] <=> AE(kx(i),ky(j),k,z)
+
+  mAE = big_init(f1.size(),f2.size(),complex(0.,0.));
+  mBE = big_init(f1.size(),f2.size(),complex(0.,0.));
+  mAH = big_init(f1.size(),f2.size(),complex(0.,0.));
+  mBH = big_init(f1.size(),f2.size(),complex(0.,0.));
+
+  for (std::size_t i1 = 0; i1 < f1.size(); i1++){
+    for (std::size_t i2 = 0; i2 < f2.size(); i2++){
+      mAE[i1][i2] = AE(f1[i1],f2[i2],k,z);
+      mBE[i1][i2] = BE(f1[i1],f2[i2],k,z);
+      mAH[i1][i2] = AH(f1[i1],f2[i2],k,etar,z);
+      mBH[i1][i2] = BH(f1[i1],f2[i2],k,etar,z);
+    }
+  }
+}
+
 
 matrix<complex> hoibc::MA(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z, const matrix<complex>& imp){
   return AE(kx,ky,k,z) - matmul(imp,AH(kx,ky,k,etar,z));
@@ -93,9 +119,9 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
   const std::vector<real>& thickness = material.thickness;
 
-  real h = - std::accumulate(thickness.begin(),thickness.end(),static_cast<real>(0));
+  real h = - std::accumulate(thickness.begin(),thickness.end(),0.);
 
-  for (unsigned int i=0;i<thickness.size();i++) {
+  for (std::size_t i = 0; i < thickness.size(); i++) {
     complex mu = material.mur[i];
     complex eps = material.epsr[i];
     real d = thickness[i];
@@ -118,7 +144,8 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
       exit(1);
     }
 
-    const complex k = k0*etar;
+    const complex k = k0*nur;
+
     for (unsigned int i=0; i<vkx.size();i++) {
       const real kx = vkx[i];
       for (unsigned int j=0; j<vky.size();j++) {
@@ -132,10 +159,10 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
         const matrix<complex> mAH = AH(kx,ky,k,etar,h+d);
         const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
         const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
-
+        std::cerr << "Z  " << impedance_ex[i][j][1][1] << std::endl;
         impedance_ex[i][j] = matmul<complex>(
           matmul<complex>(mBE,mMB) - matmul<complex>(mAE,mMA),
-          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,inv<complex>(mMA)))
+          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,mMA))
           );
       }
     }
@@ -144,6 +171,171 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
   return impedance_ex;
 }
 
-void hoibc::reflexion_infinite_plane(){
-  std::cout << "hoibc_math_plane::reflexion_infinite_plane: i do nothing" << std::endl;
+big_matrix<complex> hoibc::reflexion_infinite_plane(const std::vector<real>& vkx, const std::vector<real>& vky, const real& k0, const material_t& material){
+
+  big_matrix<complex> reflexion_ex = big_init(vkx.size(),vky.size(),complex(0.,0.));
+
+  if (!((material.thickness.size()==material.epsr.size()) && (material.epsr.size() == material.mur.size()))){
+    std::cerr << "error: hoibc::reflexion_infinite_plane: size(thickness)<>size(epsr)<>size(mur)" << std::endl;
+    std::exit(1);
+  }
+
+  // The deepest interface ( i.e between pec and coating )
+  complex mu_upper = material.mur[0];
+  complex eps_upper = material.epsr[0];
+  if ((std::abs(std::imag(mu_upper))<=0.)&&(std::abs(std::imag(eps_upper))<=0.)&&(std::abs(material.loss)>0.)){
+    std::cerr << "Layer " << 1 << ": adding artificial loss of" << material.loss << std::endl;
+    mu_upper  = complex(std::real(mu_upper),-std::abs(material.loss));
+    eps_upper = complex(std::real(eps_upper),-std::abs(material.loss));
+  }
+
+  complex etar_upper = std::sqrt(mu_upper/eps_upper);
+  complex nur_upper = std::sqrt(mu_upper*eps_upper);
+
+  if (std::imag(nur_upper) > 0.){
+    std::cerr << "error: reflexion_infinite_plane: Im(nur) > 0 (" << std::imag(nur_upper) << ")" << std::endl;
+    exit(1);
+  }
+  if (std::real(etar_upper) < 0.){
+    std::cerr <<"error: reflexion_infinite_plane:error: Re(etar) < 0 (" << std::real(etar_upper) << ")" << std::endl;
+    exit(1);
+  }
+
+  complex k_upper = k0*nur_upper;
+
+  real h = - std::accumulate(material.thickness.begin(),material.thickness.end(),0.);
+
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    const real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      const real ky = vky[n2];
+
+      const matrix<complex> mAE = AE(kx,ky,k_upper,h);
+      const matrix<complex> mBE = BE(kx,ky,k_upper,h);
+
+      const matrix<complex> mAH = AH(kx,ky,k_upper,etar_upper,h);
+      const matrix<complex> mBH = BH(kx,ky,k_upper,etar_upper,h);
+
+      reflexion_ex[n1][n2] = -matmul(
+        inv(mBE-matmul(material.initial_impedance,mBH)),
+        mAE-matmul(material.initial_impedance,mAH)
+        );
+    }
+  }
+
+  // Strictly intermediate interfaces ( i.e label 2 to n-1 )
+  for (std::size_t l = 0; l < material.thickness.size() - 1; l++){
+    complex mu_lower = material.mur[l];
+    complex eps_lower = material.epsr[l];
+    if ((std::abs(std::imag(mu_lower))<=0.)&&(std::abs(std::imag(eps_lower))<=0.)){
+      mu_lower  = complex(std::real(mu_lower),-std::abs(material.loss));
+      eps_lower = complex(std::real(eps_lower),-std::abs(material.loss));
+    }
+    complex etar_lower = std::sqrt(mu_lower/eps_lower);
+    complex nur_lower = std::sqrt(mu_lower*eps_lower);
+    complex k_lower = k0*nur_lower;
+
+    mu_upper = material.mur[l+1];
+    eps_upper = material.epsr[l+1];
+    if ((std::abs(std::imag(mu_upper))<=0.)&&(std::abs(std::imag(eps_upper))<=0.)&&(std::abs(material.loss)>0.)){
+      std::cerr << "Layer " << l+1 << ": adding artificial loss of" << material.loss << std::endl;
+      mu_upper  = complex(std::real(mu_upper),-std::abs(material.loss));
+      eps_upper = complex(std::real(eps_upper),-std::abs(material.loss));
+    }
+    etar_upper = std::sqrt(mu_upper/eps_upper);
+    nur_upper = std::sqrt(mu_upper*eps_upper);
+    k_upper = k0*nur_upper;
+
+    if (std::imag(nur_upper) > 0.){
+      std::cerr << "error: reflexion_infinite_plane: Im(nur) > 0" << std::endl;
+      exit(1);
+    }
+    if (std::real(etar_upper) < 0.){
+      std::cerr << "error: impedance_infinite_plane: Re(etar) < 0" << std::endl;
+    }
+
+    h += material.thickness[l];
+    for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+      real kx = vkx[n1];
+      for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+        real ky = vky[n2];
+        
+        matrix<complex>& mR = reflexion_ex[n1][n2];
+        const matrix<complex> mAE_lower = AE(kx,ky,k_lower,h);
+        const matrix<complex> mBE_lower = BE(kx,ky,k_lower,h);
+        const matrix<complex> mAE_upper = AE(kx,ky,k_upper,h);
+        const matrix<complex> mBE_upper = BE(kx,ky,k_upper,h);
+
+        const matrix<complex> mAH_lower = AH(kx,ky,k_lower,etar_lower,h);
+        const matrix<complex> mBH_lower = BH(kx,ky,k_lower,etar_lower,h);
+        const matrix<complex> mAH_upper = AH(kx,ky,k_upper,etar_upper,h);
+        const matrix<complex> mBH_upper = BH(kx,ky,k_upper,etar_upper,h);
+
+        reflexion_ex[n1][n2] = - matmul(
+          inv(
+            matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mBE_upper)
+            -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mBH_upper)
+          ),
+          matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mAE_upper)
+          -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mAH_upper)
+        );
+      }
+    }
+  }
+  // The coating-vacuum interface (h = 0)
+  // last layer
+  complex mu_lower = material.mur[material.mur.size()-1];
+  complex eps_lower = material.epsr[material.epsr.size()-1];
+  if ((std::abs(std::imag(mu_lower))<=0.)&&(std::abs(std::imag(eps_lower))<=0.)){
+    mu_lower  = complex(std::real(mu_lower),-std::abs(material.loss));
+    eps_lower = complex(std::real(eps_lower),-std::abs(material.loss));
+  }
+  complex etar_lower = std::sqrt(mu_lower/eps_lower);
+  complex nur_lower = std::sqrt(mu_lower*eps_lower);
+  complex k_lower = k0*nur_lower;
+
+  // vacuum
+  h = 0.;
+  mu_upper = 1.;
+  eps_upper = 1.;
+  etar_upper = 1.;
+  nur_upper = 1.;
+  k_upper = k0;
+
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      real ky = vky[n2];
+      if (std::abs(std::pow(k_upper,2) - std::pow(kx,2) - std::pow(ky,2)) <= std::numeric_limits<real>::epsilon()){
+        // In that case, we get a 0/0 which result in NaN.
+        // Mathematical analysis gives to following value at that point
+        matrix<complex> mR0 { 0. };
+        mR0[0][0] = complex(1.,0.);
+        mR0[1][1] = complex(-1.,0.);
+        reflexion_ex[n1][n2] = mR0;
+      } else {
+        matrix<complex>& mR = reflexion_ex[n1][n2];
+        const matrix<complex> mAE_lower = AE(kx,ky,k_lower,h);
+        const matrix<complex> mBE_lower = BE(kx,ky,k_lower,h);
+        const matrix<complex> mAE_upper = AE(kx,ky,k_upper,h);
+        const matrix<complex> mBE_upper = BE(kx,ky,k_upper,h);
+
+        const matrix<complex> mAH_lower = AH(kx,ky,k_lower,etar_lower,h);
+        const matrix<complex> mBH_lower = BH(kx,ky,k_lower,etar_lower,h);
+        const matrix<complex> mAH_upper = AH(kx,ky,k_upper,etar_upper,h);
+        const matrix<complex> mBH_upper = BH(kx,ky,k_upper,etar_upper,h);
+
+        reflexion_ex[n1][n2] = - matmul(
+          inv(
+            matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mBE_upper)
+            -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mBH_upper)
+          ),
+          matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mAE_upper)
+          -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mAH_upper)
+        );
+      }
+    }
+  }
+
+  return reflexion_ex;
 }

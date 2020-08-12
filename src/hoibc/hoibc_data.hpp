@@ -4,8 +4,6 @@
 #include "hoibc_types.hpp"
 
 #include <iostream>
-#include <vector>
-#include <array>
 #include <string>
 
 
@@ -20,11 +18,11 @@ namespace hoibc
 
   struct material_t
   {
-    std::vector<complex> epsr;       // Relative permitivity
-    std::vector<complex> mur;        // Relative permeability
-    std::vector<real>    thickness;  // Thickness in meter
+    std::vector<complex> epsr;        // Relative permitivity
+    std::vector<complex> mur;         // Relative permeability
+    std::vector<real>    thickness;   // Thickness in meter
     real                 loss { 0. }; // Artificial loss to add to epsr & mur
-    std::array<std::array<complex,2>,2> initial_impedance { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
+    matrix<complex>      initial_impedance { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
   };
 
   struct hoibc_t

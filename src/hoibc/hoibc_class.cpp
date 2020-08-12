@@ -27,7 +27,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
     case 1 :
       switch (this->type) {
         case 'P' :
-          reflexion_infinite_plane();
+          gex = reflexion_infinite_plane(f1,f2,k0,data.material);
           break;
         case 'C' :
           reflexion_infinite_cylinder();
@@ -181,7 +181,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] <= tol){
-        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -189,7 +189,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] > tol){
-        out << "#     IN(" << i << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -200,15 +200,15 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
       for (std::size_t i = 0; i < ceq.size(); i++){
         if (ceq[i] <= tol){
-        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
     if (any(real, ceq, std::abs(x) > 0.)){
       out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
-      for (std::size_t i = 0; i < ceq.size(); i++){
+      for (std::size_t i = 0; i+1 < ceq.size(); i++){
         if (cle[i] > tol){
-        out << "#     IN(" << i << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
@@ -219,7 +219,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] <= tol){
-        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
@@ -227,7 +227,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
       out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] > tol){
-        out << "#     IN(" << i << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
@@ -273,7 +273,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       // We truncate the number of Fourier coefficient to s2*k0*outer_radius + 1
       // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in 
       // front of the bessel functions Jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same Hn)
-      if (data.main.s1[1]<1) {
+      if (data.main.s1[1]<1){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
       }
       
@@ -295,7 +295,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       // We truncate the number of Mie coefficient to s2*k0*outer_radius*sqrt(2) + 8 (same as Matlab)
       // It should be noted that max(s2) should be at least superior or equal to 1 because the Mie coefficient on front
       // of the spherical bessel functions jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
-      if (data.main.s2[1] < 1.) {
+      if (data.main.s2[1] < 1.){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
       }
       n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 8;

@@ -16,7 +16,7 @@ int main() {
   data.hoibc.suc          = {false,false};
   data.hoibc.type         = {'P','P'};
   data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {2,2};
+  data.hoibc.mode         = {1,2};
   data.hoibc.normalised   = {true,false};
 
   // prints the parameters to stdout
@@ -64,8 +64,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     ! depending on the IBC
     */
   for ( const auto& ibc : hoibc_list ) {
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::endl << std::string(60,'#') << std::endl;
+    std::cout << std::string(60,'#') << std::endl << std::endl;
 
 
 
