@@ -18,7 +18,7 @@ void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std:
   case 1: // if reflexion
       switch (this->type){
         case ('P'):    // For the plane we fit with respect to the reflexion coefficent
-          // we only need the first element of the big matrices, so pass only firs telement of f1 & f2
+          // we only need the first element of the big matrices, so pass only first element of f1 & f2
           plane::get_matrices_AB_EH(std::vector<real>({f1[0]}),std::vector<real>({f2[0]}),k,etar,z,mAE,mBE,mAH,mBH);
           break;
         default:
