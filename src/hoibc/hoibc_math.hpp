@@ -117,6 +117,16 @@ namespace hoibc {
   }
 
   template<typename T>
+  matrix<T> operator-(const matrix<T>& A){
+    matrix<T> C;
+    C[0][0] = -A[0][0];
+    C[1][0] = -A[1][0];
+    C[0][1] = -A[0][1];
+    C[1][1] = -A[1][1];
+    return C;
+  }
+
+  template<typename T>
   matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
     matrix<T> C;
     C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];

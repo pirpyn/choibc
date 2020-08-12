@@ -16,7 +16,7 @@ int main() {
   data.hoibc.suc          = {false,false};
   data.hoibc.type         = {'P','P'};
   data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {2,2};
+  data.hoibc.mode         = {1,2};
   data.hoibc.normalised   = {true,false};
 
   // prints the parameters to stdout
