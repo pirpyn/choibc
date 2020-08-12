@@ -4,8 +4,6 @@
 #include "hoibc_types.hpp"
 
 #include <iostream>
-#include <vector>
-#include <array>
 #include <string>
 
 
