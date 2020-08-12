@@ -1,10 +1,10 @@
 #include "hoibc_math_plane.hpp"
 #include "hoibc_types.hpp"
 #include "hoibc_constants.hpp"
-#include "hoibc_math.hpp" // matmul, inv
+#include "hoibc_math.hpp" // matmul, inv, big_init, overloaded *+-/
 #include <iostream>
 #include <numeric> // std::accumulate
-#include <cmath> // pow, sqrt, imag, abs
+#include <cmath> // pow, sqrt, imag, real, abs
 #include <limits> // epsilon
 
 using namespace hoibc;
@@ -113,7 +113,7 @@ matrix<complex> hoibc::MB(const real& kx, const real& ky, const complex& k, cons
   return BE(kx,ky,k,z) - matmul(imp,BH(kx,ky,k,etar,z));
 }
 
-big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx, const  std::vector<real> &vky, const real& k0, const material_t& material){
+big_matrix<complex> hoibc::plane::impedance_infinite(const std::vector<real> &vkx, const  std::vector<real> &vky, const real& k0, const material_t& material){
 
   big_matrix<complex> impedance_ex = big_init(vkx.size(), vky.size(), material.initial_impedance);
 
@@ -153,16 +153,12 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
         const matrix<complex>& B = impedance_ex[i][j];
 
-        const matrix<complex> mBE = BE(kx,ky,k,h+d);
-        const matrix<complex> mAE = AE(kx,ky,k,h+d);
-        const matrix<complex> mBH = BH(kx,ky,k,etar,h+d);
-        const matrix<complex> mAH = AH(kx,ky,k,etar,h+d);
         const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
         const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
-        std::cerr << "Z  " << impedance_ex[i][j][1][1] << std::endl;
+
         impedance_ex[i][j] = matmul<complex>(
-          matmul<complex>(mBE,mMB) - matmul<complex>(mAE,mMA),
-          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,mMA))
+          matmul<complex>(BE(kx,ky,k,h+d),mMB) - matmul<complex>(AE(kx,ky,k,h+d),mMA),
+          inv<complex>(matmul<complex>(BH(kx,ky,k,etar,h+d),mMB) - matmul<complex>(AH(kx,ky,k,etar,h+d),mMA))
           );
       }
     }
@@ -171,12 +167,33 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
   return impedance_ex;
 }
 
-big_matrix<complex> hoibc::reflexion_infinite_plane(const std::vector<real>& vkx, const std::vector<real>& vky, const real& k0, const material_t& material){
+big_matrix<complex> hoibc::plane::impedance_from_reflexion(const std::vector<real>& vkx,const std::vector<real>& vky, const real& k0,const big_matrix<complex>& reflexion){
+  // In the vacuum
+  const complex k = k0;
+  const complex etar = 1.;
+  const real h = 0.;
+  
+  big_matrix<complex> impedance = big_init(vkx.size(),vky.size(),complex(0.,0.));
+
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    const real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      const real ky = vky[n2];
+      impedance[n1][n2] = matmul(
+        inv(AH(kx,ky,k,etar,h)+matmul(BH(kx,ky,k,etar,h),reflexion[n1][n2])),
+        AE(kx,ky,k,h)+matmul(BE(kx,ky,k,h),reflexion[n1][n2])
+        );
+    }
+  }
+  return impedance;
+}
+
+big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vkx, const std::vector<real>& vky, const real& k0, const material_t& material){
 
   big_matrix<complex> reflexion_ex = big_init(vkx.size(),vky.size(),complex(0.,0.));
 
   if (!((material.thickness.size()==material.epsr.size()) && (material.epsr.size() == material.mur.size()))){
-    std::cerr << "error: hoibc::reflexion_infinite_plane: size(thickness)<>size(epsr)<>size(mur)" << std::endl;
+    std::cerr << "error: hoibc::plane::reflexion_infinite: size(thickness)<>size(epsr)<>size(mur)" << std::endl;
     std::exit(1);
   }
 
@@ -193,11 +210,11 @@ big_matrix<complex> hoibc::reflexion_infinite_plane(const std::vector<real>& vkx
   complex nur_upper = std::sqrt(mu_upper*eps_upper);
 
   if (std::imag(nur_upper) > 0.){
-    std::cerr << "error: reflexion_infinite_plane: Im(nur) > 0 (" << std::imag(nur_upper) << ")" << std::endl;
+    std::cerr << "error: hoibc::plane::reflexion_infinite: Im(nur) > 0 (" << std::imag(nur_upper) << ")" << std::endl;
     exit(1);
   }
   if (std::real(etar_upper) < 0.){
-    std::cerr <<"error: reflexion_infinite_plane:error: Re(etar) < 0 (" << std::real(etar_upper) << ")" << std::endl;
+    std::cerr <<"error: hoibc::plane::reflexion_infinite: Re(etar) < 0 (" << std::real(etar_upper) << ")" << std::endl;
     exit(1);
   }
 
@@ -338,4 +355,47 @@ big_matrix<complex> hoibc::reflexion_infinite_plane(const std::vector<real>& vkx
   }
 
   return reflexion_ex;
+}
+
+big_matrix<complex> hoibc::plane::reflexion_from_impedance(const std::vector<real>& vkx,const std::vector<real>& vky,const real& k0, const big_matrix<complex>& impedance){
+  
+  big_matrix<complex> reflexion = big_init(vkx.size(),vky.size(),complex(0.,0.));
+
+  // in the vacuum
+  const real h = 0.;
+  const complex k = k0;
+  const complex etar = 1.;
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      real ky = vky[n2];
+      if (std::abs(std::pow(k,2) - std::pow(kx,2) - std::pow(ky,2)) <= std::numeric_limits<real>::epsilon()){
+        // In that case, we get a 0/0 which result in NaN.
+        // Mathematical analysis gives to following value at that point
+        matrix<complex> mR0 { 0. };
+        mR0[0][0] = complex(1.,0.);
+        mR0[1][1] = complex(1.,0.);
+        reflexion[n1][n2] = mR0;
+        if (std::abs(kx)<=0.){
+          mR0[0][0] = complex(1.,0.);
+          mR0[1][1] = complex(-1.,0.);
+          reflexion[n1][n2] = mR0;
+        }
+        if (std::abs(ky)<=0.){
+          mR0[0][0] = complex(-1.,0.);
+          mR0[1][1] = complex(1.,0.);
+          reflexion[n1][n2] = mR0;
+        }
+      } else {
+        const matrix<complex> mZ  = impedance[n1][n2];
+        const matrix<complex> mAE = AE(kx,ky,k,h);
+        const matrix<complex> mBE = BE(kx,ky,k,h);
+        const matrix<complex> mAH = AH(kx,ky,k,etar,h);
+        const matrix<complex> mBH = BH(kx,ky,k,etar,h);
+
+        reflexion[n1][n2] = - matmul(inv(mBE - matmul(mZ,mBH)),mAE - matmul(mZ,mAH));
+      }
+    }
+  }
+  return reflexion;
 }
