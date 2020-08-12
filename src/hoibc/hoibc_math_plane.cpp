@@ -25,7 +25,7 @@ matrix<complex> hoibc::plane::AE(const real& kx, const real& ky, const complex& 
   matrix<complex> AE;
   AE[0][0] = std::exp(ci*k3*z)*ci*k3;
   AE[1][0] = 0.;
-  AE[0][1] = AE[0][1];
+  AE[0][1] = AE[1][0];
   AE[1][1] = AE[0][0];
   return AE;
 }
@@ -40,7 +40,7 @@ matrix<complex> hoibc::plane::BE(const real& kx, const real& ky, const complex& 
     k3 = std::sqrt(std::pow(k,2) - std::pow(kx,2) - std::pow(ky,2));
   }
   matrix<complex> BE;
-  BE[0][0] = std::exp(-ci*k3*z)*ci*k3;
+  BE[0][0] = -std::exp(-ci*k3*z)*ci*k3;
   BE[1][0] = 0.;
   BE[0][1] = BE[1][0];
   BE[1][1] = BE[0][0];
@@ -58,7 +58,7 @@ matrix<complex> hoibc::plane::AH(const real& kx, const real& ky, const complex& 
   }
   matrix<complex> AH;
   AH[0][0] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
-  AH[1][0] = std::exp(ci*k3*z)*ci/k/etar*(-kx*ky);
+  AH[1][0] = std::exp(ci*k3*z)*ci/k/etar*kx*ky;
   AH[0][1] = AH[1][0];
   AH[1][1] = std::exp(ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return AH;
@@ -75,7 +75,7 @@ matrix<complex> hoibc::plane::BH(const real& kx, const real& ky, const complex& 
   }
   matrix<complex> BH;
   BH[0][0] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(ky,2));
-  BH[1][0] = std::exp(-ci*k3*z)*ci/k/etar*(-kx*ky);
+  BH[1][0] = std::exp(-ci*k3*z)*ci/k/etar*kx*ky;
   BH[0][1] = BH[1][0];
   BH[1][1] = std::exp(-ci*k3*z)*ci/k/etar*(std::pow(k,2)-std::pow(kx,2));
   return BH;
@@ -119,9 +119,9 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
 
   const std::vector<real>& thickness = material.thickness;
 
-  real h = - std::accumulate(thickness.begin(),thickness.end(),static_cast<real>(0));
+  real h = - std::accumulate(thickness.begin(),thickness.end(),0.);
 
-  for (unsigned int i=0;i<thickness.size();i++) {
+  for (std::size_t i = 0; i < thickness.size(); i++) {
     complex mu = material.mur[i];
     complex eps = material.epsr[i];
     real d = thickness[i];
@@ -144,7 +144,8 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
       exit(1);
     }
 
-    const complex k = k0*etar;
+    const complex k = k0*nur;
+
     for (unsigned int i=0; i<vkx.size();i++) {
       const real kx = vkx[i];
       for (unsigned int j=0; j<vky.size();j++) {
@@ -158,10 +159,10 @@ big_matrix<complex> hoibc::impedance_infinite_plane(const std::vector<real> &vkx
         const matrix<complex> mAH = AH(kx,ky,k,etar,h+d);
         const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
         const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
-
+        std::cerr << "Z  " << impedance_ex[i][j][1][1] << std::endl;
         impedance_ex[i][j] = matmul<complex>(
           matmul<complex>(mBE,mMB) - matmul<complex>(mAE,mMA),
-          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,inv<complex>(mMA)))
+          inv<complex>(matmul<complex>(mBH,mMB) - matmul<complex>(mAH,mMA))
           );
       }
     }
