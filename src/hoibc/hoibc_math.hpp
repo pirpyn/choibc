@@ -201,6 +201,39 @@ namespace hoibc {
   }
 
   template<typename T>
+  big_matrix<T> operator+(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] + B[i][j];
+      }
+    }
+    return C;
+  }
+
+  template<typename T>
+  big_matrix<T> operator-(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] - B[i][j];
+      }
+    }
+    return C;
+  }
+
+  // template<typename T>
+  // big_matrix<T> operator-(const big_matrix<T>& A){
+  //   big_matrix<T> B = A;
+  //   for (std::size_t i=0;i<A.size();i++){
+  //     for (std::size_t j=0;j<A[i].size();j++){
+  //       B[i][j] = -A[i][j];
+  //     }
+  //   }
+  //   return B;
+  // }
+
+  template<typename T>
   real norm(const std::vector<T>& v){
     real norm = 0;
     std::vector<T> w = v;
@@ -240,13 +273,24 @@ namespace hoibc {
 
   template<typename T>
   real norm(const big_matrix<T>& A){
-    real norm = 0;
+    real x = 0;
     for (std::size_t i = 0; i < A.size(); i++){
       for (std::size_t j = 0; j < A[i].size(); j++){
-        norm += std::pow(norm(A[i][j]),2);
+        x += std::pow(norm(A[i][j]),2);
       }
     }
-    return std::sqrt(norm);
+    return std::sqrt(x);
+  }
+
+  template<typename T>
+  real norm(const big_matrix<T>& A, const std::size_t& irow, const std::size_t& icol){
+    real x = 0;
+    for (std::size_t i = 0; i < A.size(); i++){
+      for (std::size_t j = 0; j < A[i].size(); j++){
+        x += std::pow(std::abs(A[i][j][irow][icol]),2);
+      }
+    }
+    return std::sqrt(x);
   }
 
 }

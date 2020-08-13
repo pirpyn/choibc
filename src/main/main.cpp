@@ -255,23 +255,28 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   //         end if
 
     }
-  // Will begin at the maximum finite number, then during computation, actual error will be stored.
-  // std::for_each(error.begin(),error.end(),[](hoibc::real& x){x = std::numeric_limits<hoibc::real>::max();});
 
     error_array error;
     // Relative squared error for impedance
-    error[1][1] = 0; // norm(Z_ex(:,:,1,1) - Z_ap(:,:,1,1))**2 / norm(Z_ex(:,:,1,1))**2;
-    error[2][1] = 0; // norm(Z_ex(:,:,2,2) - Z_ap(:,:,2,2))**2 / norm(Z_ex(:,:,2,2))**2;
-    error[3][1] = 0; // norm(Z_ex(:,:,2,1) - Z_ap(:,:,2,1))**2 / norm(Z_ex(:,:,2,1))**2;
-    error[4][1] = 0; // norm(Z_ex(:,:,1,2) - Z_ap(:,:,1,2))**2 / norm(Z_ex(:,:,1,2))**2;
-    error[5][1] = 0; // norm(Z_ex - Z_ap)**2 / norm(Z_ex)**2;
+    using hoibc::operator-;
+    {
+      const hoibc::big_matrix<hoibc::complex> tmp = impedance_ex - impedance_ap;
+      error[0][0] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(impedance_ex,1,1),2);
+      error[1][0] = std::pow(hoibc::norm(tmp,2,2),2) / std::pow(hoibc::norm(impedance_ex,2,2),2);
+      error[2][0] = std::pow(hoibc::norm(tmp,2,1),2) / std::pow(hoibc::norm(impedance_ex,2,1),2);
+      error[3][0] = std::pow(hoibc::norm(tmp,1,2),2) / std::pow(hoibc::norm(impedance_ex,1,2),2);
+      error[4][0] = std::pow(hoibc::norm(tmp),2) / std::pow(hoibc::norm(impedance_ex),2);
+    }
 
     // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
-    error[1][2] = 0; //norm(R_ex(:,:,1,1) - R_ap(:,:,1,1)) / norm(R_ex(:,:,1,1));
-    error[2][2] = 0; //norm(R_ex(:,:,2,2) - R_ap(:,:,2,2)) / norm(R_ex(:,:,2,2));
-    error[3][2] = 0; //norm(R_ex(:,:,2,1) - R_ap(:,:,2,1)) / norm(R_ex(:,:,2,1));
-    error[4][2] = 0; //norm(R_ex(:,:,1,2) - R_ap(:,:,1,2)) / norm(R_ex(:,:,1,2));
-    error[5][2] = 0; //sum(error(1:2,i,2));
+    {
+      const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ap;
+      error[0][1] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(reflexion_ex,1,1),2);
+      error[1][1] = std::pow(hoibc::norm(tmp,2,2),2) / std::pow(hoibc::norm(reflexion_ex,2,2),2);
+      error[2][1] = std::pow(hoibc::norm(tmp,2,1),2) / std::pow(hoibc::norm(reflexion_ex,2,1),2);
+      error[3][1] = std::pow(hoibc::norm(tmp,1,2),2) / std::pow(hoibc::norm(reflexion_ex,1,2),2);
+      error[4][1] = error[0][1] + error[1][1];
+    }
 
     errors.push_back(error);
 
