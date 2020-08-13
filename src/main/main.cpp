@@ -1,4 +1,7 @@
 #include "main.hpp"
+#include <algorithm> // for_each
+#include <limits> // max
+#include <cmath> // pow
 
 int main() {
   hoibc::data_t data;
@@ -44,12 +47,13 @@ int main() {
 
 void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
-  // ! Now we will write many files and print results to the screen
-  // nhoibc = size(hoibc_list)
+  // Now we will write many files and print error, ibc coeff & suc values to the screen.
 
-  // allocate(error(5,nhoibc,2))
-  
-  // error(:,:,:) = huge(1.0_wp)
+  // Array to store the error of the impedance and the reflexion.
+  // errors[i=ibc][j=coeff or matrix][l=impedance or reflexion]
+  using error_array = std::array<std::array<hoibc::real,2>,5>;
+  std::vector<error_array> errors;
+  errors.resize(hoibc_list.size());
 
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
@@ -66,13 +70,6 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     std::cout << std::string(60,'#') << std::endl;
     std::cout << std::endl;
 
-    // Set up the scan of incident angle
-    // For the plane, depends on (kx,ky)
-    // For the cylinder, depends on kz, incidence is from theta = 0, but expressed as a Fourier serie over n, truncated
-    // For the sphere, incidence is always from theta, phi = 0, but expressed as a Mie serie, truncated
-
-    std::vector<hoibc::real> f1, f2;
-    ibc->set_fourier_variables(data,f1,f2);
     // Display the coefficient to the standard output (stdout)
     ibc->print_coeff();
     // Display the SUC to stdout
@@ -89,8 +86,12 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
 
     // ########################################################################################
 
-    // Write info depending on the type
-
+    // Set up the scan of incident angle
+    // For the plane, depends on (kx,ky)
+    // For the cylinder, depends on kz, incidence is from theta = 0, but expressed as a Fourier serie over n, truncated
+    // For the sphere, incidence is always from theta, phi = 0, but expressed as a Mie serie over n, truncated
+    std::vector<hoibc::real> f1, f2;
+    ibc->set_fourier_variables(data,f1,f2);
     // Compute reflexion/fourier/mie coefficient
     const hoibc::big_matrix<hoibc::complex> reflexion_ap = ibc->get_reflexion(k0,f1,f2);
     const hoibc::big_matrix<hoibc::complex> impedance_ap = ibc->get_impedance(k0,f1,f2);
@@ -104,6 +105,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
 
     hoibc::big_matrix<hoibc::complex> reflexion_ex;
     hoibc::big_matrix<hoibc::complex> impedance_ex;
+
+    // Write info depending on the type
 
     switch (ibc->type){
     case 'P': // For infinite plane, write reflection coefficients
@@ -252,19 +255,25 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   //         end if
 
     }
-  //         ! Relative squared error for impedance
-  //         error(1,i,1) = norm(Z_ex(:,:,1,1) - Z_ap(:,:,1,1))**2 / norm(Z_ex(:,:,1,1))**2
-  //         error(2,i,1) = norm(Z_ex(:,:,2,2) - Z_ap(:,:,2,2))**2 / norm(Z_ex(:,:,2,2))**2
-  //         error(3,i,1) = norm(Z_ex(:,:,2,1) - Z_ap(:,:,2,1))**2 / norm(Z_ex(:,:,2,1))**2
-  //         error(4,i,1) = norm(Z_ex(:,:,1,2) - Z_ap(:,:,1,2))**2 / norm(Z_ex(:,:,1,2))**2
-  //         error(5,i,1) = norm(Z_ex - Z_ap)**2 / norm(Z_ex)**2
+  // Will begin at the maximum finite number, then during computation, actual error will be stored.
+  // std::for_each(error.begin(),error.end(),[](hoibc::real& x){x = std::numeric_limits<hoibc::real>::max();});
 
-  //         ! Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
-  //         error(1,i,2) = norm(R_ex(:,:,1,1) - R_ap(:,:,1,1)) / norm(R_ex(:,:,1,1))
-  //         error(2,i,2) = norm(R_ex(:,:,2,2) - R_ap(:,:,2,2)) / norm(R_ex(:,:,2,2))
-  //         error(3,i,2) = norm(R_ex(:,:,2,1) - R_ap(:,:,2,1)) / norm(R_ex(:,:,2,1))
-  //         error(4,i,2) = norm(R_ex(:,:,1,2) - R_ap(:,:,1,2)) / norm(R_ex(:,:,1,2))
-  //         error(5,i,2) = sum(error(1:2,i,2))
+    error_array error;
+    // Relative squared error for impedance
+    error[1][1] = 0; // norm(Z_ex(:,:,1,1) - Z_ap(:,:,1,1))**2 / norm(Z_ex(:,:,1,1))**2;
+    error[2][1] = 0; // norm(Z_ex(:,:,2,2) - Z_ap(:,:,2,2))**2 / norm(Z_ex(:,:,2,2))**2;
+    error[3][1] = 0; // norm(Z_ex(:,:,2,1) - Z_ap(:,:,2,1))**2 / norm(Z_ex(:,:,2,1))**2;
+    error[4][1] = 0; // norm(Z_ex(:,:,1,2) - Z_ap(:,:,1,2))**2 / norm(Z_ex(:,:,1,2))**2;
+    error[5][1] = 0; // norm(Z_ex - Z_ap)**2 / norm(Z_ex)**2;
+
+    // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
+    error[1][2] = 0; //norm(R_ex(:,:,1,1) - R_ap(:,:,1,1)) / norm(R_ex(:,:,1,1));
+    error[2][2] = 0; //norm(R_ex(:,:,2,2) - R_ap(:,:,2,2)) / norm(R_ex(:,:,2,2));
+    error[3][2] = 0; //norm(R_ex(:,:,2,1) - R_ap(:,:,2,1)) / norm(R_ex(:,:,2,1));
+    error[4][2] = 0; //norm(R_ex(:,:,1,2) - R_ap(:,:,1,2)) / norm(R_ex(:,:,1,2));
+    error[5][2] = 0; //sum(error(1:2,i,2));
+
+    errors.push_back(error);
 
   //         if (data_extended%other%hoppe_imp) then
   //           ! To get the impedance of HOPPE & RAHMAT SAMII, 1995
