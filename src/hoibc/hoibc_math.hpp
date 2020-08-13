@@ -2,6 +2,9 @@
 #define _H_HOIBC_MATH
 
 #include <vector>
+#include <algorithm> // for_each
+#include <numeric> // accumulate
+
 #include "hoibc_types.hpp"
 
 namespace hoibc {
@@ -197,6 +200,54 @@ namespace hoibc {
     return A*x;
   }
 
+  template<typename T>
+  real norm(const std::vector<T>& v){
+    real norm = 0;
+    std::vector<T> w = v;
+    std::for_each(w.begin(),w.end(),[](T& x){x = std::pow(std::abs(x),2);});
+    norm = std::real(std::accumulate(w.begin(),w.end(),static_cast<T>(0)));
+    norm = std::sqrt(norm);
+    return norm;
+  }
+
+  template<typename T>
+  matrix<T> transpose(const matrix<T>& A){
+    matrix<T> B = A;
+    B[1][0] = A[0][1];
+    B[0][1] = A[1][0];
+    return B;
+  }
+
+  template<typename T>
+  matrix<T> conj(const matrix<T>& A){
+    matrix<T> B = A;
+    B[0][1] = std::conj(A[0][1]);
+    B[0][1] = std::conj(A[0][1]);
+    B[1][0] = std::conj(A[1][0]);
+    B[1][1] = std::conj(A[1][1]);
+    return B;
+  }
+
+  template<typename T>
+  T trace(const matrix<T>& A){
+    return A[0][0] + A[1][1];
+  }
+
+  template<typename T>
+  real norm(const matrix<T>& A){
+    return std::real(std::sqrt(trace(matmul(A,transpose(conj(A))))));
+  }
+
+  template<typename T>
+  real norm(const big_matrix<T>& A){
+    real norm = 0;
+    for (std::size_t i = 0; i < A.size(); i++){
+      for (std::size_t j = 0; j < A[i].size(); j++){
+        norm += std::pow(norm(A[i][j]),2);
+      }
+    }
+    return std::sqrt(norm);
+  }
 
 }
 #endif
