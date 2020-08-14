@@ -9,53 +9,77 @@
 using namespace hoibc;
 
 void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrix<complex>& gex, const real& k0){
-  // We're in the vaccum
-  const complex k = k0;
-  const complex etar = 1.;
-  const real z = 0.;
-
-  big_matrix<complex> mAE,mBE,mAH,mBH;
-  big_matrix<real> I;
-
+  
+  big_matrix<real> I, LD, LR;
+  const std::size_t n1 = f1.size();
+  const std::size_t n2 = f2.size();
+  complex** a;
+  complex* b;
+  lapack_int m, n;
+  get_matrices_I(n1,n2,I=I);
+  big_matrix<complex> LDZ;
+  big_matrix<complex> LRZ;
   switch (this->mode){
-  case 1: // if reflexion
-    NOTFINISHED("hoibc::hoibc_ibc3_get_coeff_no_suc::mode=1")
+  // case 1: // if reflexion
+  //   NOTFINISHED("hoibc::hoibc_ibc3_get_coeff_no_suc::mode=1")
+  //  break;
   case 2: // if impedance
-      const std::size_t n1 = f1.size();
-      const std::size_t n2 = f2.size();
-      get_matrices_I(n1,n2,I=I);
+    plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
+    LDZ = LD * gex;
+    LRZ = LR * gex;
+    m = f1.size()*f2.size()*4;
+    n = 5;
+    // TODO
+    // GridUnit** newGrid;
+    // newGrid = new GridUnit*[width];
+    // newGrid[0] = new GridUnit[width * height];
+    // for (int i = 1; i < width; i++)
+    //     newGrid[i] = newGrid[i-1] + height;
 
-      lapack_int m = f1.size()*f2.size()*4;// std::vector<std::array<complex,5>> A;
-      lapack_int n = 5;
-      complex** a = new complex[m][n];
-      complex** b = new complex[m];
+    for (std::size_t j=0;j<n2;j++){
+      for (std::size_t i=0;i<n1;i++){
+        a[(j*n1+i)*4+0][0] = 1.;
+        a[(j*n1+i)*4+1][0] = 0.;
+        a[(j*n1+i)*4+2][0] = 0.;
+        a[(j*n1+i)*4+3][0] = 1.;
 
-      for (std::size_t j=0;j<n2;j++){
-        for (std::size_t i=0;i<n1;i++){
-          a[(j*n1+i)*4+0][0] = 1.;
-          a[(j*n1+i)*4+1][0] = 0.;
-          a[(j*n1+i)*4+2][0] = 0;
-          a[(j*n1+i)*4+3][0] = 1.;
-        }
+        a[(j*n1+i)*4+0][1] = LD[i][j][0][0];
+        a[(j*n1+i)*4+1][1] = LD[i][j][1][0];
+        a[(j*n1+i)*4+2][1] = LD[i][j][0][1];
+        a[(j*n1+i)*4+3][1] = LD[i][j][1][1];
+
+        a[(j*n1+i)*4+0][2] = -LR[i][j][0][0];
+        a[(j*n1+i)*4+1][2] = -LR[i][j][1][0];
+        a[(j*n1+i)*4+2][2] = -LR[i][j][0][1];
+        a[(j*n1+i)*4+3][2] = -LR[i][j][1][1];
+
+        a[(j*n1+i)*4+0][3] = -(LDZ[i][j][0][0]);
+        a[(j*n1+i)*4+1][3] = -(LDZ[i][j][1][0]);
+        a[(j*n1+i)*4+2][3] = -(LDZ[i][j][0][1]);
+        a[(j*n1+i)*4+3][3] = -(LDZ[i][j][1][1]);
+
+        a[(j*n1+i)*4+0][4] = LRZ[i][j][0][0];
+        a[(j*n1+i)*4+1][4] = LRZ[i][j][1][0];
+        a[(j*n1+i)*4+2][4] = LRZ[i][j][0][1];
+        a[(j*n1+i)*4+3][4] = LRZ[i][j][1][1];
+
+        b[(j*n1+i)*4+0] = gex[i][j][0][0];
+        b[(j*n1+i)*4+1] = gex[i][j][1][0];
+        b[(j*n1+i)*4+2] = gex[i][j][0][1];
+        b[(j*n1+i)*4+3] = gex[i][j][1][1];
       }
-    //   A(:,1) = reshape(I,[iM])
-    //   A(:,2) = reshape(LD,[iM])
-    //   A(:,3) = reshape(-LR,[iM])
-    //   A(:,4) = reshape(-big_matmul(LD,exact),[iM])
-    //   A(:,5) = reshape(big_matmul(LR,exact),[iM])
+    }
 
-    //   b(1:iM) = reshape(exact,[iM])
-    // end select
+    LAPACKE_zgels(LAPACK_COL_MAJOR,'N', m, n, 1, *a, m, b, m );
 
-    // LAPACKE_zgels(LAPACK_COL_MAJOR,'N', m, n, 1, *a, m, *b, m );
-
-    // this->coeff.a0 = b[0];
-    // this->coeff.a1 = b[1];
-    // this->coeff.a2 = b[2];
-    // this->coeff.b1 = b[3];
-    // this->coeff.b2 = b[4];
-    delete a;
-    delete b;
+    this->coeff.a0 = b[0];
+    this->coeff.a1 = b[1];
+    this->coeff.a2 = b[2];
+    this->coeff.b1 = b[3];
+    this->coeff.b2 = b[4];
+    delete [] a[0];
+    delete [] a;
+    delete [] b;
     break;
   default:
     std::cerr << "hoibc_ibc3::get_coeff_no_suc: mode = " << this->mode << " unknown" << std::endl;

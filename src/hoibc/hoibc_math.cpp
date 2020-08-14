@@ -51,15 +51,23 @@ matrix<complex> hoibc::operator+(const matrix<complex>& A, const matrix<real>& B
 }
 
 matrix<complex> hoibc::operator+(const matrix<real>& A, const matrix<complex>& B){
+  return B + A;
+}
+
+matrix<complex> hoibc::operator*(const matrix<complex>& A, const matrix<real>& B){
   matrix<complex> C;
-  C[0][0] = A[0][0] + B[0][0];
-  C[1][0] = A[1][0] + B[1][0];
-  C[0][1] = A[0][1] + B[0][1];
-  C[1][1] = A[1][1] + B[1][1];
+  C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
+  C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
+  C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
+  C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
   return C;
 }
 
-big_matrix<complex> operator+(const big_matrix<complex>& A, const big_matrix<real>& B){
+matrix<complex> hoibc::operator*(const matrix<real>& A, const matrix<complex>& B){
+  return B * A;
+}
+
+big_matrix<complex> hoibc::operator+(const big_matrix<complex>& A, const big_matrix<real>& B){
   big_matrix<complex> C = A;
   for (std::size_t i=0;i<A.size();i++){
     for (std::size_t j=0;j<A[i].size();j++){
@@ -69,12 +77,20 @@ big_matrix<complex> operator+(const big_matrix<complex>& A, const big_matrix<rea
   return C;
 }
 
-big_matrix<complex> operator+(const big_matrix<real>& A, const big_matrix<complex>& B){
+big_matrix<complex> hoibc::operator+(const big_matrix<real>& A, const big_matrix<complex>& B){
+  return B + A;
+}
+
+big_matrix<complex> hoibc::operator*(const big_matrix<real>& A, const big_matrix<complex>& B){
   big_matrix<complex> C = B;
   for (std::size_t i=0;i<A.size();i++){
     for (std::size_t j=0;j<A[i].size();j++){
-      C[i][j] = A[i][j] + B[i][j];
+      C[i][j] = A[i][j] * B[i][j];
     }
   }
   return C;
+}
+
+big_matrix<complex> hoibc::operator*(const big_matrix<complex>& A, const big_matrix<real>& B){
+  return B*A;
 }

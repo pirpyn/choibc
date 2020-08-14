@@ -69,6 +69,10 @@ namespace hoibc {
     return C;
   }
 
+  matrix<complex> operator*(const matrix<complex>& A, const matrix<real>& B);
+
+  matrix<complex> operator*(const matrix<real>& A, const matrix<complex>& B);
+
   template<typename T>
   matrix<T> inv(const matrix<T>& A){
     matrix<T> B;
@@ -248,6 +252,21 @@ namespace hoibc {
     }
     return C;
   }
+
+  template<typename T>
+  big_matrix<T> operator*(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] * B[i][j];
+      }
+    }
+    return C;
+  }
+
+  big_matrix<complex> operator*(const big_matrix<real>& A, const big_matrix<complex>& B);
+
+  big_matrix<complex> operator*(const big_matrix<complex>& A, const big_matrix<real>& B);
 
   big_matrix<complex> operator+(const big_matrix<complex>& A, const big_matrix<real>& B);
 
