@@ -60,6 +60,29 @@ namespace hoibc {
   }
 
   template<typename T>
+  matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
+    matrix<T> C;
+    C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
+    C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
+    C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
+    C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
+    return C;
+  }
+
+  template<typename T>
+  matrix<T> inv(const matrix<T>& A){
+    matrix<T> B;
+    T delta = A[0][0]*A[1][1] - A[1][0]*A[0][1];
+
+    B[1][1] = 1./delta * A[0][0];
+    B[0][1] = -1./delta * A[0][1];
+    B[1][0] = -1./delta * A[1][0];
+    B[0][0] = 1./delta * A[1][1];
+
+    return B;
+  }
+
+  template<typename T>
   matrix<T> operator*(const matrix<T>& A, const T& x){
     matrix<T> C;
     C[0][0] = A[0][0]*x;
@@ -96,7 +119,12 @@ namespace hoibc {
 
   template<typename T>
   matrix<T> operator/(const matrix<T>& A, const matrix<T>& B){
-    return matmul(A,inv(B));
+    return A*inv(B);
+  }
+
+  template<typename T>
+  matrix<T> operator%(const matrix<T>& A, const matrix<T>& B){
+    return inv(A)*B;
   }
 
   template<typename T>
@@ -127,29 +155,6 @@ namespace hoibc {
     C[0][1] = -A[0][1];
     C[1][1] = -A[1][1];
     return C;
-  }
-
-  template<typename T>
-  matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
-    matrix<T> C;
-    C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
-    C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
-    C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
-    C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
-    return C;
-  }
-
-  template<typename T>
-  matrix<T> inv(const matrix<T>& A){
-    matrix<T> B;
-    T delta = A[0][0]*A[1][1] - A[1][0]*A[0][1];
-
-    B[1][1] = 1./delta * A[0][0];
-    B[0][1] = -1./delta * A[0][1];
-    B[1][0] = -1./delta * A[1][0];
-    B[0][0] = 1./delta * A[1][1];
-
-    return B;
   }
 
   template<typename T>
