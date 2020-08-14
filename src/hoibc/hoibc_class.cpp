@@ -11,8 +11,29 @@
 using namespace hoibc;
 using std::vector;
 
-void hoibc_class::get_reflexion(){
-  std::cout << "hoibc_class::get_reflexion: i do nothing" << std::endl;
+big_matrix<complex> hoibc_class::get_reflexion(const real& k0, std::vector<real>& f1, std::vector<real>& f2){
+  big_matrix<complex> impedance = this->get_impedance(k0,f1,f2);
+
+  // We're in the vaccum
+  // const complex k = complex(k0,0.);
+  // const complex etar = complex(1.,0.);
+
+  big_matrix<complex> reflexion;
+  switch (this->type){
+  case 'P':
+    // f1 = kx, f2 = ky
+    reflexion = plane::reflexion_from_impedance(f1,f2,k0,impedance);
+    break;
+  case 'C':
+    // f1 = n, f2 = kz
+    // TODO ref_ap = reflexion_from_impedance_cylinder(f1,f2,k0,Z,self%outer_radius)
+    break;
+  case 'S':
+    // f1 = m, f2 = n
+    //TODO ref_ap = reflexion_from_impedance_sphere(f2,k0,Z,self%outer_radius)
+    break;
+  }
+  return reflexion;
 }
 
 void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const vector<real>& f2){
@@ -21,13 +42,13 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   // i.e. for a plane type and mode 2 so gex[i][j][k][l] represents Z(kx[i],ky[j])_kl
   big_matrix<complex> gex;
 
-  const real k0 = free_space_impedance(data.main.frequency);
+  const real k0 = free_space_wavenumber(data.main.frequency);
 
   switch (this->mode){
     case 1 :
       switch (this->type) {
         case 'P' :
-          gex = reflexion_infinite_plane(f1,f2,k0,data.material);
+          gex = plane::reflexion_infinite(f1,f2,k0,data.material);
           break;
         case 'C' :
           reflexion_infinite_cylinder();
@@ -40,7 +61,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
     case 2 :
       switch (this->type) {
         case 'P' :
-          gex = impedance_infinite_plane(f1,f2,k0,data.material);
+          gex = plane::impedance_infinite(f1,f2,k0,data.material);
           break;
         case 'C' :
           impedance_infinite_cylinder();
@@ -242,7 +263,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   // s1, = f1 / free_space_wavenumber
   // s2  = f2 / free_space_wavenumber */
 
-  const real k0 = hoibc::free_space_impedance(data.main.frequency);
+  const real k0 = free_space_wavenumber(data.main.frequency);
   integer n1, n2;
 
   // This function will be called several times, so we compute at compile time the square root of two

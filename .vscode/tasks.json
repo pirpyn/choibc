@@ -46,6 +46,14 @@
             "problemMatcher": [
                 "$gcc"
             ]
-        }
+        },
+        {
+            "label": "make run_test",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} MODE=debug -s run_test",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
     ]
 }

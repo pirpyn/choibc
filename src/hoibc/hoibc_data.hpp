@@ -7,17 +7,14 @@
 #include <string>
 
 
-namespace hoibc
-{
-  struct main_t
-  {
+namespace hoibc{
+  struct main_t{
     real frequency { 1. };          // Frequency in GHz
     std::vector<real> s1 = {0.,1.,0.};
     std::vector<real> s2 = {0.,1.,0.};
   };
 
-  struct material_t
-  {
+  struct material_t{
     std::vector<complex> epsr;        // Relative permitivity
     std::vector<complex> mur;         // Relative permeability
     std::vector<real>    thickness;   // Thickness in meter
@@ -25,8 +22,7 @@ namespace hoibc
     matrix<complex>      initial_impedance { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
   };
 
-  struct hoibc_t
-  {
+  struct hoibc_t{
     std::vector<std::string> name;
     std::vector<std::string> label;
     std::vector<short>       type;
@@ -36,13 +32,15 @@ namespace hoibc
     std::vector<char> mode;
   };
 
-  struct optim_t;
+  struct optim_t{
+    real  tol { 1.e-6 };
+  };
 
-  struct data_t
-  {
+  struct data_t{
     main_t      main;
     material_t  material;
     hoibc_t     hoibc;
+    optim_t     optim;
   };
 
 
