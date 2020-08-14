@@ -16,7 +16,6 @@ int main() {
   data.material.mur       = {hoibc::complex(1.,0.)};
 
   data.hoibc.name         = {"ibc0","ibc0"};
-  data.hoibc.label        = {"ibc0-1","ibc0-2"};
   data.hoibc.suc          = {false,false};
   data.hoibc.type         = {'P','P'};
   data.hoibc.inner_radius = {0.,0.};
