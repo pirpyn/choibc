@@ -1,13 +1,14 @@
 #include "main.hpp"
-#include <algorithm> // for_each
-#include <limits> // max
-#include <cmath> // pow
-
+#include <algorithm> // std::for_each
+#include <limits> // std::max
+#include <cmath> // std::pow
+// When C++20 will be available
+// #include <format> // std::format
 int main() {
   hoibc::data_t data;
   
   data.main.frequency = .2;
-  data.main.s1 = {0.,1.,.1};
+  data.main.s1 = {0.,0.9,.1};
   data.main.s2 = {0.,0.,0.};
 
   data.material.thickness = {0.05};
@@ -45,15 +46,31 @@ int main() {
   return 0;
 }
 
+// https://stackoverflow.com/a/12399290
+
+#include <numeric>      // std::iota
+#include <algorithm>    // std::sort
+
+using error_array = std::array<std::array<hoibc::real,2>,5>;
+
+std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const std::size_t& j, const std::size_t& l) {
+
+    // initialize original index locations
+    std::vector<std::size_t> idx(v.size());
+    std::iota(idx.begin(), idx.end(), 0);
+
+    std::sort(idx.begin(), idx.end(),[&v,&j,&l](std::size_t i1, std::size_t i2) {return v[i1][j][l] < v[i2][j][l];});
+
+  return idx;
+}
+
 void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
 
   // Array to store the error of the impedance and the reflexion.
   // errors[i=ibc][j=coeff or matrix][l=impedance or reflexion]
-  using error_array = std::array<std::array<hoibc::real,2>,5>;
   std::vector<error_array> errors;
-  errors.resize(hoibc_list.size());
 
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
@@ -261,23 +278,22 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     using hoibc::operator-;
     {
       const hoibc::big_matrix<hoibc::complex> tmp = impedance_ex - impedance_ap;
-      error[0][0] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(impedance_ex,1,1),2);
-      error[1][0] = std::pow(hoibc::norm(tmp,2,2),2) / std::pow(hoibc::norm(impedance_ex,2,2),2);
-      error[2][0] = std::pow(hoibc::norm(tmp,2,1),2) / std::pow(hoibc::norm(impedance_ex,2,1),2);
-      error[3][0] = std::pow(hoibc::norm(tmp,1,2),2) / std::pow(hoibc::norm(impedance_ex,1,2),2);
+      error[0][0] = std::pow(hoibc::norm(tmp,0,0),2) / std::pow(hoibc::norm(impedance_ex,0,0),2);
+      error[1][0] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(impedance_ex,1,1),2);
+      error[2][0] = std::pow(hoibc::norm(tmp,1,0),2) / std::pow(hoibc::norm(impedance_ex,1,0),2);
+      error[3][0] = std::pow(hoibc::norm(tmp,0,1),2) / std::pow(hoibc::norm(impedance_ex,0,1),2);
       error[4][0] = std::pow(hoibc::norm(tmp),2) / std::pow(hoibc::norm(impedance_ex),2);
     }
 
     // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
     {
       const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ap;
-      error[0][1] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(reflexion_ex,1,1),2);
-      error[1][1] = std::pow(hoibc::norm(tmp,2,2),2) / std::pow(hoibc::norm(reflexion_ex,2,2),2);
-      error[2][1] = std::pow(hoibc::norm(tmp,2,1),2) / std::pow(hoibc::norm(reflexion_ex,2,1),2);
-      error[3][1] = std::pow(hoibc::norm(tmp,1,2),2) / std::pow(hoibc::norm(reflexion_ex,1,2),2);
+      error[0][1] = std::pow(hoibc::norm(tmp,0,0),2) / std::pow(hoibc::norm(reflexion_ex,0,0),2);
+      error[1][1] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(reflexion_ex,1,1),2);
+      error[2][1] = std::pow(hoibc::norm(tmp,1,0),2) / std::pow(hoibc::norm(reflexion_ex,1,0),2);
+      error[3][1] = std::pow(hoibc::norm(tmp,0,1),2) / std::pow(hoibc::norm(reflexion_ex,0,1),2);
       error[4][1] = error[0][1] + error[1][1];
     }
-
     errors.push_back(error);
 
   //         if (data_extended%other%hoppe_imp) then
@@ -323,36 +339,41 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     std::cout << std::string(60,'#') << std::endl;
     std::cout << std::string(60,'#') << std::endl;
     std::cout << std::endl;
-  /*
-    write(output_unit,'(a,a)') 'Writing CSV files to ',data_extended%out%basename
 
-    allocate(idx(nhoibc))
+    // write(output_unit,'(a,a)') 'Writing CSV files to ',data_extended%out%basename
 
-    fmt_error_header = '(a40,1x,a10,1x,a4,1x,a3,1x,a4,1x,*(a10,1x))'
-    fmt_error_value  = '(a40,1x,a10,1x,a4,1x,l3,1x,i4,1x,*(es10.2,1x))'
+    // When C++20 will be available
+    // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
+    // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
+    const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
+    const std::string fmt_error_value   = "%40s %10s %4c %3d %4d %10.2e %10.2e %10.2e %10.2e %10.2e\n";
 
-    call bubble_sort(error(5,:,1),IDX=idx)
-    write(output_unit,*)
-    write(output_unit,'(a)') 'For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal.'
-    write(output_unit,'(a)') 'i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere.'
-    write(output_unit,'(a)') 'Sorted L2 squared relative error of Z_ij and the whole matrix'
-    write(output_unit,fmt_error_header) 'LABEL','NAME','TYPE','SUC','MODE','11','22','21','12','Frobenius'
-    do i=1,size(idx)
-      ibc = hoibc_list(idx(i))%ibc
-      write(output_unit,fmt_error_value) ibc%label,ibc%name,ibc%type,ibc%suc,ibc%mode,error(:,idx(i),1)
-      deallocate(ibc)
-    end do
+    std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
+    std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
 
-    call bubble_sort(error(5,:,2),IDX=idx)
-    write(output_unit,*)
-    write(output_unit,'(a)') 'Sorted L2 relative error of R_ij and Err(R_11) + Err(R_22)'
-    write(output_unit,fmt_error_header) 'LABEL','NAME','TYPE','SUC','MODE','11','22','21','12','SUM(11,22)'
-    do i=1,size(idx)
-      ibc = hoibc_list(idx(i))%ibc
-      write(output_unit,fmt_error_value) ibc%label,ibc%name,ibc%type,ibc%suc,ibc%mode,error(:,idx(i),2)
-      deallocate(ibc)
-    end do
+    std::cout << std::endl;
+    std::cout << "Sorted L2 squared relative error of Z_ij and the whole matrix" << std::endl;
+    // When C++20 will be available
+    // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+    std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
 
-    deallocate(idx)
-  end subroutine*/
+    for (auto i : sort_indexes(errors,4,0)){
+      const hoibc::hoibc_class* ibc = hoibc_list[i];
+      // When C++20 will be available
+      // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    }
+
+    std::cout << std::endl;
+    std::cout << "Sorted L2 relative error of R_ij and Err(R_11) + Err(R_22)" << std::endl;
+    // When C++20 will be available
+    // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+    std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+
+    for (auto i : sort_indexes(errors,4,1)){
+      const hoibc::hoibc_class* ibc = hoibc_list[i];
+      // When C++20 will be available
+      // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+    }
 }

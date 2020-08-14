@@ -2,11 +2,10 @@
 #define _H_HOIBC_MATH
 
 #include <vector>
-#include <algorithm> // for_each
-#include <numeric> // accumulate
-
+#include <algorithm> // std::for_each
+#include <numeric> // std::accumulate
+#include <cassert> // std::assert
 #include "hoibc_types.hpp"
-
 namespace hoibc {
 
   matrix<complex> operator*(const matrix<real>& A, const complex& x);
@@ -222,17 +221,6 @@ namespace hoibc {
     return C;
   }
 
-  // template<typename T>
-  // big_matrix<T> operator-(const big_matrix<T>& A){
-  //   big_matrix<T> B = A;
-  //   for (std::size_t i=0;i<A.size();i++){
-  //     for (std::size_t j=0;j<A[i].size();j++){
-  //       B[i][j] = -A[i][j];
-  //     }
-  //   }
-  //   return B;
-  // }
-
   template<typename T>
   real norm(const std::vector<T>& v){
     real norm = 0;
@@ -253,22 +241,19 @@ namespace hoibc {
 
   template<typename T>
   matrix<T> conj(const matrix<T>& A){
-    matrix<T> B = A;
-    B[0][1] = std::conj(A[0][1]);
-    B[0][1] = std::conj(A[0][1]);
-    B[1][0] = std::conj(A[1][0]);
-    B[1][1] = std::conj(A[1][1]);
-    return B;
+    return A;
   }
 
   template<typename T>
   T trace(const matrix<T>& A){
-    return A[0][0] + A[1][1];
+    const T x = A[0][0] + A[1][1];
+    return x;
   }
 
   template<typename T>
   real norm(const matrix<T>& A){
-    return std::real(std::sqrt(trace(matmul(A,transpose(conj(A))))));
+    const real x = std::real(std::sqrt(trace(matmul(A,transpose(conj(A))))));
+    return x;
   }
 
   template<typename T>
@@ -279,7 +264,8 @@ namespace hoibc {
         x += std::pow(norm(A[i][j]),2);
       }
     }
-    return std::sqrt(x);
+    x = std::real(std::sqrt(x));
+    return x;
   }
 
   template<typename T>
@@ -287,10 +273,13 @@ namespace hoibc {
     real x = 0;
     for (std::size_t i = 0; i < A.size(); i++){
       for (std::size_t j = 0; j < A[i].size(); j++){
+        assert(irow<A[i][j].size());
+        assert(icol<A[i][j][irow].size());
         x += std::pow(std::abs(A[i][j][irow][icol]),2);
       }
     }
-    return std::sqrt(x);
+    x = std::real(std::sqrt(x));
+    return x;
   }
 
 }
