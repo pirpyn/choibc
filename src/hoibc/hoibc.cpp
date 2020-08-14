@@ -5,6 +5,7 @@
 #include <vector>
 #include <numeric> // accumulate
 #include "hoibc_ibc0.hpp"
+#include "hoibc_ibc3.hpp"
 
 using namespace hoibc;
 
@@ -33,8 +34,11 @@ void hoibc::setup(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
     std::string name = data.hoibc.name[i];
     hoibc_class* ibc = nullptr;
     switch (resolve_names(name)) {
-      case hoibc_names::ibc0 :
+      case hoibc_names::ibc0:
         ibc = new hoibc_ibc0();
+        break;
+      case hoibc_names::ibc3:
+        ibc = new hoibc_ibc3();
         break;
       default :
         std::cerr << "warning: hoibc::setup: hoibc '" + name + "'' is unknown. Skipping." << std::endl;;

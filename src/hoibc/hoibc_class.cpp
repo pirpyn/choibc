@@ -74,7 +74,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   }
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
-  std::cout << "hoibc_class::get_coeff: not finished" << std::endl;
+  NOTFINISHED("hoibc_class::get_coeff")
 }
 
 /*
@@ -366,3 +366,4 @@ void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_mat
   sI[1][1] = 1.;
   I2 = big_init<real>(n1,n2,sI2);
 }
+

@@ -25,11 +25,7 @@ void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std:
           std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << this->mode << " type = " << this->type << "unknown" << std::endl;
           break;
       }
-      this->coeff.a0 = 
-        matmul(
-          inv(mAH[0][0] + matmul(mBH[0][0],gex[0][0])),
-          mAE[0][0] + matmul(mBE[0][0],gex[0][0])
-        )[0][0];
+      this->coeff.a0 = ((mAH[0][0] + mBH[0][0]*gex[0][0]) % (mAE[0][0] + mBE[0][0]*gex[0][0]))[0][0];
         break;
   case 2: // if impedance
     this->coeff.a0 = gex[0][0][0][0];

@@ -15,12 +15,12 @@ int main() {
   data.material.epsr      = {hoibc::complex(1.,-1.)};
   data.material.mur       = {hoibc::complex(1.,0.)};
 
-  data.hoibc.name         = {"ibc0","ibc0"};
-  data.hoibc.suc          = {false,false};
-  data.hoibc.type         = {'P','P'};
-  data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {1,2};
-  data.hoibc.normalised   = {true,false};
+  data.hoibc.name         = {"ibc0","ibc0","ibc3","ibc3"};
+  data.hoibc.suc          = {false,false,false,false};
+  data.hoibc.type         = {'P','P','P','P'};
+  data.hoibc.inner_radius = {0.,0.,0.,0.};
+  data.hoibc.mode         = {1,2,1,2};
+  data.hoibc.normalised   = {false,false,false,false};
 
   // prints the parameters to stdout
   hoibc::disp_data(data);

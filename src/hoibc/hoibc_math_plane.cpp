@@ -350,7 +350,6 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
       }
     }
   }
-
   return reflexion_ex;
 }
 
@@ -395,4 +394,33 @@ big_matrix<complex> hoibc::plane::reflexion_from_impedance(const std::vector<rea
     }
   }
   return reflexion;
+}
+
+void hoibc::plane::get_matrices_LD_LR(const std::vector<real>& vkx, const std::vector<real>& vky, big_matrix<real>& LD, big_matrix<real>& LR){
+  LD.clear();
+  LR.clear();
+  LD = big_init(vkx.size(),vky.size(),0.);
+  LR = big_init(vkx.size(),vky.size(),0.);
+
+  // TODO Possible improve perf by doing
+  // for n1
+  //    for n2 
+  //        tmp_vect.push_pack(tmp_mat)
+  //    A.push_back(tmp_vect)
+
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      real ky = vky[n2];
+      LD[n1][n2][0][0] = -kx*kx;
+      LD[n1][n2][0][1] = -kx*ky;
+      LD[n1][n2][1][0] = -kx*ky;
+      LD[n1][n2][1][1] = -ky*ky;
+
+      LR[n1][n2][0][0] = ky*ky;
+      LR[n1][n2][0][1] = -kx*ky;
+      LR[n1][n2][1][0] = -kx*ky;
+      LR[n1][n2][1][1] = kx*kx;
+    }
+  }
 }
