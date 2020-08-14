@@ -5,6 +5,7 @@
 #include <algorithm> // std::for_each
 #include <numeric> // std::accumulate
 #include <cassert> // std::assert
+#include <iostream>
 #include "hoibc_types.hpp"
 namespace hoibc {
 
@@ -244,6 +245,9 @@ namespace hoibc {
     return A;
   }
 
+  template<>
+  matrix<complex> hoibc::conj<complex>(const matrix<complex>& A);
+
   template<typename T>
   T trace(const matrix<T>& A){
     const T x = A[0][0] + A[1][1];
@@ -252,7 +256,7 @@ namespace hoibc {
 
   template<typename T>
   real norm(const matrix<T>& A){
-    const real x = std::real(std::sqrt(trace(matmul(A,transpose(conj(A))))));
+    const real x = std::sqrt(std::pow(std::abs(A[0][0]),2) + std::pow(std::abs(A[0][1]),2) + std::pow(std::abs(A[1][0]),2) + std::pow(std::abs(A[1][1]),2));
     return x;
   }
 

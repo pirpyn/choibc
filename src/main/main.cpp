@@ -288,10 +288,10 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
     {
       const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ap;
-      error[0][1] = std::pow(hoibc::norm(tmp,0,0),2) / std::pow(hoibc::norm(reflexion_ex,0,0),2);
-      error[1][1] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(reflexion_ex,1,1),2);
-      error[2][1] = std::pow(hoibc::norm(tmp,1,0),2) / std::pow(hoibc::norm(reflexion_ex,1,0),2);
-      error[3][1] = std::pow(hoibc::norm(tmp,0,1),2) / std::pow(hoibc::norm(reflexion_ex,0,1),2);
+      error[0][1] = hoibc::norm(tmp,0,0) / hoibc::norm(reflexion_ex,0,0);
+      error[1][1] = hoibc::norm(tmp,1,1) / hoibc::norm(reflexion_ex,1,1);
+      error[2][1] = hoibc::norm(tmp,1,0) / hoibc::norm(reflexion_ex,1,0);
+      error[3][1] = hoibc::norm(tmp,0,1) / hoibc::norm(reflexion_ex,0,1);
       error[4][1] = error[0][1] + error[1][1];
     }
     errors.push_back(error);
@@ -346,7 +346,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
     // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
     const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
-    const std::string fmt_error_value   = "%40s %10s %4c %3d %4d %10.2e %10.2e %10.2e %10.2e %10.2e\n";
+    const std::string fmt_error_value   = "%40s %10s %4c %3c %4d %10.2E %10.2E %10.2E %10.2E %10.2E\n";
 
     std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
     std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
@@ -361,7 +361,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
       const hoibc::hoibc_class* ibc = hoibc_list[i];
       // When C++20 will be available
       // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
     }
 
     std::cout << std::endl;
@@ -374,6 +374,6 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
       const hoibc::hoibc_class* ibc = hoibc_list[i];
       // When C++20 will be available
       // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
     }
 }
