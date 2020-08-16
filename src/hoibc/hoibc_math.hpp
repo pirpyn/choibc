@@ -179,8 +179,7 @@ namespace hoibc {
     return A;
   }
 
-  template<>
-  matrix<complex> hoibc::conj<complex>(const matrix<complex>& A);
+  matrix<complex> conj(const matrix<complex>& A);
 
   template<typename T>
   T trace(const matrix<T>& A){

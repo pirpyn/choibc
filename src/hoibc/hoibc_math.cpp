@@ -31,8 +31,7 @@ hoibc::big_matrix<complex> hoibc::operator*(const complex& x, const big_matrix<r
   return A*x;
 }
 
-template<>
-matrix<complex> hoibc::conj<complex>(const matrix<complex>& A){
+matrix<complex> hoibc::conj(const matrix<complex>& A){
   matrix<complex> B = A;
   B[0][0] = std::conj(A[0][0]);
   B[0][1] = std::conj(A[0][1]);
