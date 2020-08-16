@@ -9,19 +9,22 @@
     "configurations": [
         {
             "name": "Linux",
-            "includePath": ["${myDefaultIncludePath}"],
+            "includePath": [
+                "${myDefaultIncludePath}"
+            ],
             "defines": [],
-            "compilerPath": "",
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c11",
             "cppStandard": "c++11",
             "intelliSenseMode": "gcc-x64",
             "browse": {
-                "path": ["${myDefaultIncludePath}"],
+                "path": [
+                    "${myDefaultIncludePath}"
+                ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-              }
+            }
         }
     ],
     "version": 4
 }
-
