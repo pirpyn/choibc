@@ -20,7 +20,7 @@ int main() {
   data.hoibc.type         = {'P','P','P','P'};
   data.hoibc.inner_radius = {0.,0.,0.,0.};
   data.hoibc.mode         = {1,2,1,2};
-  data.hoibc.normalised   = {false,false,false,false};
+  data.hoibc.normalised   = {true,true,true,true};
 
   // prints the parameters to stdout
   hoibc::disp_data(data);

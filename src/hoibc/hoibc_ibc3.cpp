@@ -24,14 +24,24 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
   //   NOTFINISHED("hoibc::hoibc_ibc3_get_coeff_no_suc::mode=1")
   //  break;
   case 2: // if impedance
-    plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
+    switch (this->type){
+      case 'P':
+        plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
+        break;
+      default:
+        NOTFINISHED("hoibc::ibc3::get_coeff_no_suc::mode=2")
+      break;
+    }
+    if (this->normalised){
+      LD = LD / (k0*k0);
+      LR = LR / (k0*k0);
+    }
     LDZ = LD * gex;
     LRZ = LR * gex;
     m = f1.size()*f2.size()*4;
     n = 5;
 
-    // allocating a contiguous memory for the "2D" array
-    // To benefits from LAPACK efficiency.
+    // Allocating a contiguous memory for the "2D" array to benefits from LAPACK efficiency.
     a = new complex*[m];
     a[0] = new complex[m * n];
     for (int i = 1; i < m; i++)
@@ -72,7 +82,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
       }
     }
 
-    LAPACKE_zgels(LAPACK_COL_MAJOR,'N', m, n, 1, *a, m, b, m );
+    LAPACKE_zgels(LAPACK_ROW_MAJOR,'N', m, n, 1, *a, n, b, 1 );
 
     this->coeff.a0 = b[0];
     this->coeff.a1 = b[1];
@@ -110,7 +120,7 @@ big_matrix<complex> hoibc::hoibc_ibc3::get_impedance(const real& k0, const std::
     LR = LR / scaling;
   }
 
-  big_matrix<complex> impedance_ap = ( complex(1.,0.)*I + (this->coeff.b1*LD) + (this->coeff.b2*LR) ) % ( this->coeff.a0*I + this->coeff.a1*LD + this->coeff.a2*LR );
+  big_matrix<complex> impedance_ap = ( complex(1.,0.)*I + (this->coeff.b1*LD) - (this->coeff.b2*LR) ) % ( this->coeff.a0*I + this->coeff.a1*LD - this->coeff.a2*LR );
   return impedance_ap;
 }
 
@@ -146,7 +156,12 @@ void hoibc::hoibc_ibc3::get_suc(std::vector<real>& cle, std::vector<real>& ceq, 
 }
 
 void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
-  out << "# Z = (I + b1*LD - b2*LR)^{-1}*(a0*I + a1*LD - a2*LR)" << std::endl;
+  if (this->normalised){
+    out << "# Z = (I + b1*LD/k0^2 - b2*LR^2)^{-1}*(a0*I + a1*LD^2 - a2*LR^2)" << std::endl;
+  } else {
+    out << "# Z = (I + b1*LD - b2*LR)^{-1}*(a0*I + a1*LD - a2*LR)" << std::endl;
+  }
+  
   print_complex(this->coeff.a0,"    a0",out);
   print_complex(this->coeff.a1,"    a1",out);
   print_complex(this->coeff.a2,"    a2",out);
