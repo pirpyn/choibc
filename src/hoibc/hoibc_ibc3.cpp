@@ -29,12 +29,14 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
     LRZ = LR * gex;
     m = f1.size()*f2.size()*4;
     n = 5;
-    // TODO
-    // GridUnit** newGrid;
-    // newGrid = new GridUnit*[width];
-    // newGrid[0] = new GridUnit[width * height];
-    // for (int i = 1; i < width; i++)
-    //     newGrid[i] = newGrid[i-1] + height;
+
+    // allocating a contiguous memory for the "2D" array
+    // To benefits from LAPACK efficiency.
+    a = new complex*[m];
+    a[0] = new complex[m * n];
+    for (int i = 1; i < m; i++)
+        a[i] = a[i-1] + n;
+    b = new complex[m];
 
     for (std::size_t j=0;j<n2;j++){
       for (std::size_t i=0;i<n1;i++){
