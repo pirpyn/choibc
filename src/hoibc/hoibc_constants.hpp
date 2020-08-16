@@ -12,9 +12,7 @@ namespace hoibc
   const real    vacuum_impedance = 376.730452; // (Ohm)
   const real    sqrt_two = 1.4142135623730951;
 
-  inline real free_space_impedance(const real& frequency){
-    return 2.*pi*frequency*1.E9/speed_of_light; // assuming the frequency is in GHz
-  };
+  real free_space_wavenumber(const real& frequency);
 }
 
 #endif

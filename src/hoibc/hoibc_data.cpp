@@ -35,10 +35,10 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
     std::scientific(out);
     out << "#   Epsilon:   (" << std::real(epsr) << "," << std::imag(epsr) << ")" << endl;
     out << "#   Mu:        (" << std::real(mur) << "," << std::imag(mur) << ")" << endl;
-    complex nur = std::sqrt(sqrt(epsr*mur));
+    complex nur = std::sqrt(epsr*mur);
     out << "#   Nu:        (" << std::real(nur) << "," << std::imag(nur) 
       << ") [ index = " << std::noshowpos << std::abs(nur) << std::showpos << "]" << endl;
-    complex etar = std::sqrt(sqrt(mur/epsr));
+    complex etar = std::sqrt(mur/epsr);
     out << "#   Eta:       (" << std::real(etar) << "," << std::imag(etar) << ")" << endl;
   }
     out << "# " + std::string(60,'-') << endl;

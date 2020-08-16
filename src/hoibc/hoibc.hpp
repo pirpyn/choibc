@@ -5,6 +5,9 @@
 
 #include "hoibc_data.hpp"
 #include "hoibc_class.hpp"
+#include "hoibc_constants.hpp"
+#include "hoibc_math.hpp"
+#include "hoibc_math_plane.hpp"
 
 namespace hoibc
 {

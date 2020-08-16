@@ -41,7 +41,7 @@ CXXC:=g++
 
 CXXFLAGS:=
 DFLAGS:=-Wall
-LDFLAGS:=
+LDFLAGS:=-llapacke
 INCFLAGS:=
 
 #############################################################################

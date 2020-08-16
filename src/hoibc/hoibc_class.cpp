@@ -11,8 +11,29 @@
 using namespace hoibc;
 using std::vector;
 
-void hoibc_class::get_reflexion(){
-  std::cout << "hoibc_class::get_reflexion: i do nothing" << std::endl;
+big_matrix<complex> hoibc_class::get_reflexion(const real& k0, std::vector<real>& f1, std::vector<real>& f2){
+  big_matrix<complex> impedance = this->get_impedance(k0,f1,f2);
+
+  // We're in the vaccum
+  // const complex k = complex(k0,0.);
+  // const complex etar = complex(1.,0.);
+
+  big_matrix<complex> reflexion;
+  switch (this->type){
+  case 'P':
+    // f1 = kx, f2 = ky
+    reflexion = plane::reflexion_from_impedance(f1,f2,k0,impedance);
+    break;
+  case 'C':
+    // f1 = n, f2 = kz
+    // TODO ref_ap = reflexion_from_impedance_cylinder(f1,f2,k0,Z,self%outer_radius)
+    break;
+  case 'S':
+    // f1 = m, f2 = n
+    //TODO ref_ap = reflexion_from_impedance_sphere(f2,k0,Z,self%outer_radius)
+    break;
+  }
+  return reflexion;
 }
 
 void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const vector<real>& f2){
@@ -21,13 +42,13 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   // i.e. for a plane type and mode 2 so gex[i][j][k][l] represents Z(kx[i],ky[j])_kl
   big_matrix<complex> gex;
 
-  const real k0 = free_space_impedance(data.main.frequency);
+  const real k0 = free_space_wavenumber(data.main.frequency);
 
   switch (this->mode){
     case 1 :
       switch (this->type) {
         case 'P' :
-          reflexion_infinite_plane();
+          gex = plane::reflexion_infinite(f1,f2,k0,data.material);
           break;
         case 'C' :
           reflexion_infinite_cylinder();
@@ -40,7 +61,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
     case 2 :
       switch (this->type) {
         case 'P' :
-          gex = impedance_infinite_plane(f1,f2,k0,data.material);
+          gex = plane::impedance_infinite(f1,f2,k0,data.material);
           break;
         case 'C' :
           impedance_infinite_cylinder();
@@ -53,7 +74,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   }
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
-  std::cout << "hoibc_class::get_coeff: not finished" << std::endl;
+  NOTFINISHED("hoibc_class::get_coeff")
 }
 
 /*
@@ -160,8 +181,78 @@ void hoibc_class::print_coeff(std::ostream& out){
   this->disp_coeff(out);
 }
 
-void hoibc_class::print_suc(){
-  std::cout << "hoibc_class::get_print_suc: i do nothing" << std::endl;
+#define any(T,vector,logical) \
+std::any_of(vector.begin(), vector.end(), [](T x){return logical;})
+
+void hoibc_class::print_suc(const real& tol, std::ostream& out){
+
+  vector<real> cle;
+  vector<real> ceq;
+  vector<real> cne;
+  vector<std::string> sle;
+  vector<std::string> seq;
+  vector<std::string> sne;
+
+  this->get_suc(cle,ceq,cne,sle,seq,sne);
+
+  out << "# Verifying the Sufficient Uniqueness Conditions (SUC)" << std::endl;
+
+  if (!cle.empty()){
+    if (any(real, cle, x <= 0.)){
+      out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
+      for (std::size_t i = 0; i < cle.size(); i++){
+        if (cle[i] <= tol){
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, cle, x > 0.)){
+      out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
+      for (std::size_t i = 0; i < cle.size(); i++){
+        if (cle[i] > tol){
+        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        }
+      }
+    }
+  }
+
+  if (!ceq.empty()){
+    if (any(real, ceq, std::abs(x) <= 0.)){
+      out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
+      for (std::size_t i = 0; i < ceq.size(); i++){
+        if (ceq[i] <= tol){
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, ceq, std::abs(x) > 0.)){
+      out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
+      for (std::size_t i = 0; i+1 < ceq.size(); i++){
+        if (cle[i] > tol){
+        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        }
+      }
+    }
+  }
+
+  if (!cne.empty()){
+    if (any(real, cne, std::abs(x) <= 0.)){
+      out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
+      for (std::size_t i = 0; i < cne.size(); i++){
+        if (cne[i] <= tol){
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        }
+      }
+    }
+    if (any(real, cne, std::abs(x) > 0.)){
+      out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
+      for (std::size_t i = 0; i < cne.size(); i++){
+        if (cne[i] > tol){
+        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        }
+      }
+    }
+  }
 }
 
 // Reads a data struct and creates two array with the values of the Fourier variables 
@@ -172,7 +263,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   // s1, = f1 / free_space_wavenumber
   // s2  = f2 / free_space_wavenumber */
 
-  const real k0 = hoibc::free_space_impedance(data.main.frequency);
+  const real k0 = free_space_wavenumber(data.main.frequency);
   integer n1, n2;
 
   // This function will be called several times, so we compute at compile time the square root of two
@@ -203,7 +294,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       // We truncate the number of Fourier coefficient to s2*k0*outer_radius + 1
       // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in 
       // front of the bessel functions Jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same Hn)
-      if (data.main.s1[1]<1) {
+      if (data.main.s1[1]<1){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
       }
       
@@ -225,7 +316,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       // We truncate the number of Mie coefficient to s2*k0*outer_radius*sqrt(2) + 8 (same as Matlab)
       // It should be noted that max(s2) should be at least superior or equal to 1 because the Mie coefficient on front
       // of the spherical bessel functions jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
-      if (data.main.s2[1] < 1.) {
+      if (data.main.s2[1] < 1.){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
       }
       n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 8;
@@ -245,6 +336,34 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
 }
 
-void hoibc::print_complex(std::ostream& out, const complex& z, const std::string& name){
+void hoibc::print_complex(const complex& z, const std::string& name, std::ostream& out){
   out << name << " = " << z << std::endl;
 }
+
+void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_matrix<real>& I, big_matrix<real>& I1, big_matrix<real>& I2){
+  I.clear();
+  I1.clear();
+  I2.clear();
+  matrix<real> sI;
+
+  sI[0][0] = 1.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 1.;
+  I  = big_init<real>(n1,n2,sI);
+
+  matrix<real> sI1;
+  sI[0][0] = 1.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 0.;
+  I1 = big_init<real>(n1,n2,sI1);
+
+  matrix<real> sI2;
+  sI[0][0] = 0.;
+  sI[1][0] = 0.;
+  sI[0][1] = 0.;
+  sI[1][1] = 1.;
+  I2 = big_init<real>(n1,n2,sI2);
+}
+
