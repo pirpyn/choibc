@@ -6,9 +6,9 @@ cd $dir
 url="https://www.alglib.net/translator/re/alglib-3.16.0.cpp.gpl.tgz"
 wget $url
 tar xvf alglib-*.tgz
-files=(optimization ap alglibinternal linalg alglibmisc solvers )
+files=(optimization ap alglibinternal linalg alglibmisc solvers stdafx)
 for file in ${files[@]}; do
     cp cpp/src/$file.* .
 done
-rm $dir/*.tgz $dir/*.tgz.*
+rm -f $dir/*.tgz $dir/*.tgz.*
 rm -rf $dir/cpp

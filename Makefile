@@ -26,9 +26,9 @@ help:
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=./src/hoibc
+SRCDIRS:=./src/hoibc ./src/alglib
 # ./src/bessel ./src/slsqp/src
-LIBNAMES:=hoibc
+LIBNAMES:=hoibc alglib
 # bessel slsqp
 
 EXTENSIONS:=.cpp
@@ -119,6 +119,7 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
+	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib
 	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
 
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
@@ -129,7 +130,7 @@ main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
 	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog
 
 
 .PHONY: link
