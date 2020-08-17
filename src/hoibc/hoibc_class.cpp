@@ -285,7 +285,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   // f1: The 1st Fourier variable: k_x, n,   m if plane, cylinder, sphere
   // f2: The 2nd Fourier variable: k_y, k_z, n if plane, cylinder, sphere
   // s1, = f1 / free_space_wavenumber
-  // s2  = f2 / free_space_wavenumber */
+  // s2  = f2 / free_space_wavenumber
 
   const real k0 = free_space_wavenumber(data.main.frequency);
   integer n1, n2;

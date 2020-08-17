@@ -29,6 +29,11 @@ int main() {
   data.optim.tol            = 1e-6;
   data.optim.toldx          = 1e-4;
 
+  data_out_t data_out;
+  data_out.basename = "/home/pirpyn/Documents/c++/choibc/test/test";
+  data_out.impedance_ibc = true;
+  data_out.impedance_ex   = true;
+
   // prints the parameters to stdout
   hoibc::disp_data(data);
 
@@ -46,7 +51,7 @@ int main() {
   std::cout << std::endl;
 
   // Write results (impedance, coeff, ...) to screen and csv files
-  write_impedance_errors(data, hoibc_list);
+  write_impedance_errors(data, data_out, hoibc_list);
 
   hoibc::free_hoibc_list(hoibc_list);
   return 0;
@@ -72,7 +77,7 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
-void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
+void write_impedance_errors(const hoibc::data_t& data, const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
 
@@ -86,7 +91,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // ! and the character format string for IBC coefficient
     // call set_backend(data_extended%out%backend)
 
-    // ! To print the impedance we will need the value of the Fourier variables
+    // To print the impedance we will need the value of the Fourier variables
     // ! depending on the IBC
 
   for ( const auto& ibc : hoibc_list ){
@@ -115,8 +120,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // For the plane, depends on (kx,ky)
     // For the cylinder, depends on kz, incidence is from theta = 0, but expressed as a Fourier serie over n, truncated
     // For the sphere, incidence is always from theta, phi = 0, but expressed as a Mie serie over n, truncated
-    std::vector<hoibc::real> f1, f2;
-    ibc->set_fourier_variables(data,f1,f2);
+    std::vector<hoibc::real> f1, f2, s1 ,s2;
+    ibc->set_fourier_variables(data,f1,f2,s1,s2);
     // Compute reflexion/fourier/mie coefficient
     const hoibc::big_matrix<hoibc::complex> reflexion_ap = ibc->get_reflexion(k0,f1,f2);
     const hoibc::big_matrix<hoibc::complex> impedance_ap = ibc->get_impedance(k0,f1,f2);
@@ -329,12 +334,12 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   //   call dump_to_csv(filename,s1,s2,Z_ex,"s1","s2","z_ex",data_extended%out%skip_nan)
   //   end if
 
-  //   if (data_extended%out%z_ibc) then
-  //   filename = data_extended%out%basename//'.z_ibc.'//ibc%label//".csv"
-  // ! write(output_unit,'(a,a)') 'Writing IBC impedance to ',filename
-  //   call dump_to_csv(filename,s1,s2,Z_ap,"s1","s2","z_"//ibc%name,data_extended%out%skip_nan)
-  //     end if
-
+    if (data_out.impedance_ibc){
+      std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
+      std::cout << std::endl;
+      std::cout << "Writing IBC impedance to " << filename << std::endl;
+      dump_to_csv(filename,s1,s2,impedance_ap,"s1","s2","z_"+ibc->name);
+    }
   //     if (data_extended%out%z_err) then
   //   filename = data_extended%out%basename//'.z_err.'//ibc%label//".csv"
   // ! write(output_unit,'(a,a)') 'Writing difference of impedance between exact and IBC to ',filename
