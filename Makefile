@@ -134,7 +134,7 @@ main: hoibc
 
 
 .PHONY: link
-link: main $(lklibdir) $(lkbindir)
+link: main | $(lklibdir) $(lkbindir)
 	@echo "Simlinking binaries and libraries"
 	@for lib in $(libs); do \
 	    rm -rf $(lklibdir)/$$(basename $${lib}); \
@@ -162,10 +162,10 @@ all:
 	done
 
 .PHONY:lib
-lib: $(libdir) $(libs)
+lib: $(libs) | $(libdir)
 
 .PHONY: prog
-prog: $(bindir) $(bins)
+prog: $(bins) | $(bindir)
 
 .PHONY: info
 info:
@@ -180,7 +180,7 @@ $(dirs):
 
 #############################################################################
 
-$(objdir)/%.o: %.cpp %.hpp %.d $(objdir)
+$(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
