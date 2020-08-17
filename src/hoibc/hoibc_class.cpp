@@ -202,6 +202,8 @@ void hoibc_class::print_coeff(std::ostream& out){
 #define any(vector,logical) \
 std::any_of(vector.begin(), vector.end(), [&tol](real x){return logical;})
 
+#include <iomanip>      // std::setw
+
 void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
   vector<real> cle;
@@ -210,25 +212,29 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   vector<std::string> sle;
   vector<std::string> seq;
   vector<std::string> sne;
+  
+  const char width = 13;
 
   this->get_suc(cle,ceq,cne,sle,seq,sne);
 
   out << "# Verifying the Sufficient Uniqueness Conditions (SUC)" << std::endl;
-
+  out.precision(6);
+  out.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
+  out << std::noshowpos;
   if (!cle.empty()){
     if (any(cle, x <= tol)){
-      out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
+      out << "#    [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] <= tol){
-        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
     if (any(cle, x > tol)){
-      out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
+      out << "#  [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] > tol){
-        out << "#     IN(" << i+1 << ") = " << cle[i] << " ! " << sle[i] << std::endl;
+        out << "#    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -236,18 +242,18 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
   if (!ceq.empty()){
     if (any(ceq, std::abs(x) <= tol)){
-      out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
+      out << "#    [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
       for (std::size_t i = 0; i < ceq.size(); i++){
         if (ceq[i] <= tol){
-        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
     if (any(ceq, std::abs(x) > tol)){
-      out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
+      out << "#  [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
       for (std::size_t i = 0; i+1 < ceq.size(); i++){
         if (cle[i] > tol){
-        out << "#     EQ(" << i+1 << ") = " << ceq[i] << " ! " << seq[i] << std::endl;
+        out << "#    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
@@ -255,18 +261,18 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
   if (!cne.empty()){
     if (any(cne, std::abs(x) <= tol)){
-      out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
+      out << "#    [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] <= tol){
-        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
     if (any(cne, std::abs(x) > tol)){
-      out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
+      out << "#  [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] > tol){
-        out << "#     NE(" << i+1 << ") = " << cne[i] << " ! " << sne[i] << std::endl;
+        out << "#    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
@@ -354,8 +360,12 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
 }
 
+#include <iomanip> // std::setw
 void hoibc::print_complex(const complex& z, const std::string& name, std::ostream& out){
-  out << name << " = " << z << std::endl;
+  out.precision(8);
+  out << std::noshowpos;
+  out.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
+  out << name << " = (" << std::setw(15) << std::real(z) << "," <<  std::setw(15) << std::imag(z) << ")" << std::endl;
 }
 
 void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_matrix<real>& I, big_matrix<real>& I1, big_matrix<real>& I2){

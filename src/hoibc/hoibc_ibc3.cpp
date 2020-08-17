@@ -209,16 +209,16 @@ void hoibc::hoibc_ibc3::get_suc(std::vector<real>& cle, std::vector<real>& ceq, 
 
 void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
   if (this->normalised){
-    out << "# Z = (I + b1*LD/k0^2 - b2*LR/k0^2)^{-1}*(a0*I + a1*LD/k0^2 - a2*LR/k0^2)" << std::endl;
+    out << "# Z = (I + b1*LD/k0^2 - b2*LR/k0^2)^{-1} (a0*I + a1*LD/k0^2 - a2*LR/k0^2)" << std::endl;
   } else {
-    out << "# Z = (I + b1*LD - b2*LR)^{-1}*(a0*I + a1*LD - a2*LR)" << std::endl;
+    out << "# Z = (I + b1*LD - b2*LR)^{-1} (a0*I + a1*LD - a2*LR)" << std::endl;
   }
   
-  print_complex(this->coeff.a0,"    a0",out);
-  print_complex(this->coeff.a1,"    a1",out);
-  print_complex(this->coeff.a2,"    a2",out);
-  print_complex(this->coeff.b1,"    b1",out);
-  print_complex(this->coeff.b2,"    b2",out);
+  print_complex(this->coeff.a0,"  a0",out);
+  print_complex(this->coeff.a1,"  a1",out);
+  print_complex(this->coeff.a2,"  a2",out);
+  print_complex(this->coeff.b1,"  b1",out);
+  print_complex(this->coeff.b2,"  b2",out);
 }
 
 void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){

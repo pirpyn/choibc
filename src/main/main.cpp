@@ -15,12 +15,12 @@ int main() {
   data.material.epsr      = {hoibc::complex(1.,-1.)};
   data.material.mur       = {hoibc::complex(1.,0.)};
 
-  data.hoibc.name         = {"ibc0","ibc0","ibc3","ibc3","ibc3","ibc3"};
-  data.hoibc.suc          = {false,false,false,false,true,true};
-  data.hoibc.type         = {'P','P','P','P','P','P'};
-  data.hoibc.inner_radius = {0.,0.,0.,0.,0.,0.};
-  data.hoibc.mode         = {1,2,1,2,1,2};
-  data.hoibc.normalised   = {true,true,true,true,true,true};
+  data.hoibc.name         = {"ibc3","ibc3"};
+  data.hoibc.suc          = {false,true};
+  data.hoibc.type         = {'P','P'};
+  data.hoibc.inner_radius = {0.,0.};
+  data.hoibc.mode         = {2,2};
+  data.hoibc.normalised   = {true,true};
 
   data.optim.grad_delta     = 1e-4;
   data.optim.max_iter       = 100;
@@ -70,6 +70,8 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
   return idx;
 }
 
+#define SEP_WIDTH 82
+
 void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
@@ -89,8 +91,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
 
   for ( const auto& ibc : hoibc_list ){
     std::cout << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
     std::cout << std::endl;
 
     // Display the coefficient to the standard output (stdout)
@@ -342,8 +344,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   }
     
     std::cout << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
     std::cout << std::endl;
 
     // write(output_unit,'(a,a)') 'Writing CSV files to ',data_extended%out%basename
