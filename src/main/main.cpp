@@ -15,12 +15,19 @@ int main() {
   data.material.epsr      = {hoibc::complex(1.,-1.)};
   data.material.mur       = {hoibc::complex(1.,0.)};
 
-  data.hoibc.name         = {"ibc0","ibc0","ibc3","ibc3"};
-  data.hoibc.suc          = {false,false,false,false};
-  data.hoibc.type         = {'P','P','P','P'};
-  data.hoibc.inner_radius = {0.,0.,0.,0.};
-  data.hoibc.mode         = {1,2,1,2};
-  data.hoibc.normalised   = {true,true,true,true};
+  data.hoibc.name         = {"ibc0","ibc0","ibc3","ibc3","ibc3","ibc3"};
+  data.hoibc.suc          = {false,false,false,false,true,true};
+  data.hoibc.type         = {'P','P','P','P','P','P'};
+  data.hoibc.inner_radius = {0.,0.,0.,0.,0.,0.};
+  data.hoibc.mode         = {1,2,1,2,1,2};
+  data.hoibc.normalised   = {true,true,true,true,true,true};
+
+  data.optim.grad_delta     = 1e-4;
+  data.optim.max_iter       = 100;
+  data.optim.no_constraints = true;
+  data.optim.show_iter      = false;
+  data.optim.tol            = 1e-6;
+  data.optim.toldx          = 1e-4;
 
   // prints the parameters to stdout
   hoibc::disp_data(data);

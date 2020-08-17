@@ -43,14 +43,14 @@ big_matrix<complex> hoibc::hoibc_ibc0::get_impedance(const real& k0, const std::
   return impedance_ap;
 }
 
-void hoibc::hoibc_ibc0::array_to_coeff(const std::vector<real>& x){
-  this->coeff.a0 = std::complex<real>(x[0],x[1]);
+void hoibc::hoibc_ibc0::array_to_coeff(const alglib::real_1d_array& x){
+  this->coeff.a0 = complex(x[0],x[1]);
 }
 
-void hoibc::hoibc_ibc0::coeff_to_array(std::vector<real>& x){
-  x.clear();
-  x.push_back(std::real(this->coeff.a0));
-  x.push_back(std::imag(this->coeff.a0));
+void hoibc::hoibc_ibc0::coeff_to_array(alglib::real_1d_array& x){
+  x.setlength(2);
+  x[0] = std::real(this->coeff.a0);
+  x[1] = std::imag(this->coeff.a0);
 }
 
 void hoibc::hoibc_ibc0::get_suc(std::vector<real>& cle, std::vector<real>& ceq, std::vector<real>& cne, std::vector<std::string>& sle, std::vector<std::string>& seq, std::vector<std::string>& sne){

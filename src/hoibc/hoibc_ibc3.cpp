@@ -152,35 +152,59 @@ big_matrix<complex> hoibc::hoibc_ibc3::get_impedance(const real& k0, const std::
   return impedance_ap;
 }
 
-void hoibc::hoibc_ibc3::array_to_coeff(const std::vector<real>& x){
-  this->coeff.a0 = std::complex<real>(x[0],x[1]);
-  this->coeff.a1 = std::complex<real>(x[2],x[3]);
-  this->coeff.a2 = std::complex<real>(x[4],x[5]);
-  this->coeff.b1 = std::complex<real>(x[6],x[7]);
-  this->coeff.b2 = std::complex<real>(x[8],x[9]);
+void hoibc::hoibc_ibc3::array_to_coeff(const alglib::real_1d_array& x){
+  this->coeff.a0 = complex(x[0],x[1]);
+  this->coeff.a1 = complex(x[2],x[3]);
+  this->coeff.a2 = complex(x[4],x[5]);
+  this->coeff.b1 = complex(x[6],x[7]);
+  this->coeff.b2 = complex(x[8],x[9]);
 }
 
-void hoibc::hoibc_ibc3::coeff_to_array(std::vector<real>& x){
-  x.clear();
-  x.push_back(std::real(this->coeff.a0));
-  x.push_back(std::imag(this->coeff.a0));
-  x.push_back(std::real(this->coeff.a1));
-  x.push_back(std::imag(this->coeff.a1));
-  x.push_back(std::real(this->coeff.a2));
-  x.push_back(std::imag(this->coeff.a2));
-  x.push_back(std::real(this->coeff.b1));
-  x.push_back(std::imag(this->coeff.b1));
-  x.push_back(std::real(this->coeff.b2));
-  x.push_back(std::imag(this->coeff.b2));
+void hoibc::hoibc_ibc3::coeff_to_array(alglib::real_1d_array& x){
+  x.setlength(10);
+  x[0] = std::real(this->coeff.a0);
+  x[1] = std::imag(this->coeff.a0);
+  x[2] = std::real(this->coeff.a1);
+  x[3] = std::imag(this->coeff.a1);
+  x[4] = std::real(this->coeff.a2);
+  x[5] = std::imag(this->coeff.a2);
+  x[6] = std::real(this->coeff.b1);
+  x[7] = std::imag(this->coeff.b1);
+  x[8] = std::real(this->coeff.b2);
+  x[9] = std::imag(this->coeff.b2);
 }
 
 void hoibc::hoibc_ibc3::get_suc(std::vector<real>& cle, std::vector<real>& ceq, std::vector<real>& cne, std::vector<std::string>& sle, std::vector<std::string>& seq, std::vector<std::string>& sne){
-  cle.clear();
-  ceq.clear();
-  cne.clear();
-  sle.clear();
-  seq.clear();
-  sne.clear();
+    cle.clear();
+    ceq.clear();
+    cne.clear();
+    sle.clear();
+    seq.clear();
+    sne.clear();
+
+    coeff_t &c = this->coeff;
+    const complex z = std::pow(std::abs(c.a1),2)*std::pow(std::abs(c.a2),2) - c.b1*c.a0*conj(c.a1)*std::pow(std::abs(c.a2),2) - c.b2*c.a0*conj(c.a2)*std::pow(std::abs(c.a1),2);
+
+    cle.resize(9);
+    cle[0] = -std::real(conj(c.a0)*z);
+    cle[1] =  std::real(conj(c.a1)*z);
+    cle[2] =  std::real(conj(c.a2)*z);
+    cle[3] = -std::real(c.b1*conj(c.a1));
+    cle[4] = -std::real(c.b2*conj(c.a2));
+    cle[5] =  std::real(c.b1*conj(c.a2*c.a1)*c.a0);
+    cle[6] =  std::real(c.b2*conj(c.a1*c.a2)*c.a0);
+    cle[7] =  std::real(c.a1);
+    cle[8] =  std::real(c.a2);
+    sle.resize(9);
+    sle[0] = "-Re(a0*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    sle[1] = " Re(a1*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    sle[2] = " Re(a2*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    sle[3] = "-Re(b1.a1*)";
+    sle[4] = "-Re(b2.a2*)";
+    sle[5] = " Re(b1.(a2.a1)*.a0)";
+    sle[6] = " Re(b2.(a2.a1)*.a0)";
+    sle[7] = " Re(a1)";
+    sle[8] = " Re(a2)";
 }
 
 void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){

@@ -33,7 +33,12 @@ namespace hoibc{
   };
 
   struct optim_t{
-    real  tol { 1.e-6 };
+    integer max_iter { 100 };     // max number of iteration
+    real    tol { 1.e-6 };        // tol for suc
+    real    toldx  { 1e-8 };      // if `|xn+1 - xn| < toldx` then stop
+    real    grad_delta { 1e-4 };  // Step to approximation gradient of constraints and cost function
+    bool    no_constraints { false }; // If true, then minimsation is unconstrained
+    bool    show_iter { false };
   };
 
   struct data_t{

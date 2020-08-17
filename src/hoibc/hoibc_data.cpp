@@ -41,10 +41,7 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
     complex etar = std::sqrt(mur/epsr);
     out << "#   Eta:       (" << std::real(etar) << "," << std::imag(etar) << ")" << endl;
   }
-    out << "# " + std::string(60,'-') << endl;
-
-/*  
-    write(newunit,'(a,3(es10.3,","))') '# s_1: [start,end,step] = ',data%main%s1
-    write(newunit,'(a,3(es10.3,","))') '# s_2: [start,end,step] = ',data%main%s2
-*/
+    out << "# " + std::string(60,'-') << endl; 
+    out << "# s_1: [start, end, step] = " << data.main.s1[0] << ", " << data.main.s1[1] << ", " << data.main.s1[2] << std::endl;
+    out << "# s_2: [start, end, step] = " << data.main.s2[0] << ", " << data.main.s2[1] << ", " << data.main.s2[2] << std::endl;
 }

@@ -11,7 +11,7 @@
 using namespace hoibc;
 using std::vector;
 
-big_matrix<complex> hoibc_class::get_reflexion(const real& k0, vector<real>& f1, vector<real>& f2){
+big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const vector<real>& f1, const vector<real>& f2){
   big_matrix<complex> impedance = this->get_impedance(k0,f1,f2);
 
   // We're in the vaccum
@@ -37,13 +37,18 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, vector<real>& f1,
 }
 
 struct costf_data_t {
-  hoibc_class* ibc;
+  hoibc_class* ibc = NULL;
+  real k0 = 0;
+  std::size_t neq = 0;
+  std::size_t nle = 0;
+  const std::vector<real>* f1 = NULL;
+  const std::vector<real>* f2 = NULL;
+  const big_matrix<complex>* gex = NULL;
+  bool no_constraints = false;
 };
 
-void  costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, alglib::real_2d_array &jac, void *ptr){
-  costf_data_t data = *((costf_data_t*) ptr);
-  data.ibc->array_to_coeff(x);
-}
+void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr);
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr);
 
 void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const vector<real>& f2){
 
@@ -84,109 +89,108 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
   if (this->suc){
-    std::cout << "# Executing the constrained optimisation algorithm ... " << std::endl;
+    std::cout << "hoibc: Executing the constrained optimisation algorithm ... " << std::endl;
+    alglib::real_1d_array x;
+    alglib::real_1d_array scale;
+ 
+    // Get number of unknows from IBC
+    this->coeff_to_array(x);
+    this->coeff_to_array(scale);
+    // Feasible starting point
+    for (alglib::ae_int_t i = 0; i < x.length(); i++){
+      x[i] = 0.;
+    }
     alglib::minnlcstate state;
-    alglib::minnlcoptimize(state, costf);
+    alglib::minnlccreatef(x, data.optim.grad_delta, state);
+
+    // Set solver stopping criterion (epsx, maxit)
+    alglib::minnlcsetcond(state, data.optim.toldx, data.optim.max_iter);
+
+    // Set scale of unknowns
+    alglib::minnlcsetscale(state, scale);
+  
+    // Set solver
+    // SLP: Robust, slower, non convex, prototyping
+    // AUL: Faster, more tuning, convex
+    
+    // alglib::minnlcsetalgoaul(state, rho, outerits);
+    alglib::minnlcsetalgoslp(state);
+
+    // Get number of equality and inequality constraints
+    std::vector<real> ceq, cle;
+    this->get_suc(cle = cle, ceq = ceq);
+    alglib::minnlcsetnlc(state, ceq.size(), cle.size());
+
+    // Set up additionnal parameter for cost function
+    costf_data_t costf_data;
+    costf_data.ibc = this;
+    costf_data.k0 = k0;
+    costf_data.f1 = &f1;
+    costf_data.f2 = &f2;
+    costf_data.gex = &gex;
+    costf_data.neq = ceq.size();
+    costf_data.nle = cle.size();
+    costf_data.no_constraints = data.optim.no_constraints;
+    if (costf_data.no_constraints){
+      std::cout << "hoibc: IBC " << this->name << " has no constraints." << std::endl;
+    }
+    // Minimize the cost function
+    alglib::minnlcoptimize(state, costf, report_iteration, &(costf_data));
+
+    // Get solution and termination status
+    alglib::minnlcreport rep;
+    alglib::minnlcresults(state, x, rep);
+
+    this->array_to_coeff(x);
   }
-  NOTFINISHED("hoibc_class::get_coeff")
 }
 
-/*
-    ! Then if SUC, use slsqp
-    if (this->suc) then
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr){
+  std::cout << func << std::endl;
+}
 
-      write(output_unit,'(a)',advance='no') '# Executing the constrained optimisation algorithm ... '
+void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr){
+  costf_data_t data = *((costf_data_t*) ptr);
+  data.ibc->array_to_coeff(x);
 
-      ! Allocate x with the right number of element, depending on the HOIBC
-      call this->coeff_to_array(x)
-      n = size(x)
-      ! Get the number of constraints
-      call this->get_suc(cle,ceq,cne,sle,seq,sne)
-      meq = size(ceq)
-      m = meq + size(cle)
+  big_matrix<complex> ap;
+  
+  switch (data.ibc->mode){
+  case 1:
+    ap = data.ibc->get_reflexion(data.k0, *(data.f1), *(data.f2));
+    break;
+  case 2:
+    ap = data.ibc->get_impedance(data.k0, *(data.f1), *(data.f2));
+    break;
+  }
 
+  // for (alglib::ae_int_t i = 0; i < x.length(); i++){
+  //   std::cout << x[i] << " ";
+  // }
+  // std::cout << std::endl;
+  
+  // Cost function value at current point
+  fi[0] = std::pow(norm(ap - *(data.gex)),2) / std::pow(norm(*(data.gex)),2);
 
-      allocate(xl(n))
-      allocate(xu(n))
-
-      ! Set bounds to big values ( heuristic )
-      ! TODO Find an other constrained algorithm that doesn't rely on bounds
-      xl(:) = -10._wp
-      xu(:) = 10._wp
-
-      ! Its mandatory to start inside the constraints for slsqp to converge
-      ! zero is part of this space luckily, so let start from it
-      x(:) = 0.
-
-      ! The cost function to minimise.
-      f => costf
-      ! At the moment we evaluate only approximated gradient
-      g => gradf
-
-      if (.not.allocated(g_ex)) then
-        write(error_unit,'(*(a))') 'error:get_coeff: forgot to set g_ex for type ',this->type,' ibc'
-        error stop
-      end if
-      if (allocated(g_f1)) deallocate(g_f1)
-      if (allocated(g_f2)) deallocate(g_f2)
-      if (allocated(g_ibc)) deallocate(g_ibc)
- 
-      if (allocated(g_xlast)) deallocate(g_xlast)
-      allocate(g_xlast(n))
-
-      g_k0 = k0
-      allocate(g_f1(size(f1)))
-      g_f1 = f1
-      allocate(g_f2(size(f2)))
-      g_f2 = f2
-      g_ibc = self
-      g_gradient_delta = optim%grad_delta
-      g_no_constraints = optim%no_constraints
-
-      if (g_no_constraints) then
-        write(output_unit,'(3(a))') 'IBC ',this->name,' has no constraints'
-      end if
-
-      if (optim%show_iter) then
-        report => report_iteration
-      else
-        report => empty_report
-      end if
-
-      call solver%initialize(n,m,meq,optim%max_iter,optim%acc,f,g,xl,xu, &
-        linesearch_mode=optim%linesearch_mode, &
-        status_ok=status_ok,report=report,toldf=optim%toldf,toldx=optim%toldx)
-
-      if (.not.status_ok) then
-        error stop 'error calling slsqp%initialize.'
-      end if
-
-      call solver%optimize(x,istat,iterations)
-
-      if (istat.ne.0) then
-        write(*,'(a,1x,i0)') 'istat      :', istat
-        error stop 'Error during slsqp'
-      end if
-
-      if (optim%show_iter) then
-        allocate(final_c(m))
-        call costf(solver,x,final_f,final_c)
-        call report_iteration(solver,iterations,x,final_f,final_c)
-        deallocate(final_c)
-      end if
-
-      deallocate(g_ex)
-      deallocate(g_f1)
-      deallocate(g_f2)
-      deallocate(g_ibc)
-      deallocate(xl)
-      deallocate(xu)
-      deallocate(g_xlast)
-      ! Save the solution in the IBC
-      call this->array_to_coeff(x)
-    end if
-  end subroutine
-  */
+  // Get constraints
+  if (data.no_constraints) {
+    for (std::size_t i = 0; i < data.neq; i++){
+      fi[i+1] = 0.;
+    }
+    for (std::size_t i = 0; i < data.nle; i++){
+      fi[i+1+data.neq] = 0.;
+    }
+  } else {
+    std::vector<real> cle, ceq;
+    data.ibc->get_suc(cle = cle,ceq = ceq);
+    for (std::size_t i = 0; i < data.neq; i++){
+      fi[i+1] = ceq[i];
+    }
+    for (std::size_t i = 0; i < data.nle; i++){
+      fi[i+1+data.neq] = cle[i];
+    }
+  }
+}
 
 void hoibc_class::print_coeff(std::ostream& out){
   std::noshowpos(out);
@@ -195,8 +199,8 @@ void hoibc_class::print_coeff(std::ostream& out){
   this->disp_coeff(out);
 }
 
-#define any(T,vector,logical) \
-std::any_of(vector.begin(), vector.end(), [](T x){return logical;})
+#define any(vector,logical) \
+std::any_of(vector.begin(), vector.end(), [&tol](real x){return logical;})
 
 void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
@@ -212,7 +216,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   out << "# Verifying the Sufficient Uniqueness Conditions (SUC)" << std::endl;
 
   if (!cle.empty()){
-    if (any(real, cle, x <= 0.)){
+    if (any(cle, x <= tol)){
       out << "#   [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] <= tol){
@@ -220,7 +224,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
         }
       }
     }
-    if (any(real, cle, x > 0.)){
+    if (any(cle, x > tol)){
       out << "# [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] > tol){
@@ -231,7 +235,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   }
 
   if (!ceq.empty()){
-    if (any(real, ceq, std::abs(x) <= 0.)){
+    if (any(ceq, std::abs(x) <= tol)){
       out << "#   [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
       for (std::size_t i = 0; i < ceq.size(); i++){
         if (ceq[i] <= tol){
@@ -239,7 +243,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
         }
       }
     }
-    if (any(real, ceq, std::abs(x) > 0.)){
+    if (any(ceq, std::abs(x) > tol)){
       out << "# [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
       for (std::size_t i = 0; i+1 < ceq.size(); i++){
         if (cle[i] > tol){
@@ -250,7 +254,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   }
 
   if (!cne.empty()){
-    if (any(real, cne, std::abs(x) <= 0.)){
+    if (any(cne, std::abs(x) <= tol)){
       out << "#   [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] <= tol){
@@ -258,7 +262,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
         }
       }
     }
-    if (any(real, cne, std::abs(x) > 0.)){
+    if (any(cne, std::abs(x) > tol)){
       out << "# [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] > tol){

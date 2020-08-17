@@ -29,11 +29,11 @@ namespace hoibc
 
       big_matrix<complex> get_impedance(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2);
 
-      void array_to_coeff(const std::vector<real>& x);
+      void array_to_coeff(const alglib::real_1d_array& x);
 
-      void coeff_to_array(std::vector<real>& x);
+      void coeff_to_array(alglib::real_1d_array& x);
 
-      void get_suc(std::vector<real>& cle, std::vector<real>& ceq, std::vector<real>& cne, std::vector<std::string>& sle, std::vector<std::string>& seq, std::vector<std::string>& sne);
+      void get_suc(std::vector<real>& cle = empty_vector_real, std::vector<real>& ceq = empty_vector_real, std::vector<real>& cne = empty_vector_real, std::vector<std::string>& sle = empty_vector_string, std::vector<std::string>& seq = empty_vector_string, std::vector<std::string>& sne = empty_vector_string);
       
       void disp_coeff(std::ostream& out=std::cout);
 
