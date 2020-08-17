@@ -119,8 +119,8 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
-	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib
-	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
+	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib -j
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib -j
 
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
@@ -129,8 +129,8 @@ hoibc: info
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog -j
 
 
 .PHONY: link
@@ -162,10 +162,10 @@ all:
 	done
 
 .PHONY:lib
-lib: $(dirs) $(libs)
+lib: $(libdir) $(libs)
 
 .PHONY: prog
-prog: $(dirs) $(bins)
+prog: $(bindir) $(bins)
 
 .PHONY: info
 info:
@@ -180,7 +180,7 @@ $(dirs):
 
 #############################################################################
 
-$(objdir)/%.o: %.cpp %.hpp %.d
+$(objdir)/%.o: %.cpp %.hpp %.d $(objdir)
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
@@ -207,7 +207,7 @@ dependencies:=$(objects:%.o=%.d)
 nodeps:=clean clean_all info
 
 .PHONY: depend
-depend: $(dependencies) | $(dirs)
+depend: $(dependencies)
 	@echo "Dependencies done for $(SRCDIRS)"
 
 # Don't create dependencies when we're cleaning, for instance
@@ -218,7 +218,7 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
 endif
 
 # This is the rule for creating the dependency files
-$(objdir)/%.d: %.cpp | $(dirs)
+$(objdir)/%.d: %.cpp | $(objdir)
 	@echo "  $@"
 	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
 
@@ -267,6 +267,6 @@ run: main
 		$(PREFIX) $${bin} $(ARGS); \
 	done
 
-%.cpp: ;
+# %.cpp: ;
 %.hpp: ;
 Makefile: ;

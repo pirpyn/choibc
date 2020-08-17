@@ -9051,7 +9051,7 @@ std::string alglib::arraytostring(const double *ptr, ae_int_t n, int _dps)
     std::string result;
     ae_int_t i;
     char buf[64];
-    char mask1[64];
+    char mask1[63];
     char mask2[64];
     int dps = _dps>=0 ? _dps : -_dps;
     result = "[";

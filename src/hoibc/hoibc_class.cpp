@@ -6,12 +6,12 @@
 #include "hoibc_math_sphere.hpp"
 #include <iostream>
 #include <algorithm>
-//#include <cstdlib>
+#include "../alglib/optimization.h"
 
 using namespace hoibc;
 using std::vector;
 
-big_matrix<complex> hoibc_class::get_reflexion(const real& k0, std::vector<real>& f1, std::vector<real>& f2){
+big_matrix<complex> hoibc_class::get_reflexion(const real& k0, vector<real>& f1, vector<real>& f2){
   big_matrix<complex> impedance = this->get_impedance(k0,f1,f2);
 
   // We're in the vaccum
@@ -34,6 +34,15 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, std::vector<real>
     break;
   }
   return reflexion;
+}
+
+struct costf_data_t {
+  hoibc_class* ibc;
+};
+
+void  costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, alglib::real_2d_array &jac, void *ptr){
+  costf_data_t data = *((costf_data_t*) ptr);
+  data.ibc->array_to_coeff(x);
 }
 
 void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const vector<real>& f2){
@@ -74,6 +83,11 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   }
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
+  if (this->suc){
+    std::cout << "# Executing the constrained optimisation algorithm ... " << std::endl;
+    alglib::minnlcstate state;
+    alglib::minnlcoptimize(state, costf);
+  }
   NOTFINISHED("hoibc_class::get_coeff")
 }
 
