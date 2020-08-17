@@ -16,5 +16,8 @@ namespace hoibc
 
   static big_matrix<real> empty_bigmatrix_real;
 
+#define NOTFINISHED(where) std::cerr << where << ": not finished" << std::endl;
+
+
 }
 #endif

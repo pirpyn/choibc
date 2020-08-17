@@ -15,13 +15,19 @@ int main() {
   data.material.epsr      = {hoibc::complex(1.,-1.)};
   data.material.mur       = {hoibc::complex(1.,0.)};
 
-  data.hoibc.name         = {"ibc0","ibc0"};
-  data.hoibc.label        = {"ibc0-1","ibc0-2"};
-  data.hoibc.suc          = {false,false};
+  data.hoibc.name         = {"ibc3","ibc3"};
+  data.hoibc.suc          = {false,true};
   data.hoibc.type         = {'P','P'};
   data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {1,2};
-  data.hoibc.normalised   = {true,false};
+  data.hoibc.mode         = {2,2};
+  data.hoibc.normalised   = {true,true};
+
+  data.optim.grad_delta     = 1e-4;
+  data.optim.max_iter       = 100;
+  data.optim.no_constraints = true;
+  data.optim.show_iter      = false;
+  data.optim.tol            = 1e-6;
+  data.optim.toldx          = 1e-4;
 
   // prints the parameters to stdout
   hoibc::disp_data(data);
@@ -64,6 +70,8 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
   return idx;
 }
 
+#define SEP_WIDTH 82
+
 void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
@@ -83,8 +91,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
 
   for ( const auto& ibc : hoibc_list ){
     std::cout << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
     std::cout << std::endl;
 
     // Display the coefficient to the standard output (stdout)
@@ -288,10 +296,10 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
     {
       const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ap;
-      error[0][1] = std::pow(hoibc::norm(tmp,0,0),2) / std::pow(hoibc::norm(reflexion_ex,0,0),2);
-      error[1][1] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(reflexion_ex,1,1),2);
-      error[2][1] = std::pow(hoibc::norm(tmp,1,0),2) / std::pow(hoibc::norm(reflexion_ex,1,0),2);
-      error[3][1] = std::pow(hoibc::norm(tmp,0,1),2) / std::pow(hoibc::norm(reflexion_ex,0,1),2);
+      error[0][1] = hoibc::norm(tmp,0,0) / hoibc::norm(reflexion_ex,0,0);
+      error[1][1] = hoibc::norm(tmp,1,1) / hoibc::norm(reflexion_ex,1,1);
+      error[2][1] = hoibc::norm(tmp,1,0) / hoibc::norm(reflexion_ex,1,0);
+      error[3][1] = hoibc::norm(tmp,0,1) / hoibc::norm(reflexion_ex,0,1);
       error[4][1] = error[0][1] + error[1][1];
     }
     errors.push_back(error);
@@ -336,8 +344,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   }
     
     std::cout << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
-    std::cout << std::string(60,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
     std::cout << std::endl;
 
     // write(output_unit,'(a,a)') 'Writing CSV files to ',data_extended%out%basename
@@ -346,7 +354,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
     // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
     const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
-    const std::string fmt_error_value   = "%40s %10s %4c %3d %4d %10.2e %10.2e %10.2e %10.2e %10.2e\n";
+    const std::string fmt_error_value   = "%40s %10s %4c %3c %4d %10.2E %10.2E %10.2E %10.2E %10.2E\n";
 
     std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
     std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
@@ -361,7 +369,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
       const hoibc::hoibc_class* ibc = hoibc_list[i];
       // When C++20 will be available
       // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
     }
 
     std::cout << std::endl;
@@ -374,6 +382,6 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
       const hoibc::hoibc_class* ibc = hoibc_list[i];
       // When C++20 will be available
       // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc,ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
     }
 }

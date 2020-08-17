@@ -5,6 +5,7 @@
 #include <algorithm> // std::for_each
 #include <numeric> // std::accumulate
 #include <cassert> // std::assert
+#include <iostream>
 #include "hoibc_types.hpp"
 namespace hoibc {
 
@@ -59,6 +60,33 @@ namespace hoibc {
   }
 
   template<typename T>
+  matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
+    matrix<T> C;
+    C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
+    C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
+    C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
+    C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
+    return C;
+  }
+
+  matrix<complex> operator*(const matrix<complex>& A, const matrix<real>& B);
+
+  matrix<complex> operator*(const matrix<real>& A, const matrix<complex>& B);
+
+  template<typename T>
+  matrix<T> inv(const matrix<T>& A){
+    matrix<T> B;
+    T delta = A[0][0]*A[1][1] - A[1][0]*A[0][1];
+
+    B[1][1] = 1./delta * A[0][0];
+    B[0][1] = -1./delta * A[0][1];
+    B[1][0] = -1./delta * A[1][0];
+    B[0][0] = 1./delta * A[1][1];
+
+    return B;
+  }
+
+  template<typename T>
   matrix<T> operator*(const matrix<T>& A, const T& x){
     matrix<T> C;
     C[0][0] = A[0][0]*x;
@@ -95,7 +123,12 @@ namespace hoibc {
 
   template<typename T>
   matrix<T> operator/(const matrix<T>& A, const matrix<T>& B){
-    return matmul(A,inv(B));
+    return A*inv(B);
+  }
+
+  template<typename T>
+  matrix<T> operator%(const matrix<T>& A, const matrix<T>& B){
+    return inv(A)*B;
   }
 
   template<typename T>
@@ -107,6 +140,10 @@ namespace hoibc {
     C[1][1] = A[1][1] + B[1][1];
     return C;
   }
+
+  matrix<complex> operator+(const matrix<complex>& A, const matrix<real>& B);
+
+  matrix<complex> operator+(const matrix<real>& A, const matrix<complex>& B);
 
   template<typename T>
   matrix<T> operator-(const matrix<T>& A, const matrix<T>& B){
@@ -128,27 +165,32 @@ namespace hoibc {
     return C;
   }
 
+
   template<typename T>
-  matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
-    matrix<T> C;
-    C[0][0] = A[0][0]*B[0][0] + A[0][1]*B[1][0];
-    C[0][1] = A[0][0]*B[0][1] + A[0][1]*B[1][1];
-    C[1][0] = A[1][0]*B[0][0] + A[1][1]*B[1][0];
-    C[1][1] = A[1][0]*B[0][1] + A[1][1]*B[1][1];
-    return C;
+  matrix<T> transpose(const matrix<T>& A){
+    matrix<T> B = A;
+    B[1][0] = A[0][1];
+    B[0][1] = A[1][0];
+    return B;
   }
 
   template<typename T>
-  matrix<T> inv(const matrix<T>& A){
-    matrix<T> B;
-    T delta = A[0][0]*A[1][1] - A[1][0]*A[0][1];
+  matrix<T> conj(const matrix<T>& A){
+    return A;
+  }
 
-    B[1][1] = 1./delta * A[0][0];
-    B[0][1] = -1./delta * A[0][1];
-    B[1][0] = -1./delta * A[1][0];
-    B[0][0] = 1./delta * A[1][1];
+  matrix<complex> conj(const matrix<complex>& A);
 
-    return B;
+  template<typename T>
+  T trace(const matrix<T>& A){
+    const T x = A[0][0] + A[1][1];
+    return x;
+  }
+
+  template<typename T>
+  real norm(const matrix<T>& A){
+    const real x = std::sqrt(std::pow(std::abs(A[0][0]),2) + std::pow(std::abs(A[0][1]),2) + std::pow(std::abs(A[1][0]),2) + std::pow(std::abs(A[1][1]),2));
+    return x;
   }
 
   template<typename T>
@@ -211,11 +253,63 @@ namespace hoibc {
   }
 
   template<typename T>
+  big_matrix<T> operator*(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] * B[i][j];
+      }
+    }
+    return C;
+  }
+
+  big_matrix<complex> operator*(const big_matrix<real>& A, const big_matrix<complex>& B);
+
+  big_matrix<complex> operator*(const big_matrix<complex>& A, const big_matrix<real>& B);
+
+  big_matrix<complex> operator+(const big_matrix<complex>& A, const big_matrix<real>& B);
+
+  big_matrix<complex> operator+(const big_matrix<real>& A, const big_matrix<complex>& B);
+
+  template<typename T>
   big_matrix<T> operator-(const big_matrix<T>& A, const big_matrix<T>& B){
     big_matrix<T> C = A;
     for (std::size_t i=0;i<A.size();i++){
       for (std::size_t j=0;j<A[i].size();j++){
         C[i][j] = A[i][j] - B[i][j];
+      }
+    }
+    return C;
+  }
+
+  template<typename T>
+  big_matrix<T> operator/(const big_matrix<T>& A, const T& x){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] / x;
+      }
+    }
+    return C;
+  }
+
+  template<typename T>
+  big_matrix<T> operator/(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] / B[i][j];
+      }
+    }
+    return C;
+  }
+
+  template<typename T>
+  big_matrix<T> operator%(const big_matrix<T>& A, const big_matrix<T>& B){
+    big_matrix<T> C = A;
+    for (std::size_t i=0;i<A.size();i++){
+      for (std::size_t j=0;j<A[i].size();j++){
+        C[i][j] = A[i][j] % B[i][j];
       }
     }
     return C;
@@ -229,31 +323,6 @@ namespace hoibc {
     norm = std::real(std::accumulate(w.begin(),w.end(),static_cast<T>(0)));
     norm = std::sqrt(norm);
     return norm;
-  }
-
-  template<typename T>
-  matrix<T> transpose(const matrix<T>& A){
-    matrix<T> B = A;
-    B[1][0] = A[0][1];
-    B[0][1] = A[1][0];
-    return B;
-  }
-
-  template<typename T>
-  matrix<T> conj(const matrix<T>& A){
-    return A;
-  }
-
-  template<typename T>
-  T trace(const matrix<T>& A){
-    const T x = A[0][0] + A[1][1];
-    return x;
-  }
-
-  template<typename T>
-  real norm(const matrix<T>& A){
-    const real x = std::real(std::sqrt(trace(matmul(A,transpose(conj(A))))));
-    return x;
   }
 
   template<typename T>

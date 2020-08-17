@@ -9,9 +9,9 @@
 
 namespace hoibc{
   struct main_t{
-    real frequency { 1. };          // Frequency in GHz
-    std::vector<real> s1 = {0.,1.,0.};
-    std::vector<real> s2 = {0.,1.,0.};
+    real frequency { 1. };              // Frequency in GHz
+    std::vector<real> s1 = {0.,1.,0.};  // Normalised fourier variable in the 1st dimension
+    std::vector<real> s2 = {0.,1.,0.};  // ...................................2nd dimension
   };
 
   struct material_t{
@@ -23,17 +23,22 @@ namespace hoibc{
   };
 
   struct hoibc_t{
-    std::vector<std::string> name;
-    std::vector<std::string> label;
-    std::vector<short>       type;
-    std::vector<bool>        suc;
-    std::vector<real> inner_radius;
-    std::vector<bool> normalised;
-    std::vector<char> mode;
+    std::vector<std::string>  name;   // ID of the IBC
+    std::vector<std::string>  label;  // Label for output
+    std::vector<short>        type;   // Geometry type 'P': plane, 'C' Cylinder, 'S' Sphere
+    std::vector<bool>         suc;    // Coefficients computed w or w/o SUC
+    std::vector<real>         inner_radius; // In case of 'C' or 'S', the inner radius
+    std::vector<bool>         normalised;   // Divide L, LD, LR by k0^2
+    std::vector<char>         mode;         // Computing with respect to the impedance or the reflexion
   };
 
   struct optim_t{
-    real  tol { 1.e-6 };
+    integer max_iter { 100 };     // max number of iteration
+    real    tol { 1e-6 };        // tol for suc
+    real    toldx  { 1e-8 };      // if `|xn+1 - xn| < toldx` then stop
+    real    grad_delta { 1e-4 };  // Step to approximation gradient of constraints and cost function
+    bool    no_constraints { false }; // If true, then minimisation is unconstrained (SUC are forced to zero)
+    bool    show_iter { false };  // Display information at each iteration
   };
 
   struct data_t{

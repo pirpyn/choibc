@@ -26,9 +26,9 @@ help:
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=./src/hoibc
+SRCDIRS:=./src/hoibc ./src/alglib
 # ./src/bessel ./src/slsqp/src
-LIBNAMES:=hoibc
+LIBNAMES:=hoibc alglib
 # bessel slsqp
 
 EXTENSIONS:=.cpp
@@ -41,7 +41,7 @@ CXXC:=g++
 
 CXXFLAGS:=
 DFLAGS:=-Wall
-LDFLAGS:=
+LDFLAGS:=-llapacke
 INCFLAGS:=
 
 #############################################################################
@@ -119,7 +119,8 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
-	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib
+	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib -j
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib -j
 
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
 #@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
@@ -128,12 +129,12 @@ hoibc: info
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc" prog
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog -j
 
 
 .PHONY: link
-link: main $(lklibdir) $(lkbindir)
+link: main | $(lklibdir) $(lkbindir)
 	@echo "Simlinking binaries and libraries"
 	@for lib in $(libs); do \
 	    rm -rf $(lklibdir)/$$(basename $${lib}); \
@@ -161,10 +162,10 @@ all:
 	done
 
 .PHONY:lib
-lib: $(dirs) $(libs)
+lib: $(libs) | $(libdir)
 
 .PHONY: prog
-prog: $(dirs) $(bins)
+prog: $(bins) | $(bindir)
 
 .PHONY: info
 info:
@@ -179,7 +180,7 @@ $(dirs):
 
 #############################################################################
 
-$(objdir)/%.o: %.cpp %.hpp %.d
+$(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
@@ -206,7 +207,7 @@ dependencies:=$(objects:%.o=%.d)
 nodeps:=clean clean_all info
 
 .PHONY: depend
-depend: $(dependencies) | $(dirs)
+depend: $(dependencies)
 	@echo "Dependencies done for $(SRCDIRS)"
 
 # Don't create dependencies when we're cleaning, for instance
@@ -217,7 +218,7 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
 endif
 
 # This is the rule for creating the dependency files
-$(objdir)/%.d: %.cpp | $(dirs)
+$(objdir)/%.d: %.cpp | $(objdir)
 	@echo "  $@"
 	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
 
@@ -266,6 +267,6 @@ run: main
 		$(PREFIX) $${bin} $(ARGS); \
 	done
 
-%.cpp: ;
+# %.cpp: ;
 %.hpp: ;
 Makefile: ;

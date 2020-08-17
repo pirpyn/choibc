@@ -156,10 +156,14 @@ big_matrix<complex> hoibc::plane::impedance_infinite(const std::vector<real> &vk
         const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
         const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
 
-        impedance_ex[i][j] = matmul<complex>(
-          matmul<complex>(BE(kx,ky,k,h+d),mMB) - matmul<complex>(AE(kx,ky,k,h+d),mMA),
-          inv<complex>(matmul<complex>(BH(kx,ky,k,etar,h+d),mMB) - matmul<complex>(AH(kx,ky,k,etar,h+d),mMA))
-          );
+        const matrix<complex> mAE = AE(kx,ky,k,h+d);
+        const matrix<complex> mBE = BE(kx,ky,k,h+d);
+
+        const matrix<complex> mAH = AH(kx,ky,k,etar,h+d);
+        const matrix<complex> mBH = BH(kx,ky,k,etar,h+d);
+
+        // Using the overloaded / operator A / B = A*B^{-1}
+        impedance_ex[i][j] = (mBE*mMB - mAE*mMA) / (mBH*mMB - mAH*mMA);
       }
     }
     h+=d;
@@ -179,10 +183,15 @@ big_matrix<complex> hoibc::plane::impedance_from_reflexion(const std::vector<rea
     const real kx = vkx[n1];
     for (std::size_t n2 = 0; n2 < vky.size(); n2++){
       const real ky = vky[n2];
-      impedance[n1][n2] = matmul(
-        inv(AH(kx,ky,k,etar,h)+matmul(BH(kx,ky,k,etar,h),reflexion[n1][n2])),
-        AE(kx,ky,k,h)+matmul(BE(kx,ky,k,h),reflexion[n1][n2])
-        );
+
+      const matrix<complex> mAE = AE(kx,ky,k,h);
+      const matrix<complex> mBE = BE(kx,ky,k,h);
+
+      const matrix<complex> mAH = AH(kx,ky,k,etar,h);
+      const matrix<complex> mBH = BH(kx,ky,k,etar,h);
+      
+      // Using the overloaded % operator A % B = A^{-1}*B
+      impedance[n1][n2] = (mAH + mBH*reflexion[n1][n2]) % (mAE + mBE*reflexion[n1][n2]);
     }
   }
   return impedance;
@@ -233,10 +242,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
       const matrix<complex> mAH = AH(kx,ky,k_upper,etar_upper,h);
       const matrix<complex> mBH = BH(kx,ky,k_upper,etar_upper,h);
 
-      reflexion_ex[n1][n2] = -matmul(
-        inv(mBE-matmul(material.initial_impedance,mBH)),
-        mAE-matmul(material.initial_impedance,mAH)
-        );
+      reflexion_ex[n1][n2] = - (mBE - material.initial_impedance*mBH)%(mAE - material.initial_impedance*mAH);
     }
   }
 
@@ -288,14 +294,10 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
         const matrix<complex> mAH_upper = AH(kx,ky,k_upper,etar_upper,h);
         const matrix<complex> mBH_upper = BH(kx,ky,k_upper,etar_upper,h);
 
-        reflexion_ex[n1][n2] = - matmul(
-          inv(
-            matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mBE_upper)
-            -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mBH_upper)
-          ),
-          matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mAE_upper)
-          -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mAH_upper)
-        );
+        // Using the custom % operator A % B = A^(-1)*B
+        reflexion_ex[n1][n2] = 
+          - ((mAE_lower + mBE_lower*mR)%mBE_upper - (mAH_lower + mBH_lower*mR)%mBH_upper)
+          % ((mAE_lower + mBE_lower*mR)%mAE_upper - (mAH_lower + mBH_lower*mR)%mAH_upper);
       }
     }
   }
@@ -342,18 +344,12 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
         const matrix<complex> mAH_upper = AH(kx,ky,k_upper,etar_upper,h);
         const matrix<complex> mBH_upper = BH(kx,ky,k_upper,etar_upper,h);
 
-        reflexion_ex[n1][n2] = - matmul(
-          inv(
-            matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mBE_upper)
-            -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mBH_upper)
-          ),
-          matmul(inv(mAE_lower + matmul(mBE_lower,mR)),mAE_upper)
-          -matmul(inv(mAH_lower + matmul(mBH_lower,mR)),mAH_upper)
-        );
+        reflexion_ex[n1][n2] =
+            - ((mAE_lower + mBE_lower*mR)%mBE_upper - (mAH_lower + mBH_lower*mR)%mBH_upper)
+            % ((mAE_lower + mBE_lower*mR)%mAE_upper - (mAH_lower + mBH_lower*mR)%mAH_upper);
       }
     }
   }
-
   return reflexion_ex;
 }
 
@@ -393,9 +389,38 @@ big_matrix<complex> hoibc::plane::reflexion_from_impedance(const std::vector<rea
         const matrix<complex> mAH = AH(kx,ky,k,etar,h);
         const matrix<complex> mBH = BH(kx,ky,k,etar,h);
 
-        reflexion[n1][n2] = - matmul(inv(mBE - matmul(mZ,mBH)),mAE - matmul(mZ,mAH));
+        reflexion[n1][n2] = - (mBE - mZ*mBH)%(mAE - mZ*mAH);
       }
     }
   }
   return reflexion;
+}
+
+void hoibc::plane::get_matrices_LD_LR(const std::vector<real>& vkx, const std::vector<real>& vky, big_matrix<real>& LD, big_matrix<real>& LR){
+  LD.clear();
+  LR.clear();
+  LD = big_init(vkx.size(),vky.size(),0.);
+  LR = big_init(vkx.size(),vky.size(),0.);
+
+  // TODO Possible improve perf by doing
+  // for n1
+  //    for n2 
+  //        tmp_vect.push_pack(tmp_mat)
+  //    A.push_back(tmp_vect)
+
+  for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
+    real kx = vkx[n1];
+    for (std::size_t n2 = 0; n2 < vky.size(); n2++){
+      real ky = vky[n2];
+      LD[n1][n2][0][0] = -kx*kx;
+      LD[n1][n2][0][1] = -kx*ky;
+      LD[n1][n2][1][0] = -kx*ky;
+      LD[n1][n2][1][1] = -ky*ky;
+
+      LR[n1][n2][0][0] = ky*ky;
+      LR[n1][n2][0][1] = -kx*ky;
+      LR[n1][n2][1][0] = -kx*ky;
+      LR[n1][n2][1][1] = kx*kx;
+    }
+  }
 }

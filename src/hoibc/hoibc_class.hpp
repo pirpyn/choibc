@@ -6,10 +6,13 @@
 #include <vector>
 #include "hoibc_types.hpp"
 #include "hoibc_data.hpp"
+#include "../alglib/ap.h"
+
 namespace hoibc
 {
 
-  using suc = std::vector<real,std::string>;
+  static std::vector<real> empty_vector_real;
+  static std::vector<std::string> empty_vector_string;
 
   class hoibc_class {
       public:
@@ -31,15 +34,15 @@ namespace hoibc
 
         virtual big_matrix<complex> get_impedance(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2) = 0;
 
-        virtual void array_to_coeff(const std::vector<real>& x) = 0;
+        virtual void array_to_coeff(const alglib::real_1d_array& x) = 0;
 
-        virtual void coeff_to_array(std::vector<real>& x) = 0;
+        virtual void coeff_to_array(alglib::real_1d_array& x) = 0;
 
-        virtual void get_suc(std::vector<real>& cle, std::vector<real>& ceq, std::vector<real>& cne, std::vector<std::string>& sle, std::vector<std::string>& seq, std::vector<std::string>& sne) = 0;
+        virtual void get_suc(std::vector<real>& cle = empty_vector_real, std::vector<real>& ceq = empty_vector_real, std::vector<real>& cne = empty_vector_real, std::vector<std::string>& sle = empty_vector_string, std::vector<std::string>& seq = empty_vector_string, std::vector<std::string>& sne = empty_vector_string) = 0;
 
         virtual void disp_coeff(std::ostream& out) = 0;
 
-        big_matrix<complex> get_reflexion(const real& k0, std::vector<real>& f1, std::vector<real>& f2);
+        big_matrix<complex> get_reflexion(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2);
 
         void get_coeff(const data_t& data, const std::vector<real>& f1, const std::vector<real>& f2);
 

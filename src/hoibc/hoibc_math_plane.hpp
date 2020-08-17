@@ -15,6 +15,7 @@ namespace hoibc {
     big_matrix<complex> reflexion_infinite(const std::vector<real>& vkx, const std::vector<real>& vky, const real& k0, const material_t& material);
     big_matrix<complex> reflexion_from_impedance(const std::vector<real>& vkx,const std::vector<real>& vky, const real& k0,const big_matrix<complex>& impedance);
     big_matrix<complex> impedance_from_reflexion(const std::vector<real>& vkx,const std::vector<real>& vky, const real& k0,const big_matrix<complex>& reflexion);
+    void get_matrices_LD_LR(const std::vector<real>& vkx, const std::vector<real>& vky, big_matrix<real>& LD = empty_bigmatrix_real, big_matrix<real>& LR = empty_bigmatrix_real);
   }
   matrix<complex> MA(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z, const matrix<complex>& imp);
   matrix<complex> MB(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z, const matrix<complex>& imp);
