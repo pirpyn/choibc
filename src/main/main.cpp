@@ -55,6 +55,8 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
+#include <fstream> // open
+
 void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
@@ -71,7 +73,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // call set_backend(data_extended%out%backend)
 
     // To print the impedance we will need the value of the Fourier variables
-    // ! depending on the IBC
+    // depending on the IBC
 
   for ( const auto& ibc : hoibc_list ){
     std::cout << std::endl;
@@ -84,15 +86,18 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // Display the SUC to stdout
     ibc->print_suc(data.optim.tol);
 
-    // if (data_extended%out%coeff) then
-    //   open(NEWUNIT=newunit,FILE=data_extended%out%basename//"."//ibc%label//'.coeff.txt',ACTION='write')
-    //   ! write the coefficient to the file
-    //   call ibc%print_coeff(UNIT=newunit)
-    //   ! write the SUC to the file
-    //   call ibc%disp_suc(data%optim%acc,UNIT=newunit)
-    //   close(newunit)
-    // end if
+    std::cout << std::endl;
 
+    if (data_out.coeff){
+      std::ofstream coeff_file;
+      coeff_file.open(data_out.basename+"."+ibc->label+".coeff.txt");
+      assert(coeff_file.is_open());
+      // write the coefficient to the file
+      ibc->print_coeff(coeff_file);
+      // write the SUC to the file
+      ibc->print_suc(data.optim.tol,coeff_file);
+      coeff_file.close();
+    }
     // ########################################################################################
 
     // Set up the scan of incident angle
@@ -102,8 +107,8 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     std::vector<hoibc::real> f1, f2, s1 ,s2;
     ibc->set_fourier_variables(data,f1,f2,s1,s2);
     // Compute reflexion/fourier/mie coefficient
-    const hoibc::big_matrix<hoibc::complex> reflexion_ap = ibc->get_reflexion(k0,f1,f2);
-    const hoibc::big_matrix<hoibc::complex> impedance_ap = ibc->get_impedance(k0,f1,f2);
+    const hoibc::big_matrix<hoibc::complex> reflexion_ibc = ibc->get_reflexion(k0,f1,f2);
+    const hoibc::big_matrix<hoibc::complex> impedance_ibc = ibc->get_impedance(k0,f1,f2);
 
     //   if (data_extended%other%hoppe_imp) then
     //   ! To write the same reflexion coefficient as HOPPE & RAHMAT SAMII, 1995
@@ -136,140 +141,107 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       case hoibc::mode_t::Z:
         impedance_ex = hoibc::plane::impedance_infinite(f1,f2,k0,data.material);
         reflexion_ex = hoibc::plane::reflexion_from_impedance(f1,f2,k0,impedance_ex);
+        break;
       }
 
-      //     if (data_extended%out%r_ex) then
-      //       write(str,'(I1)') ibc%mode
-      //     filename = data_extended%out%basename//'.r_ex.MODE_'//trim(str)//"_TYPE_"//ibc%type//".csv"
-      //     ! write(output_unit,'(a,a)') 'Writing exact reflection to ',filename
-      //     if (data_extended%other%reflex_vs_theta) then
-      //       call dump_to_csv(filename,&
-      //     180._wp/pi*asin(s1),&
-      //     180._wp/pi*asin(s2),&
-      //     r_ex,"theta1","theta_2","r_ex",data_extended%out%skip_nan)
-      //     else
-      //       call dump_to_csv(filename,s1,s2,r_ex,"s1","s2","r_ex",data_extended%out%skip_nan)
-      //     end if       
-      //     end if
+      if (data_out.reflexion_ex) {
+        const std::string filename = data_out.basename+".r_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+".csv";
+        std::cout << "Writing exact reflexion to " << filename << std::endl;
+//      if (data_out.reflex_vs_theta) {
+//        call dump_to_csv(filename,&
+//        180._wp/pi*asin(s1),&
+//        180._wp/pi*asin(s2),&
+//        reflexion_ex,"theta1","theta_2","r_ex","")
+//      } else {
+        dump_to_csv(filename,s1,s2,reflexion_ex,"s1","s2","r_ex","");
+//      }      
+      }
 
-  //     if (data_extended%out%r_ibc) then
-  //     filename = data_extended%out%basename//'.r_ibc.'//ibc%label//".csv"
-  //   ! write(output_unit,'(a,a)') 'Writing IBC reflection to ',filename
-  //   if (data_extended%other%reflex_vs_theta) then
-  //     call dump_to_csv(filename,&
-  //       180._wp/pi*asin(s1),&
-  //       180._wp/pi*asin(s2),&
-  //         r_ap,"theta1","theta_2","r_"//ibc%name,data_extended%out%skip_nan)
-  //         else
-  //       call dump_to_csv(filename,s1,s2,r_ap,"s1","s2","r_"//ibc%name,data_extended%out%skip_nan)
-  //         end if       
-  //         end if
+      if (data_out.reflexion_ibc) {
+        const std::string filename = data_out.basename+".r_ibc."+ibc->label+".csv";
+        std::cout << "Writing IBC reflexion to " << filename << std::endl;
+//      if (data_out.reflex_vs_theta) {
+//        call dump_to_csv(filename,&
+//        180._wp/pi*asin(s1),&
+//        180._wp/pi*asin(s2),&
+//        reflexion_ibc,"theta1","theta_2","r_ibc","")
+//      } else {
+        dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","r_"+ibc->name,ibc->label);
+//      }      
+      }
+      break;
 
+    case hoibc::type_t::C : // For the cylinder, write the reflexion matrices that includes Fourier coefficient
+      switch (ibc->mode){
+      case hoibc::mode_t::R:
+//        reflexion_ex = hoibc::cylinder::reflexion_infinite_cylinder(f1,f2,k0,data,ibc->inner_radius);
+//        impedance_ex = hoibc::cylinder::impedance_from_reflexion(f1,f2,k0,reflexion_ex,ibc->outer_radius)
+        break;
+      case hoibc::mode_t::Z:
+//        impedance_ex = hoibc::cylinder::impedance_infinite(f1,f2,k0,data,ibc->inner_radius);
+//        reflexion_ex = hoibc::cylinder::reflexion_from_impedance(f1,f2,k0,Z_ex,ibc->outer_radius);
+        break;
+      }
 
-  //         case ('C') ! For the cylinder, write the reflexion matrices that includes Fourier coefficient
-  //         select case (ibc%mode)
-  //         case (1)
-  //         R_ex = reflexion_infinite_cylinder(f1,f2,&
-  //           k0, &
-  //           data%material%epsr, &
-  //           data%material%mur, &
-  //           data%material%thickness, &
-  //           data%material%initial_impedance, &
-  //           data%material%loss, &
-  //           ibc%inner_radius)
-
-  //         Z_ex = impedance_from_reflexion_cylinder(f1,f2,k0,R_ex,ibc%outer_radius)
-  //         case (2)
-  //         Z_ex = impedance_infinite_cylinder(f1,f2,&
-  //           k0, &
-  //           data%material%epsr, &
-  //           data%material%mur, &
-  //           data%material%thickness, &
-  //           data%material%initial_impedance, &
-  //           data%material%loss, &
-  //           ibc%inner_radius)
-
-  //         R_ex = reflexion_from_impedance_cylinder(f1,f2,k0,Z_ex,ibc%outer_radius)
-  //         end select
-
-  //         if (data_extended%out%r_ex) then
-  //           write(str,'(i1)') ibc%mode
-  //     filename = data_extended%out%basename//'.f_ex.MODE_'//trim(str)//"_TYPE_"//ibc%type
-  //     write(str,'(SP,es10.3)') ibc%inner_radius
-  //     filename = filename//'_'//str//"m.csv"
-  //     ! write(output_unit,'(a,a)') 'Writing exact Fourier coefficient to ',filename
-  //     if (data_extended%other%reflex_vs_theta) then
-  //       call dump_to_csv(filename,&
+      if (data_out.reflexion_ex){
+        const std::string filename = data_out.basename+".f_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+"_"+std::to_string(ibc->inner_radius)+"m.csv";
+        std::cout << "Writing exact Fourier coefficient to " << filename << std::endl;
+  //     if (data_out.reflex_vs_theta){
+  //       dump_to_csv(filename,&
   //         180._wp/pi*asin(s2),&
   //         f1,&
-  //         r_ex,"theta","n","f_ex",data_extended%out%skip_nan)
-  //     else
-  //       call dump_to_csv(filename,s2,f1,r_ex,"s","n","f_ex",data_extended%out%skip_nan)
-  //     end if       
-  //     end if
+  //         reflexion_ex,"theta","n","f_ex","")
+  //     } else {
+        dump_to_csv(filename,s2,f1,reflexion_ex,"s","n","f_ex","");
+  //     }
+      }
 
-  //     if (data_extended%out%r_ibc) then
-  //     filename = data_extended%out%basename//'.f_ibc.'//ibc%label//".csv"
-  //   ! write(output_unit,'(a,a)') 'Writing IBC Fourier coefficient to ',filename
-  //   if (data_extended%other%reflex_vs_theta) then
-  //     call dump_to_csv(filename,&
-  //       180._wp/pi*asin(s2),&
-  //       f1,&
-  //         r_ap,"theta","n","f_"//ibc%name,data_extended%out%skip_nan)
-  //         else
-  //       call dump_to_csv(filename,s2,f1,r_ap,"s","n","f_"//ibc%name,data_extended%out%skip_nan)
-  //         end if
-  //         end if
+      if (data_out.reflexion_ibc) {
+        const std::string filename = data_out.basename+".f_ibc."+ibc->label+".csv";
+        std::cout << "Writing IBC Fourier coefficient to " << filename << std::endl;
+//      if (data_out.reflex_vs_theta) {
+//        call dump_to_csv(filename,&
+//        180._wp/pi*asin(s1),&
+//        180._wp/pi*asin(s2),&
+//        reflexion_ibc,"theta1","theta_2","f_ibc","")
+//      } else {
+        dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","f_"+ibc->name,ibc->label);
+//      }      
+      }
+      break;
 
-  //         case ('S')
-  //         select case (ibc%mode)
-  //         case (1)
-  //         R_ex = reflexion_infinite_sphere(f2,&
-  //           k0, &
-  //           data%material%epsr, &
-  //           data%material%mur, &
-  //           data%material%thickness, &
-  //           data%material%initial_impedance, &
-  //           data%material%loss, &
-  //           ibc%inner_radius)
+    case hoibc::type_t::S:
+      switch(ibc->mode){
+      case hoibc::mode_t::R:
+//        reflexion_ex = hoibc::math:sphere::reflexion_infinite_sphere(f2,k0,data,ibc->inner_radius);
+//        impedance_ex = hoibc::math::sphere::impedance_from_reflexion(f2,k0,reflexion_ex,ibc->outer_radius);
+        break;
+      case hoibc::mode_t::Z:
+//        impedance_ex = hoibc::math:sphere::impedance_infinite(f2,k0,data,ibc->inner_radius);
+//        reflexion_ex = hoibc::math:sphere::reflexion_from_impedance(f2,k0,impedance_ex,ibc->outer_radius);
+        break;
+      }
 
-  //         Z_ex = impedance_from_reflexion_sphere(f2,k0,R_ex,ibc%outer_radius)
-  //         case (2)
-  //         Z_ex = impedance_infinite_sphere(f2,&
-  //           k0, &
-  //           data%material%epsr, &
-  //           data%material%mur, &
-  //           data%material%thickness, &
-  //           data%material%initial_impedance, &
-  //           data%material%loss, &
-  //           ibc%inner_radius)
+      // Write Mie coefficients
+      if (data_out.reflexion_ex){
+        const std::string filename = data_out.basename+".m_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+"_"+std::to_string(ibc->inner_radius)+"m.csv";
+        std::cout << "Writing exact Mie coefficient to " << filename << std::endl;
+        dump_to_csv(filename,f2,reflexion_ex,"n","m_ex","");
+      }
 
-  //         R_ex = reflexion_from_impedance_sphere(f2,k0,Z_ex,ibc%outer_radius)
-  //         end select
-  //         ! Write Mie coefficients
-
-  //         if (data_extended%out%r_ex) then
-  //           write(str,'(I1)') ibc%mode
-  //     filename = data_extended%out%basename//'.m_ex.MODE_'//trim(str)//"_TYPE_"//ibc%type
-  //     write(str,'(SP,es10.3)') ibc%inner_radius
-  //     filename = filename//'_'//str//"m.csv"
-  //     ! write(output_unit,'(a,a)') 'Writing exact Mie coefficient to ',filename
-  //     call dump_to_csv(filename,f2,r_ex(1,:,:,:),"n","m_ex",data_extended%out%skip_nan)
-  //     end if
-
-  //     if (data_extended%out%r_ibc) then
-  //     filename = data_extended%out%basename//'.m_ibc.'//ibc%label//".csv"
-  //   ! write(output_unit,'(a,a)') 'Writing IBC Mie coefficient to ',filename
-  //       call dump_to_csv(filename,f2,r_ap(1,:,:,:),"n","m_"//ibc%name,data_extended%out%skip_nan)
-  //         end if
-
+      if (data_out.reflexion_ibc) {
+        const std::string filename = data_out.basename+".m_ibc."+ibc->label+".csv";
+        std::cout << "Writing IBC Mie coefficient to " << filename << std::endl;
+        dump_to_csv(filename,f2,reflexion_ibc,"n","m_"+ibc->name,ibc->label);
+      }
+      break;
     }
 
     error_array error;
     // Relative squared error for impedance
     using hoibc::operator-;
     {
-      const hoibc::big_matrix<hoibc::complex> tmp = impedance_ex - impedance_ap;
+      const hoibc::big_matrix<hoibc::complex> tmp = impedance_ex - impedance_ibc;
       error[0][0] = std::pow(hoibc::norm(tmp,0,0),2) / std::pow(hoibc::norm(impedance_ex,0,0),2);
       error[1][0] = std::pow(hoibc::norm(tmp,1,1),2) / std::pow(hoibc::norm(impedance_ex,1,1),2);
       error[2][0] = std::pow(hoibc::norm(tmp,1,0),2) / std::pow(hoibc::norm(impedance_ex,1,0),2);
@@ -279,7 +251,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
 
     // Relative error for reflexion: same norm as in STUPFEL, IEEE Trans. Ant. v63, n4, 2015
     {
-      const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ap;
+      const hoibc::big_matrix<hoibc::complex> tmp = reflexion_ex - reflexion_ibc;
       error[0][1] = hoibc::norm(tmp,0,0) / hoibc::norm(reflexion_ex,0,0);
       error[1][1] = hoibc::norm(tmp,1,1) / hoibc::norm(reflexion_ex,1,1);
       error[2][1] = hoibc::norm(tmp,1,0) / hoibc::norm(reflexion_ex,1,0);
@@ -300,31 +272,30 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   //         ! see mod_hoibc_write_csv.myatan function
   //         call set_arg(.False.)
 
-  //         if (data_extended%out%z_ex) then
-  //           write(str,'(I1)') ibc%mode
-  //   filename = data_extended%out%basename//'.z_ex.MODE_'//trim(str)//"_TYPE_"//ibc%type
-  //   select case(ibc%type)
-  //   case('C','S')
-  //   write(str,'(SP,es10.3)') ibc%inner_radius
-  //     filename = filename//'_'//str//"m"
-  //     end select
-  //   filename = filename//".csv"
-  //   ! write(output_unit,'(a,a)') 'Writing exact impedance to ',filename
-  //   call dump_to_csv(filename,s1,s2,Z_ex,"s1","s2","z_ex",data_extended%out%skip_nan)
-  //   end if
+    if (data_out.impedance_ex){
+      std::string filename = data_out.basename+".z_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type);
+      switch (ibc->type){
+        case hoibc::type_t::C:
+        case hoibc::type_t::S:
+        filename += "_"+std::to_string(ibc->inner_radius)+"m";
+        break;
+      }
+      filename += ".csv";
+      std::cout << "Writing exact impedance to " << filename << std::endl;
+      dump_to_csv(filename,s1,s2,impedance_ex,"s1","s2","z_ex",ibc->label);
+    }
 
     if (data_out.impedance_ibc){
       std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
-      std::cout << std::endl;
       std::cout << "Writing IBC impedance to " << filename << std::endl;
-      dump_to_csv(filename,s1,s2,impedance_ap,"s1","s2","z_"+ibc->name,ibc->label);
+      dump_to_csv(filename,s1,s2,impedance_ibc,"s1","s2","z_"+ibc->name,ibc->label);
     }
-  //     if (data_extended%out%z_err) then
-  //   filename = data_extended%out%basename//'.z_err.'//ibc%label//".csv"
-  // ! write(output_unit,'(a,a)') 'Writing difference of impedance between exact and IBC to ',filename
-  //   call dump_to_csv(filename,s1,s2,Z_ex - Z_ap,"s1","s2","z_"//ibc%name,data_extended%out%skip_nan)
-  //     end if
 
+    if (data_out.impedance_err){
+      std::string filename = data_out.basename+".z_err."+ibc->label+".csv";
+      std::cout << "Writing difference of impedance between exact and IBC to " << filename << std::endl;
+      dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"s1","s2","z_"+ibc->name,"Z_ex - Z_"+ibc->name);
+    }
   }
     
     std::cout << std::endl;
