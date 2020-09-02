@@ -15,23 +15,23 @@ void hoibc::hoibc_ibc0::get_coeff_no_suc(const std::vector<real>& f1, const std:
   big_matrix<complex> mAE,mBE,mAH,mBH;
 
   switch (this->mode){
-  case 1: // if reflexion
+  case mode_t::R : // if reflexion
       switch (this->type){
-        case ('P'):    // For the plane we fit with respect to the reflexion coefficent
+        case type_t::P:    // For the plane we fit with respect to the reflexion coefficent
           // we only need the first element of the big matrices, so pass only first element of f1 & f2
           plane::get_matrices_AB_EH(std::vector<real>({f1[0]}),std::vector<real>({f2[0]}),k,etar,z,mAE,mBE,mAH,mBH);
           break;
         default:
-          std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << this->mode << " type = " << this->type << "unknown" << std::endl;
+          std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << mode_to_int(this->mode) << " type = " << type_to_char(this->type) << "unknown" << std::endl;
           break;
       }
       this->coeff.a0 = ((mAH[0][0] + mBH[0][0]*gex[0][0]) % (mAE[0][0] + mBE[0][0]*gex[0][0]))[0][0];
         break;
-  case 2: // if impedance
+  case mode_t::Z : // if impedance
     this->coeff.a0 = gex[0][0][0][0];
     break;
   default:
-    std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << this->mode << " unknown" << std::endl;
+    std::cerr << "hoibc_ibc0::get_coeff_no_suc: mode = " << mode_to_int(this->mode) << " unknown" << std::endl;
     break;
   }
 }

@@ -18,12 +18,12 @@ namespace hoibc
       public:
         std::string name = "unknown";
         std::string label = "";
-        char type = 'P';
+        type_t type = type_t::P;
         bool suc = true;
         real inner_radius = 0.;
         real outer_radius = 0.;
         bool normalised = true;
-        short mode = 1;
+        mode_t mode = mode_t::Z;
         // struct coeff;
 
         inline hoibc_class(){}

@@ -40,7 +40,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
   complex* b = new complex[m];
 
   switch (this->mode){
-  case 1: // if reflexion
+  case mode_t::R: // if reflexion
     this->get_matrices_AB_EH(k0,f1,f2,AE,BE,AH,BH);
     ME = AE + BE * gex;
     MH = AH + BH * gex;
@@ -82,7 +82,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
       }
     }
     break;
-  case 2: // if impedance
+  case mode_t::Z: // if impedance
     LDZ = LD * gex;
     LRZ = LR * gex;
 
@@ -121,7 +121,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
     }
     break;
   default:
-    std::cerr << "hoibc_ibc3::get_coeff_no_suc: mode = " << this->mode << " unknown" << std::endl;
+    std::cerr << "hoibc_ibc3::get_coeff_no_suc: mode = " << mode_to_int(this->mode) << " unknown" << std::endl;
     exit(1);
     break;
   }
@@ -223,7 +223,7 @@ void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
 
 void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){
     switch (this->type){
-      case 'P':
+      case type_t::P:
         plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
         break;
       default:
@@ -244,7 +244,7 @@ void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const std::vector<rea
   const real height = 0.;
 
   switch (this->type){
-  case ('P'):
+  case type_t::P:
     plane::get_matrices_AB_EH(f1,f2,k,etar,height,AE,BE,AH,BH);
     break;
   // case ('C'):

@@ -20,15 +20,15 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const vector<real
 
   big_matrix<complex> reflexion;
   switch (this->type){
-  case 'P':
+  case type_t::P:
     // f1 = kx, f2 = ky
     reflexion = plane::reflexion_from_impedance(f1,f2,k0,impedance);
     break;
-  case 'C':
+  case type_t::C:
     // f1 = n, f2 = kz
     // TODO ref_ap = reflexion_from_impedance_cylinder(f1,f2,k0,Z,self%outer_radius)
     break;
-  case 'S':
+  case type_t::S:
     // f1 = m, f2 = n
     //TODO ref_ap = reflexion_from_impedance_sphere(f2,k0,Z,self%outer_radius)
     break;
@@ -59,28 +59,28 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
   const real k0 = free_space_wavenumber(data.main.frequency);
 
   switch (this->mode){
-    case 1 :
+    case mode_t::R :
       switch (this->type) {
-        case 'P' :
+        case type_t::P:
           gex = plane::reflexion_infinite(f1,f2,k0,data.material);
           break;
-        case 'C' :
+        case type_t::C :
           reflexion_infinite_cylinder();
           break;
-        case 'S' :
+        case type_t::S :
           reflexion_infinite_sphere();
           break;
       }
       break;
-    case 2 :
+    case mode_t::Z :
       switch (this->type) {
-        case 'P' :
+        case type_t::P :
           gex = plane::impedance_infinite(f1,f2,k0,data.material);
           break;
-        case 'C' :
+        case type_t::C :
           impedance_infinite_cylinder();
           break;
-        case 'S' :
+        case type_t::S :
           impedance_infinite_sphere();
           break;
       }
@@ -156,10 +156,10 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
   big_matrix<complex> ap;
   
   switch (data.ibc->mode){
-  case 1:
+  case hoibc::mode_t::R :
     ap = data.ibc->get_reflexion(data.k0, *(data.f1), *(data.f2));
     break;
-  case 2:
+  case hoibc::mode_t::Z :
     ap = data.ibc->get_impedance(data.k0, *(data.f1), *(data.f2));
     break;
   }
@@ -194,7 +194,7 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
 
 void hoibc_class::print_coeff(std::ostream& out){
   std::noshowpos(out);
-  out << "# IBC " << this->name << " type " << this->type << " suc " << (this->suc ? "T": "F") << " mode " << this->mode << " (" << this->label << ")" << std::endl;
+  out << "# IBC " << this->name << " type " << type_to_char(this->type) << " suc " << (this->suc ? "T": "F") << " mode " << mode_to_int(this->mode) << " (" << this->label << ")" << std::endl;
   std::showpos(out);
   this->disp_coeff(out);
 }
@@ -294,7 +294,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   // for the spheric 'S' case
 
   switch (this->type) {
-    case 'P' :
+    case type_t::P :
       // f1 = kx, f2 = ky
       if (data.main.s1[2] != 0){
         n1 = static_cast<integer>((data.main.s1[1]-data.main.s1[0])/data.main.s1[2]) + 1;
@@ -312,7 +312,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       s2 = linspace(data.main.s2[0],data.main.s2[1],n2);
       f2 = s2 * k0;
       break;
-    case 'C' :
+    case type_t::C :
       // f1 = n, f2 = kz
 
       // We truncate the number of Fourier coefficient to s2*k0*outer_radius + 1
@@ -330,7 +330,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       s2 = linspace(data.main.s2[0],data.main.s2[1],n2);
       f2 = s2 * k0;
       break;
-    case 'S' :
+    case type_t::S :
       // f1 = m , f2 = n
       // The reflection doesn't depend on m, but we must provide it for the program to work
       n1 = 1;
@@ -348,7 +348,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
       s2 = f2 / (k0*this->outer_radius);
       break;
     default :
-      std::cerr << "error: hoibc_class::set_fourier_variables: IBC has unknown type " << this->type << std::endl;
+      std::cerr << "error: hoibc_class::set_fourier_variables: IBC has unknown type " << type_to_char(this->type) << std::endl;
       std::exit(5);
       break;
   }
