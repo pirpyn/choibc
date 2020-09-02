@@ -110,6 +110,10 @@ data_out_t read_data_from_json(const std::string& filename){
     data_out.basename           = json_data["data"]["out"]["basename"].get<std::string>();
     data_out.impedance_ibc      = json_data["data"]["out"]["impedance_ibc"].get<bool>();
     data_out.impedance_ex       = json_data["data"]["out"]["impedance_ex"].get<bool>();
+    data_out.impedance_err      = json_data["data"]["out"]["impedance_err"].get<bool>();
+    data_out.coeff              = json_data["data"]["out"]["coeff"].get<bool>();
+    data_out.reflexion_ibc      = json_data["data"]["out"]["reflexion_ibc"].get<bool>();
+    data_out.reflexion_ex       = json_data["data"]["out"]["reflexion_ex"].get<bool>();
 
     return data_out;
 }
