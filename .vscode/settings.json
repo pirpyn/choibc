@@ -1,6 +1,9 @@
 {
     "files.associations": {
+        "*.inc": "spice",
+        "*.ulist": "shellscript",
         "*.sublime-project": "jsonc",
+        "*.l": "spice",
         "*.d": "makefile",
         "array": "cpp",
         "atomic": "cpp",
@@ -50,6 +53,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "valarray": "cpp"
     }
 }

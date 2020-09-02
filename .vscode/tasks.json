@@ -30,7 +30,7 @@
         {
             "label": "make run",
             "type": "shell",
-            "command": "make -C ${workspaceFolder} -s run",
+            "command": "make -C ${workspaceFolder} -s run ARGS=/home/pirpyn/choibc/input.json",
             "group": {
                 "kind": "build",
                 "isDefault": true
