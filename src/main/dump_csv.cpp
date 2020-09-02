@@ -10,7 +10,7 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1,
   myfile.open(filename);
   assert(myfile.is_open());
 
-  myfile << "# " << header << std::endl;
+  // myfile << "# " << header << std::endl;
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
@@ -50,7 +50,7 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1,
   myfile.open(filename);
   assert(myfile.is_open());
 
-  myfile << "# " << header << std::endl;
+  // myfile << "# " << header << std::endl;
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
