@@ -1,33 +1,13 @@
 #include "main.hpp"
-#include <algorithm> // std::for_each
-#include <limits> // std::max
-#include <cmath> // std::pow
-// When C++20 will be available
-// #include <format> // std::format
-int main() {
-  hoibc::data_t data;
-  
-  data.main.frequency = .2;
-  data.main.s1 = {0.,0.9,.1};
-  data.main.s2 = {0.,0.,0.};
+#include "dump_csv.hpp"
+#include "read_json.hpp"
 
-  data.material.thickness = {0.05};
-  data.material.epsr      = {hoibc::complex(1.,-1.)};
-  data.material.mur       = {hoibc::complex(1.,0.)};
+int main(int argc, char* argv[]) {
 
-  data.hoibc.name         = {"ibc3","ibc3"};
-  data.hoibc.suc          = {false,true};
-  data.hoibc.type         = {'P','P'};
-  data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {2,2};
-  data.hoibc.normalised   = {true,true};
-
-  data.optim.grad_delta     = 1e-4;
-  data.optim.max_iter       = 100;
-  data.optim.no_constraints = true;
-  data.optim.show_iter      = false;
-  data.optim.tol            = 1e-6;
-  data.optim.toldx          = 1e-4;
+  assert(argc==2);
+  std::cout << "# Reading data from " << argv[1] << std::endl;
+  const data_out_t data_out = read_data_from_json(argv[1]);
+  const hoibc::data_t data = data_out.data_t;
 
   // prints the parameters to stdout
   hoibc::disp_data(data);
@@ -46,16 +26,19 @@ int main() {
   std::cout << std::endl;
 
   // Write results (impedance, coeff, ...) to screen and csv files
-  write_impedance_errors(data, hoibc_list);
+  write_impedance_errors(data_out, hoibc_list);
 
   hoibc::free_hoibc_list(hoibc_list);
   return 0;
 }
 
 // https://stackoverflow.com/a/12399290
-
+#include <limits> // std::max
+#include <cmath> // std::pow
+// When C++20 will be available
+// #include <format> // std::format
 #include <numeric>      // std::iota
-#include <algorithm>    // std::sort
+#include <algorithm>    // std::sort, std::for_each
 
 using error_array = std::array<std::array<hoibc::real,2>,5>;
 
@@ -72,7 +55,7 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
-void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_class*>& hoibc_list){
+void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
 
@@ -80,13 +63,14 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   // errors[i=ibc][j=coeff or matrix][l=impedance or reflexion]
   std::vector<error_array> errors;
 
+  const hoibc::data_t& data = data_out.data_t;
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
     // ! Set the format character string to write the results in the csv file
     // ! and the character format string for IBC coefficient
     // call set_backend(data_extended%out%backend)
 
-    // ! To print the impedance we will need the value of the Fourier variables
+    // To print the impedance we will need the value of the Fourier variables
     // ! depending on the IBC
 
   for ( const auto& ibc : hoibc_list ){
@@ -115,8 +99,8 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // For the plane, depends on (kx,ky)
     // For the cylinder, depends on kz, incidence is from theta = 0, but expressed as a Fourier serie over n, truncated
     // For the sphere, incidence is always from theta, phi = 0, but expressed as a Mie serie over n, truncated
-    std::vector<hoibc::real> f1, f2;
-    ibc->set_fourier_variables(data,f1,f2);
+    std::vector<hoibc::real> f1, f2, s1 ,s2;
+    ibc->set_fourier_variables(data,f1,f2,s1,s2);
     // Compute reflexion/fourier/mie coefficient
     const hoibc::big_matrix<hoibc::complex> reflexion_ap = ibc->get_reflexion(k0,f1,f2);
     const hoibc::big_matrix<hoibc::complex> impedance_ap = ibc->get_impedance(k0,f1,f2);
@@ -134,7 +118,7 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // Write info depending on the type
 
     switch (ibc->type){
-    case 'P': // For infinite plane, write reflection coefficients
+    case hoibc::type_t::P : // For infinite plane, write reflection coefficients
     // we're looking for NaN when k^2 - kx^2 = 0, ky = 0
     // do i2=1,size(f2)
     // do i1=1,size(f1)
@@ -145,11 +129,11 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
     // end do
 
       switch (ibc->mode){
-      case 1:
+      case hoibc::mode_t::R:
         reflexion_ex = hoibc::plane::reflexion_infinite(f1,f2,k0,data.material);
         impedance_ex = hoibc::plane::impedance_from_reflexion(f1,f2,k0,reflexion_ex);
         break;
-      case 2:
+      case hoibc::mode_t::Z:
         impedance_ex = hoibc::plane::impedance_infinite(f1,f2,k0,data.material);
         reflexion_ex = hoibc::plane::reflexion_from_impedance(f1,f2,k0,impedance_ex);
       }
@@ -329,12 +313,12 @@ void write_impedance_errors(const hoibc::data_t& data, std::vector<hoibc::hoibc_
   //   call dump_to_csv(filename,s1,s2,Z_ex,"s1","s2","z_ex",data_extended%out%skip_nan)
   //   end if
 
-  //   if (data_extended%out%z_ibc) then
-  //   filename = data_extended%out%basename//'.z_ibc.'//ibc%label//".csv"
-  // ! write(output_unit,'(a,a)') 'Writing IBC impedance to ',filename
-  //   call dump_to_csv(filename,s1,s2,Z_ap,"s1","s2","z_"//ibc%name,data_extended%out%skip_nan)
-  //     end if
-
+    if (data_out.impedance_ibc){
+      std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
+      std::cout << std::endl;
+      std::cout << "Writing IBC impedance to " << filename << std::endl;
+      dump_to_csv(filename,s1,s2,impedance_ap,"s1","s2","z_"+ibc->name,ibc->label);
+    }
   //     if (data_extended%out%z_err) then
   //   filename = data_extended%out%basename//'.z_err.'//ibc%label//".csv"
   // ! write(output_unit,'(a,a)') 'Writing difference of impedance between exact and IBC to ',filename
