@@ -7,18 +7,70 @@ using json = nlohmann::json;
 
 // https://github.com/nlohmann/json/issues/2207 Addint support for complex type
 namespace std {
-    template<typename R, typename std::enable_if<std::is_arithmetic<R>::value>::type* = nullptr>
-    void to_json(nlohmann::json& j, const complex<R>& d)
+
+    void to_json(json& j, const hoibc::complex& d)
     {
         j = {d.real(), d.imag()};
     }
 
-    template<typename R, typename std::enable_if<std::is_arithmetic<R>::value>::type* = nullptr>
-    void from_json(const nlohmann::json& j, complex<R>& d)
+    void from_json(const json& j, hoibc::complex& d)
     {
-        d.real(j.at(0).get<R>());
-        d.imag(j.at(1).get<R>());
+        d.real(j.at(0).get<hoibc::real>());
+        d.imag(j.at(1).get<hoibc::real>());
     }
+
+    void to_json(json& j, const hoibc::mode_t& d)
+    {
+        switch (d){
+        case hoibc::mode_t::R:
+            j = { 1 };
+            break;
+        case hoibc::mode_t::Z:
+            j = { 2 };
+            break;
+        }
+    }
+
+    void from_json(const json& j, hoibc::mode_t& d)
+    {
+        switch (j.get<int>()){
+        case 1:
+            d = hoibc::mode_t::R;
+            break;
+        case 2:
+            d = hoibc::mode_t::Z;
+            break;
+        }
+    }
+
+    void to_json(json& j, const hoibc::type_t& d)
+    {
+        switch (d){
+        case hoibc::type_t::P:
+            j = { "P" };
+            break;
+        case hoibc::type_t::C:
+            j = { "C" };
+            break;
+        case hoibc::type_t::S:
+            j = { "S" };
+            break;
+        }
+    }
+
+    void from_json(const json& j, hoibc::type_t& d)
+    {
+        if (j.get<std::string>() == "P"){
+            d = hoibc::type_t::P;
+        }
+        else if (j.get<std::string>() == "C"){
+            d = hoibc::type_t::C;
+        }
+        else if (j.get<std::string>() == "S"){
+            d = hoibc::type_t::S;
+        }
+    }
+
 }
 
 data_out_t read_data_from_json(const std::string& filename){
@@ -40,9 +92,9 @@ data_out_t read_data_from_json(const std::string& filename){
 
     data.hoibc.name             = json_data["data"]["hoibc"]["name"].get<std::vector<std::string>>();
     data.hoibc.suc              = json_data["data"]["hoibc"]["suc"].get<std::vector<bool>>();
-    data.hoibc.type             = json_data["data"]["hoibc"]["type"].get<std::vector<short>>();
+    data.hoibc.type             = json_data["data"]["hoibc"]["type"].get<std::vector<hoibc::type_t>>();
     data.hoibc.inner_radius     = json_data["data"]["hoibc"]["inner_radius"].get<std::vector<hoibc::real>>();
-    data.hoibc.mode             = json_data["data"]["hoibc"]["mode"].get<std::vector<char>>();
+    data.hoibc.mode             = json_data["data"]["hoibc"]["mode"].get<std::vector<hoibc::mode_t>>();
     data.hoibc.normalised       = json_data["data"]["hoibc"]["normalised"].get<std::vector<bool>>();
 
     data.optim.grad_delta       = json_data["data"]["optim"]["grad_delta"].get<hoibc::real>();

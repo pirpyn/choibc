@@ -118,7 +118,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // Write info depending on the type
 
     switch (ibc->type){
-    case 'P': // For infinite plane, write reflection coefficients
+    case hoibc::type_t::P : // For infinite plane, write reflection coefficients
     // we're looking for NaN when k^2 - kx^2 = 0, ky = 0
     // do i2=1,size(f2)
     // do i1=1,size(f1)
@@ -129,11 +129,11 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // end do
 
       switch (ibc->mode){
-      case 1:
+      case hoibc::mode_t::R:
         reflexion_ex = hoibc::plane::reflexion_infinite(f1,f2,k0,data.material);
         impedance_ex = hoibc::plane::impedance_from_reflexion(f1,f2,k0,reflexion_ex);
         break;
-      case 2:
+      case hoibc::mode_t::Z:
         impedance_ex = hoibc::plane::impedance_infinite(f1,f2,k0,data.material);
         reflexion_ex = hoibc::plane::reflexion_from_impedance(f1,f2,k0,impedance_ex);
       }
