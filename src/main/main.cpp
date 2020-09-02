@@ -1,9 +1,4 @@
 #include "main.hpp"
-#include <algorithm> // std::for_each
-#include <limits> // std::max
-#include <cmath> // std::pow
-// When C++20 will be available
-// #include <format> // std::format
 int main() {
   hoibc::data_t data;
   
@@ -30,7 +25,7 @@ int main() {
   data.optim.toldx          = 1e-4;
 
   data_out_t data_out;
-  data_out.basename = "/home/pirpyn/Documents/c++/choibc/test/test";
+  data_out.basename = "/home/pirpyn/choibc/test/test";
   data_out.impedance_ibc = true;
   data_out.impedance_ex   = true;
 
@@ -58,9 +53,12 @@ int main() {
 }
 
 // https://stackoverflow.com/a/12399290
-
+#include <limits> // std::max
+#include <cmath> // std::pow
+// When C++20 will be available
+// #include <format> // std::format
 #include <numeric>      // std::iota
-#include <algorithm>    // std::sort
+#include <algorithm>    // std::sort, std::for_each
 
 using error_array = std::array<std::array<hoibc::real,2>,5>;
 
@@ -338,7 +336,7 @@ void write_impedance_errors(const hoibc::data_t& data, const data_out_t& data_ou
       std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
       std::cout << std::endl;
       std::cout << "Writing IBC impedance to " << filename << std::endl;
-      dump_to_csv(filename,s1,s2,impedance_ap,"s1","s2","z_"+ibc->name);
+      dump_to_csv(filename,s1,s2,impedance_ap,"s1","s2","z_"+ibc->name,ibc->label);
     }
   //     if (data_extended%out%z_err) then
   //   filename = data_extended%out%basename//'.z_err.'//ibc%label//".csv"

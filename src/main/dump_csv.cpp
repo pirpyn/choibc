@@ -5,29 +5,33 @@
 #include <fstream>
 #include <cmath>
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label){
-  std::fstream myfile;
+void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std::string& header){
+  std::ofstream myfile;
   myfile.open(filename);
+  assert(myfile.is_open());
+
+  myfile << "# " << header << std::endl;
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
+
   const std::string fmt_head = 
   "# %15s; %15s;"
-  " %15s; %15s; %15s; %15s"
-  " %15s; %15s; %15s; %15s"
-  " %15s; %15s; %15s; %15s"
-  " %15s; %15s; %15s; %15s";
-  myfile << string_format(fmt_head,s1,s2,
-  "Re("+label+".11)", "Im("+label+".11)", "Abs("+label+".11)", "Arg("+label+".11)",
-  "Re("+label+".21)", "Im("+label+".21)", "Abs("+label+".21)", "Arg("+label+".21)",
-  "Re("+label+".12)", "Im("+label+".12)", "Abs("+label+".12)", "Arg("+label+".12)",
-  "Re("+label+".22)", "Im("+label+".22)", "Abs("+label+".22)", "Arg("+label+".22)") << std::endl;
+  " %15s; %15s; %15s; %15s;"
+  " %15s; %15s; %15s; %15s;"
+  " %15s; %15s; %15s; %15s;"
+  " %15s; %15s; %15s; %15s;";
+  myfile << string_format(fmt_head,s1.c_str(),s2.c_str(),
+  ("Re("+label+".11)").c_str(), ("Im("+label+".11)").c_str(), ("Abs("+label+".11)").c_str(), ("Arg("+label+".11)").c_str(),
+  ("Re("+label+".21)").c_str(), ("Im("+label+".21)").c_str(), ("Abs("+label+".21)").c_str(), ("Arg("+label+".21)").c_str(),
+  ("Re("+label+".12)").c_str(), ("Im("+label+".12)").c_str(), ("Abs("+label+".12)").c_str(), ("Arg("+label+".12)").c_str(),
+  ("Re("+label+".22)").c_str(), ("Im("+label+".22)").c_str(), ("Abs("+label+".22)").c_str(), ("Arg("+label+".22)").c_str()) << std::endl;
 
   const std::string fmt_val = 
-  "# %15.8e; %15.8e;"
-  " %15.8e %15.8e; %15.8e; %15.8e"
-  " %15.8e %15.8e; %15.8e; %15.8e"
-  " %15.8e %15.8e; %15.8e; %15.8e"
-  " %15.8e %15.8e; %15.8e; %15.8e";
+  "  %15.8e; %15.8e;"
+  " %15.8e; %15.8e; %15.8e; %15.8e;"
+  " %15.8e; %15.8e; %15.8e; %15.8e;"
+  " %15.8e; %15.8e; %15.8e; %15.8e;"
+  " %15.8e; %15.8e; %15.8e; %15.8e;";
     for (std::size_t j = 0; j < f2.size(); j++){
         for (std::size_t i = 0; i < f1.size(); i++){
         myfile << string_format(fmt_val,f1[i],f2[j],
@@ -40,20 +44,24 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1,
   myfile.close();
 }
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::real>& gex, const std::string& s1, const std::string& s2, const std::string& label){
+void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::real>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std:: string& header){
   std::ofstream myfile;
   myfile.open(filename);
+  assert(myfile.is_open());
+
+  myfile << "# " << header << std::endl;
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
+
   const std::string fmt_head = 
   "# %15s; %15s;"
-  " %15s; %15s; %15s; %15s";
-  myfile << string_format(fmt_head,s1,s2,
-  label+".11", label+".12", label+".21", label+".22)") << std::endl;
+  " %15s; %15s; %15s; %15s;";
+  myfile << string_format(fmt_head,s1.c_str(),s2.c_str(),
+  (label+".11").c_str(), (label+".12").c_str(), (label+".21").c_str(), (label+".22").c_str()) << std::endl;
 
   const std::string fmt_val = 
-  "# %15.8e; %15.8e;"
-  " %15.8e %15.8e; %15.8e; %15.8e";
+  "  %15.8e; %15.8e;"
+  " %15.8e; %15.8e; %15.8e; %15.8e;";
     for (std::size_t j = 0; j < f2.size(); j++){
         for (std::size_t i = 0; i < f1.size(); i++){
         myfile << string_format(fmt_val,f1[i],f2[j],
