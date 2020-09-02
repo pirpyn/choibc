@@ -1,33 +1,13 @@
 #include "main.hpp"
-int main() {
-  hoibc::data_t data;
-  
-  data.main.frequency = .2;
-  data.main.s1 = {0.,0.9,.1};
-  data.main.s2 = {0.,0.,0.};
+#include "dump_csv.hpp"
+#include "read_json.hpp"
 
-  data.material.thickness = {0.05};
-  data.material.epsr      = {hoibc::complex(1.,-1.)};
-  data.material.mur       = {hoibc::complex(1.,0.)};
+int main(int argc, char* argv[]) {
 
-  data.hoibc.name         = {"ibc3","ibc3"};
-  data.hoibc.suc          = {false,true};
-  data.hoibc.type         = {'P','P'};
-  data.hoibc.inner_radius = {0.,0.};
-  data.hoibc.mode         = {2,2};
-  data.hoibc.normalised   = {true,true};
-
-  data.optim.grad_delta     = 1e-4;
-  data.optim.max_iter       = 100;
-  data.optim.no_constraints = true;
-  data.optim.show_iter      = false;
-  data.optim.tol            = 1e-6;
-  data.optim.toldx          = 1e-4;
-
-  data_out_t data_out;
-  data_out.basename = "/home/pirpyn/choibc/test/test";
-  data_out.impedance_ibc = true;
-  data_out.impedance_ex   = true;
+  assert(argc==2);
+  std::cout << "# Reading data from " << argv[1] << std::endl;
+  const data_out_t data_out = read_data_from_json(argv[1]);
+  const hoibc::data_t data = data_out.data_t;
 
   // prints the parameters to stdout
   hoibc::disp_data(data);
@@ -46,7 +26,7 @@ int main() {
   std::cout << std::endl;
 
   // Write results (impedance, coeff, ...) to screen and csv files
-  write_impedance_errors(data, data_out, hoibc_list);
+  write_impedance_errors(data_out, hoibc_list);
 
   hoibc::free_hoibc_list(hoibc_list);
   return 0;
@@ -75,7 +55,7 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
-void write_impedance_errors(const hoibc::data_t& data, const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
+void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
 
@@ -83,6 +63,7 @@ void write_impedance_errors(const hoibc::data_t& data, const data_out_t& data_ou
   // errors[i=ibc][j=coeff or matrix][l=impedance or reflexion]
   std::vector<error_array> errors;
 
+  const hoibc::data_t& data = data_out.data_t;
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
     // ! Set the format character string to write the results in the csv file

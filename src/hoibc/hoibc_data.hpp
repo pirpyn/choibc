@@ -10,8 +10,8 @@
 namespace hoibc{
   struct main_t{
     real frequency { 1. };              // Frequency in GHz
-    std::vector<real> s1 = {0.,1.,0.};  // Normalised fourier variable in the 1st dimension
-    std::vector<real> s2 = {0.,1.,0.};  // ...................................2nd dimension
+    std::array<real,3> s1 = {0.,1.,0.};  // Normalised fourier variable in the 1st dimension
+    std::array<real,3> s2 = {0.,1.,0.};  // ...................................2nd dimension
   };
 
   struct material_t{
