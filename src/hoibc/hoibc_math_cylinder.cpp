@@ -3,10 +3,10 @@
 
 using namespace hoibc;
 
-void hoibc::impedance_infinite_cylinder(){
-    std::cout << "hoibc_math_cylinder::impedance_infinite_cylinder: i do nothing" << std::endl;
+big_matrix<complex> hoibc::cylinder::impedance_infinite(const array<real>& n, const array<real>& kz, const real& k0, const material_t& material, const real& radius){
+    NOTFINISHED("hoibc_math_cylinder::impedance_infinite");
 }
 
-void hoibc::reflexion_infinite_cylinder(){
-    std::cout << "hoibc_math_cylinder::reflexion_infinite_cylinder: i do nothing" << std::endl;
+big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& n, const array<real>& kz, const real& k0, const material_t& material, const real& radius){
+    NOTFINISHED("hoibc_math_cylinder::reflexion_infinite");
 }

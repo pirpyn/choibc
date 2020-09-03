@@ -64,10 +64,10 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
           gex = plane::reflexion_infinite(f1,f2,k0,data.material);
           break;
         case type_t::C :
-          reflexion_infinite_cylinder();
+          gex = cylinder::reflexion_infinite(f1,f2,k0,data.material,this->outer_radius);
           break;
         case type_t::S :
-          reflexion_infinite_sphere();
+          gex = sphere::reflexion_infinite(f1,k0,data.material,this->outer_radius);
           break;
       }
       break;
@@ -77,10 +77,10 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
           gex = plane::impedance_infinite(f1,f2,k0,data.material);
           break;
         case type_t::C :
-          impedance_infinite_cylinder();
+          gex = cylinder::impedance_infinite(f1,f2,k0,data.material,this->outer_radius);
           break;
         case type_t::S :
-          impedance_infinite_sphere();
+          gex = sphere::impedance_infinite(f1,k0,data.material,this->outer_radius);
           break;
       }
       break;
