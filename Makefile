@@ -26,12 +26,10 @@ help:
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=./src/hoibc ./src/alglib
-# ./src/bessel ./src/slsqp/src
-LIBNAMES:=hoibc alglib
-# bessel slsqp
+SRCDIRS:=./src/hoibc ./src/alglib ./src/bessel
+LIBNAMES:=hoibc alglib bessel
 
-EXTENSIONS:=.cpp
+EXTENSIONS:=.cpp .x .cc
 SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
@@ -119,6 +117,7 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
+	@$(MAKE) SRCDIRS=./src/bessel LIBNAMES=bessel lib -j
 	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib -j
 	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib -j
 
@@ -130,7 +129,7 @@ main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
 	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib -j
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc bessel alglib" prog -j
 
 
 .PHONY: link
@@ -184,6 +183,10 @@ $(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
+$(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
+	@echo "  $<"
+	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
+
 $(libdir)/%.a: $(objects)
 	@echo "Creating $@"
 	@ar crs $@ $(objects)
@@ -221,6 +224,11 @@ endif
 $(objdir)/%.d: %.cpp | $(objdir)
 	@echo "  $@"
 	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
+
+$(objdir)/%.d: %.cc | $(objdir)
+	@echo "  $@"
+	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
+
 
 #############################################################################
 TEST_SRCDIR:=./src/test
