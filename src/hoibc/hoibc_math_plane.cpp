@@ -126,12 +126,12 @@ big_matrix<complex> hoibc::plane::impedance_infinite(const array<real> &vkx, con
 
   real h = - std::accumulate(begin(thickness),end(thickness),0.);
 
-  for (std::size_t i = 0; i < thickness.size(); i++) {
-    complex mu = material.mur[i];
-    complex eps = material.epsr[i];
+  for (std::size_t l = 0; l < thickness.size(); l++) {
+    complex mu = material.mur[l];
+    complex eps = material.epsr[l];
     complex etar, nur;
-    check_and_set_material(i+1, eps, mu, etar, nur,material.loss);
-    real d = thickness[i];
+    check_and_set_material(l+1, eps, mu, etar, nur,material.loss);
+    real d = thickness[l];
 
     const complex k = k0*nur;
 

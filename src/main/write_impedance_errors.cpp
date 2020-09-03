@@ -41,12 +41,12 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   const hoibc::data_t& data = data_out.data_t;
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
-    // ! Set the format character string to write the results in the csv file
-    // ! and the character format string for IBC coefficient
-    // call set_backend(data_extended%out%backend)
+  // ! Set the format character string to write the results in the csv file
+  // ! and the character format string for IBC coefficient
+  // call set_backend(data_extended%out%backend)
 
-    // To print the impedance we will need the value of the Fourier variables
-    // depending on the IBC
+  // To print the impedance we will need the value of the Fourier variables
+  // depending on the IBC
 
   for ( const auto& ibc : hoibc_list ){
     std::cout << std::endl;
@@ -139,12 +139,12 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     case hoibc::type_t::C : // For the cylinder, write the reflexion matrices that includes Fourier coefficient
       switch (ibc->mode){
       case hoibc::mode_t::R:
-//        reflexion_ex = hoibc::cylinder::reflexion_infinite_cylinder(f1,f2,k0,data,ibc->inner_radius);
-//        impedance_ex = hoibc::cylinder::impedance_from_reflexion(f1,f2,k0,reflexion_ex,ibc->outer_radius)
+        reflexion_ex = hoibc::cylinder::reflexion_infinite(f1,f2,k0,data.material,ibc->inner_radius);
+        impedance_ex = hoibc::cylinder::impedance_from_reflexion(f1,f2,k0,reflexion_ex,ibc->outer_radius);
         break;
       case hoibc::mode_t::Z:
-//        impedance_ex = hoibc::cylinder::impedance_infinite(f1,f2,k0,data,ibc->inner_radius);
-//        reflexion_ex = hoibc::cylinder::reflexion_from_impedance(f1,f2,k0,Z_ex,ibc->outer_radius);
+        impedance_ex = hoibc::cylinder::impedance_infinite(f1,f2,k0,data.material,ibc->inner_radius);
+        reflexion_ex = hoibc::cylinder::reflexion_from_impedance(f1,f2,k0,impedance_ex,ibc->outer_radius);
         break;
       }
 
@@ -256,6 +256,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   std::cout << std::endl;
 
   std::cout << "Writing CSV files to " + data_out.basename << std::endl;
+  std::cout << std::endl;
 
   // When C++20 will be available
   // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";

@@ -25,7 +25,7 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const array<real>
     break;
   case type_t::C:
     // f1 = n, f2 = kz
-    // TODO ref_ap = reflexion_from_impedance_cylinder(f1,f2,k0,Z,self%outer_radius)
+    reflexion = cylinder::reflexion_from_impedance(f1,f2,k0,impedance,this->outer_radius);
     break;
   case type_t::S:
     // f1 = m, f2 = n
@@ -377,7 +377,7 @@ void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_mat
   sI[1][0] = 0.;
   sI[0][1] = 0.;
   sI[1][1] = 1.;
-  I  = big_init<real>(n1,n2,sI);
+  I = big_init<real>(n1,n2,sI);
 
   matrix<real> sI1;
   sI[0][0] = 1.;
