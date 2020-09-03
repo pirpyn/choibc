@@ -29,7 +29,7 @@ help:
 SRCDIRS:=./src/hoibc ./src/alglib ./src/bessel
 LIBNAMES:=hoibc alglib bessel
 
-EXTENSIONS:=.cpp .x .cc
+EXTENSIONS:=.cpp .cc
 SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
@@ -96,7 +96,7 @@ CXXFLAGS+=$(INCFLAGS)
 dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
 # Static libraries to build
-libs:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
+libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
 
 # Corresponding sources files
 sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(srcdir)/*$(ext))))
@@ -117,20 +117,16 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
-	@$(MAKE) SRCDIRS=./src/bessel LIBNAMES=bessel lib -j
-	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib -j
-	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib -j
-
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
+	@$(MAKE) SRCDIRS=./src/bessel lib -j
+	@$(MAKE) SRCDIRS=./src/alglib lib -j
+	@$(MAKE) SRCDIRS=./src/hoibc lib -j
 
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib -j
+	@$(MAKE) SRCDIRS=./src/main lib -j
 	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc bessel alglib" prog -j
-
 
 .PHONY: link
 link: main | $(lklibdir) $(lkbindir)
@@ -145,7 +141,6 @@ link: main | $(lklibdir) $(lkbindir)
 	    ln -s $$(readlink -m $${bin}) $(lkbindir); \
 	done;
 	@echo "Binaries linked at $(lkbindir)"
-
 
 MODES=$(MODE)
 CXXCS=$(CXXC)
@@ -188,7 +183,7 @@ $(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(libdir)/%.a: $(objects)
-	@echo "Creating $@"
+	@echo "Creating $@ $(objects)"
 	@ar crs $@ $(objects)
 
 $(libdir)/%.so: $(objects)
