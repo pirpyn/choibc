@@ -106,6 +106,33 @@ big_matrix<complex> hoibc::cylinder::impedance_infinite(const array<real>& vn, c
   return impedance_ex;
 }
 
+
+big_matrix<complex> hoibc::cylinder::reflexion_from_impedance(const array<real>& vn, const array<real>& vkz, const real& k0, const big_matrix<complex> impedance, const real& outer_radius){
+  big_matrix<complex> reflexion = big_init(vn.size(),vkz.size(),complex(0.,0.));
+  // in the vacuum
+  real radius = outer_radius;
+  complex k = k0;
+  complex etar = 1.;
+  for (unsigned int i=0; i<vn.size();i++) {
+    const real n = vn[i];
+    for (unsigned int j=0; j<vkz.size();j++) {
+      const real kz = vkz[j];
+      if (std::abs(std::pow(k,2) - std::pow(kz,2)) <= std::numeric_limits<real>::epsilon()){
+        // In that case, we get a 0/0 which result in NaN.
+        // Mathematical analysis gives to following value at that point
+        matrix<complex> mR0 { 0. };
+        mR0[0][0] = complex(-1.,0.);
+        mR0[1][1] = complex(1.,0.);
+        reflexion[i][j] = mR0;
+      } else {
+        //Using the overloaded % operator A % B = A^{-1}*B
+        reflexion[i][j] = - MH(radius,n,kz,k,etar,impedance[i][j]) % MJ(radius,n,kz,k,etar,impedance[i][j]);
+      }
+    }
+  }
+  return reflexion;
+}
+
 big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& n, const array<real>& kz, const real& k0, const material_t& material, const real& radius){
   big_matrix<complex> reflexion_ex;
   return reflexion_ex;
