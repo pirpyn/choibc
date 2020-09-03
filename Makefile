@@ -26,8 +26,8 @@ help:
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=./src/hoibc ./src/alglib ./src/bessel
-LIBNAMES:=hoibc alglib bessel
+SRCDIRS:=./src/main ./src/hoibc ./src/alglib ./src/bessel
+LIBNAMES:=
 
 EXTENSIONS:=.cpp .cc
 SUFFIXES:=.d
@@ -98,6 +98,9 @@ dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 # Static libraries to build
 libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
 
+# Static libraries to use
+libs_depends:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
+
 # Corresponding sources files
 sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(srcdir)/*$(ext))))
 
@@ -119,14 +122,14 @@ hoibc: info
 	@$(MAKE) depend
 	@$(MAKE) SRCDIRS=./src/bessel lib -j
 	@$(MAKE) SRCDIRS=./src/alglib lib -j
-	@$(MAKE) SRCDIRS=./src/hoibc lib -j
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES="alglib bessel" lib -j
 
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main lib -j
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc bessel alglib" prog -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="hoibc alglib bessel" lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" prog -j
 
 .PHONY: link
 link: main | $(lklibdir) $(lkbindir)
@@ -183,14 +186,14 @@ $(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(libdir)/%.a: $(objects)
-	@echo "Creating $@ $(objects)"
+	@echo "Creating $@"
 	@ar crs $@ $(objects)
 
 $(libdir)/%.so: $(objects)
 	@echo "Creating $@"
 	@$(CXXC) -shared -o $@ $^
 
-$(bindir)/%: $(objdir)/%.o $(libs)
+$(bindir)/%: $(objdir)/%.o $(libs) $(libs_depends)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
