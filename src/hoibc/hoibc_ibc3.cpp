@@ -8,7 +8,7 @@
 
 using namespace hoibc;
 
-void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std::vector<real>& f2, const big_matrix<complex>& gex, const real& k0){
+void hoibc::hoibc_ibc3::get_coeff_no_suc(const array<real>& f1, const array<real>& f2, const big_matrix<complex>& gex, const real& k0){
   
   big_matrix<real> I;
   const std::size_t n1 = f1.size();
@@ -40,7 +40,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
   complex* b = new complex[m];
 
   switch (this->mode){
-  case 1: // if reflexion
+  case mode_t::R: // if reflexion
     this->get_matrices_AB_EH(k0,f1,f2,AE,BE,AH,BH);
     ME = AE + BE * gex;
     MH = AH + BH * gex;
@@ -82,7 +82,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
       }
     }
     break;
-  case 2: // if impedance
+  case mode_t::Z: // if impedance
     LDZ = LD * gex;
     LRZ = LR * gex;
 
@@ -121,7 +121,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
     }
     break;
   default:
-    std::cerr << "hoibc_ibc3::get_coeff_no_suc: mode = " << this->mode << " unknown" << std::endl;
+    std::cerr << "hoibc_ibc3::get_coeff_no_suc: mode = " << mode_to_int(this->mode) << " unknown" << std::endl;
     exit(1);
     break;
   }
@@ -139,7 +139,7 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const std::vector<real>& f1, const std:
   delete [] b;
 }
 
-big_matrix<complex> hoibc::hoibc_ibc3::get_impedance(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2){
+big_matrix<complex> hoibc::hoibc_ibc3::get_impedance(const real& k0, const array<real>& f1, const array<real>& f2){
   big_matrix<real> I, LD, LR;
 
   get_matrices_I(f1.size(),f2.size(),I=I);
@@ -174,13 +174,11 @@ void hoibc::hoibc_ibc3::coeff_to_array(alglib::real_1d_array& x){
   x[9] = std::imag(this->coeff.b2);
 }
 
-void hoibc::hoibc_ibc3::get_suc(std::vector<real>& cle, std::vector<real>& ceq, std::vector<real>& cne, std::vector<std::string>& sle, std::vector<std::string>& seq, std::vector<std::string>& sne){
-    cle.clear();
-    ceq.clear();
-    cne.clear();
-    sle.clear();
-    seq.clear();
-    sne.clear();
+void hoibc::hoibc_ibc3::get_suc(array<real>& cle, array<real>& ceq, array<real>& cne, array<std::string>& sle, array<std::string>& seq, array<std::string>& sne){
+    ceq.resize(0);
+    cne.resize(0);
+    seq.resize(0);
+    sne.resize(0);
 
     coeff_t &c = this->coeff;
     const complex z = std::pow(std::abs(c.a1),2)*std::pow(std::abs(c.a2),2) - c.b1*c.a0*conj(c.a1)*std::pow(std::abs(c.a2),2) - c.b2*c.a0*conj(c.a2)*std::pow(std::abs(c.a1),2);
@@ -221,9 +219,9 @@ void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
   print_complex(this->coeff.b2,"  b2",out);
 }
 
-void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){
+void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){
     switch (this->type){
-      case 'P':
+      case type_t::P:
         plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
         break;
       default:
@@ -236,7 +234,7 @@ void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const std::vector<rea
     }
 }
 
-void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const std::vector<real>& f1, const std::vector<real>& f2, big_matrix<complex>& AE, big_matrix<complex>& BE, big_matrix<complex>& AH, big_matrix<complex>& BH){
+void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<complex>& AE, big_matrix<complex>& BE, big_matrix<complex>& AH, big_matrix<complex>& BH){
 
   // We're in the vaccum
   const complex k = k0;
@@ -244,7 +242,7 @@ void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const std::vector<rea
   const real height = 0.;
 
   switch (this->type){
-  case ('P'):
+  case type_t::P:
     plane::get_matrices_AB_EH(f1,f2,k,etar,height,AE,BE,AH,BH);
     break;
   // case ('C'):

@@ -10,7 +10,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/main",
-            "args": [],
+            "args": [
+                "/home/pirpyn/choibc/input.json",
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

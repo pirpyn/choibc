@@ -18,9 +18,9 @@ namespace hoibc {
   big_matrix<complex> operator*(const complex& x, const big_matrix<real>& A);
 
   template<typename Tstart, typename Tend> 
-  std::vector<real> linspace(const Tstart& start, const Tend& end, const int& n){
+  array<real> linspace(const Tstart& start, const Tend& end, const int& n){
 
-    std::vector<real> v;
+    array<real> v;
     if (n<1){
       return v;
     }
@@ -37,8 +37,8 @@ namespace hoibc {
   }
 
   template<typename T>
-  std::vector<real> operator*(const std::vector<real>& v, const T& x){
-    std::vector<real> w (v);
+  array<real> operator*(const array<real>& v, const T& x){
+    array<real> w (v);
     for (auto& y : w){
       y *= x;
     }
@@ -46,13 +46,13 @@ namespace hoibc {
   }
 
   template<typename T>
-  std::vector<real> operator*(const T& x, const std::vector<real>& v){
+  array<real> operator*(const T& x, const array<real>& v){
       return v*x;
   }
 
   template<typename T>
-  std::vector<real> operator/(const std::vector<real>& v, const T& x){
-    std::vector<real> w (v);
+  array<real> operator/(const array<real>& v, const T& x){
+    array<real> w (v);
     for (auto& y : w){
       y /= x;
     }
@@ -316,9 +316,9 @@ namespace hoibc {
   }
 
   template<typename T>
-  real norm(const std::vector<T>& v){
+  real norm(const array<T>& v){
     real norm = 0;
-    std::vector<T> w = v;
+    array<T> w = v;
     std::for_each(w.begin(),w.end(),[](T& x){x = std::pow(std::abs(x),2);});
     norm = std::real(std::accumulate(w.begin(),w.end(),static_cast<T>(0)));
     norm = std::sqrt(norm);

@@ -2,6 +2,7 @@
 #define _H_HOIBC
 
 #include <string>
+#include <vector>
 
 #include "hoibc_data.hpp"
 #include "hoibc_class.hpp"
