@@ -10,16 +10,17 @@ if [[ $last_url == $url ]]; then
     exit
 else
     sed -i "s|$last_url|$url|" $(readlink -m $0)
+    cd $dir
+    wget $url
 fi
 
-cd $dir
-
-wget $url
-tar xvf alglib-*.tgz
+tar xf alglib-*.tgz
 files=(optimization ap alglibinternal linalg alglibmisc solvers stdafx)
 for file in ${files[@]}; do
+    echo "alglib: optimize: $file"
     cp cpp/src/$file.* .
-    sed -i 's/^M$//' $file.*
+    sed -i 's/\r//g' $file.*
 done
+cp cpp/gpl{2,3}.txt .
 rm -f $dir/*.tgz $dir/*.tgz.*
 rm -rf $dir/cpp
