@@ -1,39 +1,40 @@
 {
     "data": {
         "main": {
-            "frequency":    0.2,
-            "s1":           [0.0,0.9,0.1],
-            "s2":           [0.0,0.0,0.0]
+            "frequency" : 0.2,
+            "s1"        : [0.0,0.99,0.01],
+            "s2"        : [0.0,0.0,0.0]
         },
         "material": {
-            "thickness": [0.05],
-            "epsr":      [[ 1.0, -1.0 ]],
-            "mur":       [[ 1.0,  0.0 ]]
+            "thickness" : [0.05],
+            "epsr"      : [[ 1.0, -1.0 ]],
+            "mur"       : [[ 1.0,  0.0 ]]
         },
         "hoibc": {
-            "name" :         ["ibc3","ibc3"],
-            "suc" :          [false,true],
-            "type" :         ["P","P"],
-            "inner_radius" : [0.0,0.0],
-            "mode" :         [2,2],
-            "normalised" :   [true,true]
+            "name"          : ["ibc3","ibc3"],
+            "suc"           : [false,true],
+            "type"          : ["P","P"],
+            "inner_radius"  : [0.0,0.0],
+            "mode"          : [2,2],
+            "normalised"    : [true,true]
         },
         "optim": {
-            "grad_delta" :      1e-4,
-            "max_iter" :        100,
-            "no_constraints" :  true,
-            "show_iter" :       false,
-            "tol" :             1e-6,
-            "toldx" :           1e-4
+            "grad_delta"        : 1e-4,
+            "max_iter"          : 100,
+            "no_constraints"    : true,
+            "show_iter"         : false,
+            "tol"               : 1e-6,
+            "toldx"             : 1e-4
         },
         "out": {
-            "basename" :        "/home/pirpyn/choibc/test/test",
-            "impedance_ibc" :   true,
-            "impedance_ex"  :   true,
-            "impedance_err" :   true,
-            "coeff" :           true,
-            "reflexion_ibc" :   true,
-            "reflexion_ex"  :   true
+            "basename"          : "/home/pirpyn/choibc/test/test",
+            "impedance_ibc"     : true,
+            "impedance_ex"      : true,
+            "impedance_err"     : true,
+            "coeff"             : true,
+            "reflexion_ibc"     : true,
+            "reflexion_ex"      : true,
+            "reflex_vs_theta"   : true
         }
     }
 }

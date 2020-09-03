@@ -81,7 +81,7 @@ matrix<complex> hoibc::plane::BH(const real& kx, const real& ky, const complex& 
   return BH;
 }
 
-void hoibc::plane::get_matrices_AB_EH(const std::vector<real>& f1, const std::vector<real>& f2, const complex& k, const complex& etar, const real& z, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH){
+void hoibc::plane::get_matrices_AB_EH(const array<real>& f1, const array<real>& f2, const complex& k, const complex& etar, const real& z, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH){
   // return big 4 rank arrays that store AE, BE, AH, BH matrices
   // for every kx and ky
   //
@@ -113,13 +113,13 @@ matrix<complex> hoibc::MB(const real& kx, const real& ky, const complex& k, cons
   return BE(kx,ky,k,z) - matmul(imp,BH(kx,ky,k,etar,z));
 }
 
-big_matrix<complex> hoibc::plane::impedance_infinite(const std::vector<real> &vkx, const  std::vector<real> &vky, const real& k0, const material_t& material){
+big_matrix<complex> hoibc::plane::impedance_infinite(const array<real> &vkx, const  array<real> &vky, const real& k0, const material_t& material){
 
   big_matrix<complex> impedance_ex = big_init(vkx.size(), vky.size(), material.initial_impedance);
 
-  const std::vector<real>& thickness = material.thickness;
+  const array<real>& thickness = material.thickness;
 
-  real h = - std::accumulate(thickness.begin(),thickness.end(),0.);
+  real h = - std::accumulate(begin(thickness),end(thickness),0.);
 
   for (std::size_t i = 0; i < thickness.size(); i++) {
     complex mu = material.mur[i];
@@ -171,7 +171,7 @@ big_matrix<complex> hoibc::plane::impedance_infinite(const std::vector<real> &vk
   return impedance_ex;
 }
 
-big_matrix<complex> hoibc::plane::impedance_from_reflexion(const std::vector<real>& vkx,const std::vector<real>& vky, const real& k0,const big_matrix<complex>& reflexion){
+big_matrix<complex> hoibc::plane::impedance_from_reflexion(const array<real>& vkx,const array<real>& vky, const real& k0,const big_matrix<complex>& reflexion){
   // In the vacuum
   const complex k = k0;
   const complex etar = 1.;
@@ -197,7 +197,7 @@ big_matrix<complex> hoibc::plane::impedance_from_reflexion(const std::vector<rea
   return impedance;
 }
 
-big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vkx, const std::vector<real>& vky, const real& k0, const material_t& material){
+big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, const array<real>& vky, const real& k0, const material_t& material){
 
   big_matrix<complex> reflexion_ex = big_init(vkx.size(),vky.size(),complex(0.,0.));
 
@@ -229,7 +229,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
 
   complex k_upper = k0*nur_upper;
 
-  real h = - std::accumulate(material.thickness.begin(),material.thickness.end(),0.);
+  real h = - std::accumulate(begin(material.thickness),end(material.thickness),0.);
 
   for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
     const real kx = vkx[n1];
@@ -353,7 +353,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const std::vector<real>& vk
   return reflexion_ex;
 }
 
-big_matrix<complex> hoibc::plane::reflexion_from_impedance(const std::vector<real>& vkx,const std::vector<real>& vky,const real& k0, const big_matrix<complex>& impedance){
+big_matrix<complex> hoibc::plane::reflexion_from_impedance(const array<real>& vkx,const array<real>& vky,const real& k0, const big_matrix<complex>& impedance){
   
   big_matrix<complex> reflexion = big_init(vkx.size(),vky.size(),complex(0.,0.));
 
@@ -396,9 +396,9 @@ big_matrix<complex> hoibc::plane::reflexion_from_impedance(const std::vector<rea
   return reflexion;
 }
 
-void hoibc::plane::get_matrices_LD_LR(const std::vector<real>& vkx, const std::vector<real>& vky, big_matrix<real>& LD, big_matrix<real>& LR){
-  LD.clear();
-  LR.clear();
+void hoibc::plane::get_matrices_LD_LR(const array<real>& vkx, const array<real>& vky, big_matrix<real>& LD, big_matrix<real>& LR){
+  LD.resize(0);
+  LR.resize(0);
   LD = big_init(vkx.size(),vky.size(),0.);
   LR = big_init(vkx.size(),vky.size(),0.);
 

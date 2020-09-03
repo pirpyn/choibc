@@ -28,6 +28,7 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 #include <fstream>
 #include "read_json.hpp"
 #include "dump_csv.hpp"
+#include <valarray> // std::asin
 
 void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
@@ -76,7 +77,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // For the plane, depends on (kx,ky)
     // For the cylinder, depends on kz, incidence is from theta = 0, but expressed as a Fourier serie over n, truncated
     // For the sphere, incidence is always from theta, phi = 0, but expressed as a Mie serie over n, truncated
-    std::vector<hoibc::real> f1, f2, s1 ,s2;
+    hoibc::array<hoibc::real> f1, f2, s1 ,s2;
     ibc->set_fourier_variables(data,f1,f2,s1,s2);
     // Compute reflexion/fourier/mie coefficient
     const hoibc::big_matrix<hoibc::complex> reflexion_ibc = ibc->get_reflexion(k0,f1,f2);
@@ -119,27 +120,21 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       if (data_out.reflexion_ex) {
         const std::string filename = data_out.basename+".r_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+".csv";
         std::cout << "Writing exact reflexion to " << filename << std::endl;
-//      if (data_out.reflex_vs_theta) {
-//        call dump_to_csv(filename,&
-//        180._wp/pi*asin(s1),&
-//        180._wp/pi*asin(s2),&
-//        reflexion_ex,"theta1","theta_2","r_ex","")
-//      } else {
-        dump_to_csv(filename,s1,s2,reflexion_ex,"s1","s2","r_ex","");
-//      }      
+        if (data_out.reflex_vs_theta) {
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ex,"theta_1","theta_2","r_ex","");
+        } else {
+          dump_to_csv(filename,s1,s2,reflexion_ex,"s1","s2","r_ex","");
+        }
       }
 
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".r_ibc."+ibc->label+".csv";
         std::cout << "Writing IBC reflexion to " << filename << std::endl;
-//      if (data_out.reflex_vs_theta) {
-//        call dump_to_csv(filename,&
-//        180._wp/pi*asin(s1),&
-//        180._wp/pi*asin(s2),&
-//        reflexion_ibc,"theta1","theta_2","r_ibc","")
-//      } else {
-        dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","r_"+ibc->name,ibc->label);
-//      }      
+        if (data_out.reflex_vs_theta) {
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","r_"+ibc->name,ibc->label);
+        } else {
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","r_"+ibc->name,ibc->label);
+        }
       }
       break;
 
@@ -158,27 +153,21 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       if (data_out.reflexion_ex){
         const std::string filename = data_out.basename+".f_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+"_"+std::to_string(ibc->inner_radius)+"m.csv";
         std::cout << "Writing exact Fourier coefficient to " << filename << std::endl;
-  //     if (data_out.reflex_vs_theta){
-  //       dump_to_csv(filename,&
-  //         180._wp/pi*asin(s2),&
-  //         f1,&
-  //         reflexion_ex,"theta","n","f_ex","")
-  //     } else {
-        dump_to_csv(filename,s2,f1,reflexion_ex,"s","n","f_ex","");
-  //     }
+        if (data_out.reflex_vs_theta){
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ex,"theta","n","f_ex","");
+        } else {
+          dump_to_csv(filename,s2,f1,reflexion_ex,"s","n","f_ex","");
+        }
       }
 
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".f_ibc."+ibc->label+".csv";
         std::cout << "Writing IBC Fourier coefficient to " << filename << std::endl;
-//      if (data_out.reflex_vs_theta) {
-//        call dump_to_csv(filename,&
-//        180._wp/pi*asin(s1),&
-//        180._wp/pi*asin(s2),&
-//        reflexion_ibc,"theta1","theta_2","f_ibc","")
-//      } else {
-        dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","f_"+ibc->name,ibc->label);
-//      }      
+        if (data_out.reflex_vs_theta) {
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","f_"+ibc->name,ibc->label);
+        } else {
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","f_"+ibc->name,ibc->label);
+        }
       }
       break;
 
@@ -266,7 +255,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     if (data_out.impedance_err){
       std::string filename = data_out.basename+".z_err."+ibc->label+".csv";
       std::cout << "Writing difference of impedance between exact and IBC to " << filename << std::endl;
-      dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"s1","s2","z_"+ibc->name,"Z_ex - Z_"+ibc->name);
+      dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"s1","s2","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
     }
   }
     

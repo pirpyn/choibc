@@ -86,16 +86,16 @@ data_out_t read_data_from_json(const std::string& filename){
     data.main.s1                = json_data["data"]["main"]["s1"].get<std::array<hoibc::real,3>>();
     data.main.s2                = json_data["data"]["main"]["s2"].get<std::array<hoibc::real,3>>();
     
-    data.material.thickness     = json_data["data"]["material"]["thickness"].get<std::vector<hoibc::real>>();
-    data.material.epsr          = json_data["data"]["material"]["epsr"].get<std::vector<hoibc::complex>>();
-    data.material.mur           = json_data["data"]["material"]["mur"].get<std::vector<hoibc::complex>>();
+    data.material.thickness     = json_data["data"]["material"]["thickness"].get<hoibc::array<hoibc::real>>();
+    data.material.epsr          = json_data["data"]["material"]["epsr"].get<hoibc::array<hoibc::complex>>();
+    data.material.mur           = json_data["data"]["material"]["mur"].get<hoibc::array<hoibc::complex>>();
 
-    data.hoibc.name             = json_data["data"]["hoibc"]["name"].get<std::vector<std::string>>();
-    data.hoibc.suc              = json_data["data"]["hoibc"]["suc"].get<std::vector<bool>>();
-    data.hoibc.type             = json_data["data"]["hoibc"]["type"].get<std::vector<hoibc::type_t>>();
-    data.hoibc.inner_radius     = json_data["data"]["hoibc"]["inner_radius"].get<std::vector<hoibc::real>>();
-    data.hoibc.mode             = json_data["data"]["hoibc"]["mode"].get<std::vector<hoibc::mode_t>>();
-    data.hoibc.normalised       = json_data["data"]["hoibc"]["normalised"].get<std::vector<bool>>();
+    data.hoibc.name             = json_data["data"]["hoibc"]["name"].get<hoibc::array<std::string>>();
+    data.hoibc.suc              = json_data["data"]["hoibc"]["suc"].get<hoibc::array<bool>>();
+    data.hoibc.type             = json_data["data"]["hoibc"]["type"].get<hoibc::array<hoibc::type_t>>();
+    data.hoibc.inner_radius     = json_data["data"]["hoibc"]["inner_radius"].get<hoibc::array<hoibc::real>>();
+    data.hoibc.mode             = json_data["data"]["hoibc"]["mode"].get<hoibc::array<hoibc::mode_t>>();
+    data.hoibc.normalised       = json_data["data"]["hoibc"]["normalised"].get<hoibc::array<bool>>();
 
     data.optim.grad_delta       = json_data["data"]["optim"]["grad_delta"].get<hoibc::real>();
     data.optim.max_iter         = json_data["data"]["optim"]["max_iter"].get<hoibc::integer>();
@@ -114,6 +114,7 @@ data_out_t read_data_from_json(const std::string& filename){
     data_out.coeff              = json_data["data"]["out"]["coeff"].get<bool>();
     data_out.reflexion_ibc      = json_data["data"]["out"]["reflexion_ibc"].get<bool>();
     data_out.reflexion_ex       = json_data["data"]["out"]["reflexion_ex"].get<bool>();
+    data_out.reflex_vs_theta    = json_data["data"]["out"]["reflex_vs_theta"].get<bool>();
 
     return data_out;
 }

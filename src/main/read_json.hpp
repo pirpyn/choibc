@@ -12,6 +12,7 @@ struct data_out_t {
     bool        coeff           = false;
     bool        reflexion_ibc   = false;
     bool        reflexion_ex    = false;
+    bool        reflex_vs_theta = false;
 };
 
 data_out_t read_data_from_json(const std::string& filename);

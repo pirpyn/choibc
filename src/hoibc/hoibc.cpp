@@ -2,7 +2,6 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-#include <vector>
 #include <numeric> // accumulate
 #include "hoibc_ibc0.hpp"
 #include "hoibc_ibc3.hpp"
@@ -22,7 +21,7 @@ void hoibc::main(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
     if (!ibc){ // for unknown ibc, ibc is a nullptr, so we skip
       continue; 
     }
-    std::vector<real> f1, f2;
+    array<real> f1, f2;
     ibc->set_fourier_variables(data,f1,f2);
     ibc->get_coeff(data,f1,f2);
   }
@@ -50,7 +49,7 @@ void hoibc::setup(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
     ibc->suc          = (data.hoibc.suc.size()>i)?data.hoibc.suc[i]:false;
     ibc->type         = (data.hoibc.type.size()>i)?data.hoibc.type[i]:type_t::P;
     ibc->inner_radius = (data.hoibc.inner_radius.size()>i)?data.hoibc.inner_radius[i]:0.;
-    ibc->outer_radius = ibc->inner_radius + std::accumulate(data.material.thickness.begin(),data.material.thickness.end(),0);
+    ibc->outer_radius = ibc->inner_radius + std::accumulate(begin(data.material.thickness),end(data.material.thickness),0);
     ibc->normalised   = (data.hoibc.normalised.size()>i)?data.hoibc.normalised[i]:true;
     ibc->mode         = (data.hoibc.mode.size()>i)?data.hoibc.mode[i]:mode_t::Z;
     ibc->label        = (data.hoibc.label.size()>i)?data.hoibc.label[i]:"";

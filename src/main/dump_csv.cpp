@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cmath>
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std::string& header){
+void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1, const hoibc::array<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std::string& header){
   std::ofstream myfile;
   myfile.open(filename);
   assert(myfile.is_open());
@@ -45,7 +45,7 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1,
   myfile.close();
 }
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1, const std::vector<hoibc::real>& f2, const hoibc::big_matrix<hoibc::real>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std:: string& header){
+void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1, const hoibc::array<hoibc::real>& f2, const hoibc::big_matrix<hoibc::real>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std:: string& header){
   std::ofstream myfile;
   myfile.open(filename);
   assert(myfile.is_open());
@@ -72,7 +72,7 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& f1,
   myfile.close();
 }
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& x, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& sx, const std::string& label, const std::string& header){
+void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& x, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& sx, const std::string& label, const std::string& header){
   std::ofstream myfile;
   myfile.open(filename);
   assert(myfile.is_open());
@@ -110,7 +110,7 @@ void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& x, 
   myfile.close();
 }
 
-void dump_to_csv(const std::string filename, const std::vector<hoibc::real>& x, const hoibc::big_matrix<hoibc::real>& gex, const std::string& sx, const std::string& label, const std:: string& header){
+void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& x, const hoibc::big_matrix<hoibc::real>& gex, const std::string& sx, const std::string& label, const std:: string& header){
   std::ofstream myfile;
   myfile.open(filename);
   assert(myfile.is_open());

@@ -15,9 +15,9 @@ namespace hoibc{
   };
 
   struct material_t{
-    std::vector<complex> epsr;        // Relative permitivity
-    std::vector<complex> mur;         // Relative permeability
-    std::vector<real>    thickness;   // Thickness in meter
+    array<complex> epsr;        // Relative permitivity
+    array<complex> mur;         // Relative permeability
+    array<real>    thickness;   // Thickness in meter
     real                 loss { 0. }; // Artificial loss to add to epsr & mur
     matrix<complex>      initial_impedance { 0. }; // The impedance to use on the first layer. If zero, it's a PEC.
   };
@@ -40,13 +40,13 @@ namespace hoibc{
   };
 
   struct hoibc_t{
-    std::vector<std::string>  name;   // ID of the IBC
-    std::vector<std::string>  label;  // Label for output
-    std::vector<type_t>       type;   // Geometry type 'P': plane, 'C' Cylinder, 'S' Sphere
-    std::vector<bool>         suc;    // Coefficients computed w or w/o SUC
-    std::vector<real>         inner_radius; // In case of 'C' or 'S', the inner radius
-    std::vector<bool>         normalised;   // Divide L, LD, LR by k0^2
-    std::vector<mode_t>       mode;         // Computing with respect to the impedance or the reflexion
+    array<std::string>  name;   // ID of the IBC
+    array<std::string>  label;  // Label for output
+    array<type_t>       type;   // Geometry type 'P': plane, 'C' Cylinder, 'S' Sphere
+    array<bool>         suc;    // Coefficients computed w or w/o SUC
+    array<real>         inner_radius; // In case of 'C' or 'S', the inner radius
+    array<bool>         normalised;   // Divide L, LD, LR by k0^2
+    array<mode_t>       mode;         // Computing with respect to the impedance or the reflexion
   };
 
   struct optim_t{

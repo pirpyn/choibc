@@ -9,9 +9,8 @@
 #include "../alglib/optimization.h"
 
 using namespace hoibc;
-using std::vector;
 
-big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const vector<real>& f1, const vector<real>& f2){
+big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const array<real>& f1, const array<real>& f2){
   big_matrix<complex> impedance = this->get_impedance(k0,f1,f2);
 
   // We're in the vaccum
@@ -41,8 +40,8 @@ struct costf_data_t {
   real k0 = 0;
   std::size_t neq = 0;
   std::size_t nle = 0;
-  const std::vector<real>* f1 = NULL;
-  const std::vector<real>* f2 = NULL;
+  const array<real>* f1 = NULL;
+  const array<real>* f2 = NULL;
   const big_matrix<complex>* gex = NULL;
   bool no_constraints = false;
 };
@@ -50,7 +49,7 @@ struct costf_data_t {
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr);
 void report_iteration(const alglib::real_1d_array &x, double func, void *ptr);
 
-void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const vector<real>& f2){
+void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const array<real>& f2){
 
   // gex contains all the exact impedance or reflexion matrices for every (f1,f2) couple
   // i.e. for a plane type and mode 2 so gex[i][j][k][l] represents Z(kx[i],ky[j])_kl
@@ -117,7 +116,7 @@ void hoibc_class::get_coeff(const data_t& data, const vector<real>& f1, const ve
     alglib::minnlcsetalgoslp(state);
 
     // Get number of equality and inequality constraints
-    std::vector<real> ceq, cle;
+    array<real> ceq, cle;
     this->get_suc(cle = cle, ceq = ceq);
     alglib::minnlcsetnlc(state, ceq.size(), cle.size());
 
@@ -181,7 +180,7 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
       fi[i+1+data.neq] = 0.;
     }
   } else {
-    std::vector<real> cle, ceq;
+    array<real> cle, ceq;
     data.ibc->get_suc(cle = cle,ceq = ceq);
     for (std::size_t i = 0; i < data.neq; i++){
       fi[i+1] = ceq[i];
@@ -200,18 +199,18 @@ void hoibc_class::print_coeff(std::ostream& out){
 }
 
 #define any(vector,logical) \
-std::any_of(vector.begin(), vector.end(), [&tol](real x){return logical;})
+std::any_of(begin(vector), end(vector), [&tol](real x){return logical;})
 
 #include <iomanip>      // std::setw
 
 void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
-  vector<real> cle;
-  vector<real> ceq;
-  vector<real> cne;
-  vector<std::string> sle;
-  vector<std::string> seq;
-  vector<std::string> sne;
+  array<real> cle;
+  array<real> ceq;
+  array<real> cne;
+  array<std::string> sle;
+  array<std::string> seq;
+  array<std::string> sne;
   
   const char width = 13;
 
@@ -221,7 +220,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   out.precision(6);
   out.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
   out << std::noshowpos;
-  if (!cle.empty()){
+  if (cle.size()){
     if (any(cle, x <= tol)){
       out << "#    [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
       for (std::size_t i = 0; i < cle.size(); i++){
@@ -240,7 +239,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
     }
   }
 
-  if (!ceq.empty()){
+  if (ceq.size()){
     if (any(ceq, std::abs(x) <= tol)){
       out << "#    [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
       for (std::size_t i = 0; i < ceq.size(); i++){
@@ -259,7 +258,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
     }
   }
 
-  if (!cne.empty()){
+  if (cne.size()){
     if (any(cne, std::abs(x) <= tol)){
       out << "#    [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
       for (std::size_t i = 0; i < cne.size(); i++){
@@ -280,7 +279,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
 }
 
 // Reads a data struct and creates two array with the values of the Fourier variables 
-void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, vector<real>& f2, vector<real>& s1, vector<real>& s2){
+void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, array<real>& f2, array<real>& s1, array<real>& s2){
   // data: The struct to contains physics parameters, 
   // f1: The 1st Fourier variable: k_x, n,   m if plane, cylinder, sphere
   // f2: The 2nd Fourier variable: k_y, k_z, n if plane, cylinder, sphere
@@ -354,9 +353,9 @@ void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, ve
   }
 }
 
-void hoibc_class::set_fourier_variables(const data_t& data, vector<real>& f1, vector<real>& f2){
-  vector<real> s1;
-  vector<real> s2;
+void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, array<real>& f2){
+  array<real> s1;
+  array<real> s2;
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
 }
 
@@ -369,9 +368,9 @@ void hoibc::print_complex(const complex& z, const std::string& name, std::ostrea
 }
 
 void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_matrix<real>& I, big_matrix<real>& I1, big_matrix<real>& I2){
-  I.clear();
-  I1.clear();
-  I2.clear();
+  I.resize(0);
+  I1.resize(0);
+  I2.resize(0);
   matrix<real> sI;
 
   sI[0][0] = 1.;
