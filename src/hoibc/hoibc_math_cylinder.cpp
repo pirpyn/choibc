@@ -171,11 +171,7 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
 
   // Strictly intermediate interfaces
   for (std::size_t l = 0; l < material.thickness.size()-1; l++) {
-    complex mu_lower = mu_upper;
-    complex eps_lower = mu_upper;
     complex etar_lower = etar_upper;
-    complex nur_lower = nur_upper;
-
     complex k_lower = k_upper;
 
     mu_upper = material.mur[l+1];
@@ -209,18 +205,12 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
 
   // The coating-vacuum interface (radius = r_ext)
   // last layer
-  complex mu_lower = mu_upper;
-  complex eps_lower = mu_upper;
   complex etar_lower = etar_upper;
-  complex nur_lower = nur_upper;
   complex k_lower = k_upper;
 
   // vacuum
   radius += material.thickness[material.thickness.size()-1];
-  mu_upper = 1.;
-  eps_upper = 1.;
   etar_upper = 1.;
-  nur_upper = 1.;
   k_upper = k0;
 
   for (unsigned int i=0; i<vn.size();i++) {
@@ -303,10 +293,10 @@ void hoibc::cylinder::get_matrices_JH_EH(const real& radius, const array<real>& 
     real n = vn[i];
     for (std::size_t j = 0; j < vkz.size(); j++){
       real kz = vkz[j];
-      mJE[i][j] = JE(radius,vn[i],vkz[j],k,etar);
-      mJH[i][j] = JH(radius,vn[i],vkz[j],k,etar);
-      mHE[i][j] = HE(radius,vn[i],vkz[j],k,etar);
-      mHH[i][j] = HH(radius,vn[i],vkz[j],k,etar);
+      mJE[i][j] = JE(radius,n,kz,k,etar);
+      mJH[i][j] = JH(radius,n,kz,k,etar);
+      mHE[i][j] = HE(radius,n,kz,k,etar);
+      mHH[i][j] = HH(radius,n,kz,k,etar);
     }
   }
 }

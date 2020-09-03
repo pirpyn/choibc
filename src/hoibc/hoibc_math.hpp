@@ -319,8 +319,8 @@ namespace hoibc {
   real norm(const array<T>& v){
     real norm = 0;
     array<T> w = v;
-    std::for_each(w.begin(),w.end(),[](T& x){x = std::pow(std::abs(x),2);});
-    norm = std::real(std::accumulate(w.begin(),w.end(),static_cast<T>(0)));
+    std::for_each(begin(w),end(w),[](T& x){x = std::pow(std::abs(x),2);});
+    norm = std::real(std::accumulate(begin(w),end(w),static_cast<T>(0)));
     norm = std::sqrt(norm);
     return norm;
   }

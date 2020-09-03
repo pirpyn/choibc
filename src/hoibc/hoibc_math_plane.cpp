@@ -222,10 +222,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
 
   // Strictly intermediate interfaces ( i.e label 2 to n-1 )
   for (std::size_t l = 0; l < material.thickness.size() - 1; l++){
-    complex mu_lower    = mu_upper;
-    complex eps_lower   = eps_upper;
     complex etar_lower  = etar_upper;
-    complex nur_lower   = nur_upper;
     complex k_lower     = k_upper;
 
     mu_upper = material.mur[l+1];
@@ -258,18 +255,12 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
   }
   // The coating-vacuum interface (h = 0)
   // last layer
-  complex mu_lower    = mu_upper;
-  complex eps_lower   = eps_upper;
   complex etar_lower  = etar_upper;
-  complex nur_lower   = nur_upper;
   complex k_lower     = k_upper;
 
   // vacuum
   h = 0.;
-  mu_upper = 1.;
-  eps_upper = 1.;
   etar_upper = 1.;
-  nur_upper = 1.;
   k_upper = k0;
 
   for (std::size_t n1 = 0; n1 < vkx.size(); n1++){

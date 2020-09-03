@@ -1,10 +1,13 @@
 #include "hoibc_ibc3.hpp"
 #include "hoibc_math.hpp"
 #include "hoibc_math_plane.hpp"
+#include "hoibc_math_cylinder.hpp"
+#include "hoibc_math_sphere.hpp"
 
 #define lapack_complex_double std::complex<double>
 #define lapack_complex_float std::complex<float>
 #include "lapacke.h"
+#include <cassert>
 
 using namespace hoibc;
 
@@ -29,14 +32,16 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const array<real>& f1, const array<real
   big_matrix<real> LD, LR;
   this->get_matrices_LD_LR(k0,f1,f2,LD,LR);
 
-  lapack_int m = f1.size()*f2.size()*4;
+  lapack_int m = n1*n2*4;
+  assert(m>0);
   lapack_int n = 5;
   // The array to pass to LAPACK that contains the matrix in the 
   // least square resolution and its rhs.
   complex **a = new complex*[m];
   a[0] = new complex[m * n];
-  for (int i = 1; i < m; i++)
-      a[i] = a[i-1] + n;
+  for (int i = 1; i < m; i++) {
+    a[i] = a[i-1] + n;
+  }
   complex* b = new complex[m];
 
   switch (this->mode){
@@ -220,18 +225,22 @@ void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
 }
 
 void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){
-    switch (this->type){
-      case type_t::P:
-        plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
-        break;
-      default:
-        NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_LD_LR")
+  switch (this->type){
+    case type_t::P:
+      plane::get_matrices_LD_LR(f1,f2,LD=LD,LR=LR);
       break;
-    }
-    if (this->normalised){
-      LD = LD / (k0*k0);
-      LR = LR / (k0*k0);
-    }
+    case type_t::C:
+      cylinder::get_matrices_LD_LR(this->outer_radius,f1,f2,LD=LD,LR=LR);
+      break;
+    case type_t::S:
+      NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_LD_LR:: case type_t::S")
+      assert(0);
+    break;
+  }
+  if (this->normalised){
+    LD = LD / (k0*k0);
+    LR = LR / (k0*k0);
+  }
 }
 
 void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<complex>& AE, big_matrix<complex>& BE, big_matrix<complex>& AH, big_matrix<complex>& BH){
@@ -245,14 +254,12 @@ void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const array<real>& f1
   case type_t::P:
     plane::get_matrices_AB_EH(f1,f2,k,etar,height,AE,BE,AH,BH);
     break;
-  // case ('C'):
-  //   cylinder::get_matrices_AB_EH(this->outer_radius,f1,f2,k,etar,AE,BE,AH,BH);
-  //   break;
-  // case ('S'):
-  //   sphere::get_matrices_AB_EH(this->outer_radius,f2,k,etar,AE,BE,AH,BH);
-  //   break;
-  default:
-    NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_AB_EH")
+  case type_t::C:
+    cylinder::get_matrices_JH_EH(this->outer_radius,f1,f2,k,etar,AE,BE,AH,BH);
+    break;
+  case type_t::S:
+    NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_AB_EH: case type_t::S");
+    assert(0);
     break;
   }
 }

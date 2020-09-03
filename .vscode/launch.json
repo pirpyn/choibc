@@ -24,7 +24,12 @@
                     "description": "Skip standard function",
                     "text": "skip -rfu ^std::",
                     "ignoreFailures": true,
-                }
+                },
+                {
+                    "description": "Skip standard files",
+                    "text": "skip -gfi /build/glibc-YYA7BZ/glibc-2.31/**/*",
+                    "ignoreFailures": true,
+                 }
             ]
         }
     ]

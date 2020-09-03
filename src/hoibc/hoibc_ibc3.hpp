@@ -37,9 +37,10 @@ namespace hoibc
       
       void disp_coeff(std::ostream& out=std::cout);
 
+    private:
+
       void get_matrices_LD_LR(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR);
       void get_matrices_AB_EH(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<complex>& AE, big_matrix<complex>& BE, big_matrix<complex>& AH, big_matrix<complex>& BH);
-
 
   };
 

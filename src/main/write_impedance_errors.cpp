@@ -160,9 +160,9 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".f_ibc."+ibc->label+".csv";
         if (data_out.reflex_vs_theta) {
-          dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ibc,"theta","n","f_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"s","n","f_"+ibc->name,ibc->label);
         }
       }
       break;

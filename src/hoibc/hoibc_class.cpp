@@ -325,7 +325,11 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       f1 = linspace(0,n1,n1+1);
       s1 = f1 / (k0*this->outer_radius);
 
-      n2 = int((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      if (data.main.s2[2] != 0){
+        n2 = static_cast<integer>((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      } else {
+        n2 = 1;
+      }
       s2 = linspace(data.main.s2[0],data.main.s2[1],n2);
       f2 = s2 * k0;
       break;
