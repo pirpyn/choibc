@@ -69,5 +69,8 @@ namespace hoibc{
   void disp_data(const data_t& data, std::ostream& out = std::cout);
 
   void check_data(const data_t& data);
+
+  void check_and_set_material(integer layer_index, complex& epsr, complex&mur, complex& etar, complex& nur, const real& loss);
+
 }
 #endif
