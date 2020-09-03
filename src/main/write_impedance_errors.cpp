@@ -25,11 +25,11 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
-#include <fstream>
+#include <fstream> // std::ofstream
 #include "read_json.hpp"
 #include "dump_csv.hpp"
 #include <valarray> // std::asin
-
+#include <cassert> // assert
 void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
