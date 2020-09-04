@@ -194,6 +194,12 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
 void hoibc_class::print_coeff(std::ostream& out){
   std::noshowpos(out);
   out << "# IBC " << this->name << " type " << type_to_char(this->type) << " suc " << (this->suc ? "T": "F") << " mode " << mode_to_int(this->mode) << " (" << this->label << ")" << std::endl;
+  switch (this->type) {
+    case type_t::C:
+    case type_t::S:
+      out << "# inner radius " << this->inner_radius << ", outer_radius " << this->outer_radius << std::endl;
+      break;
+  }
   std::showpos(out);
   this->disp_coeff(out);
 }
