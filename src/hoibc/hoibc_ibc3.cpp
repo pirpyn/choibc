@@ -233,8 +233,7 @@ void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const array<real>& f1
       cylinder::get_matrices_LD_LR(this->outer_radius,f1,f2,LD=LD,LR=LR);
       break;
     case type_t::S:
-      NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_LD_LR:: case type_t::S")
-      assert(0);
+      sphere::get_matrices_LD_LR(this->outer_radius,f2,LD=LD,LR=LR);
     break;
   }
   if (this->normalised){
@@ -258,8 +257,7 @@ void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const array<real>& f1
     cylinder::get_matrices_AB_EH(this->outer_radius,f1,f2,k,etar,AE,BE,AH,BH);
     break;
   case type_t::S:
-    NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_AB_EH: case type_t::S");
-    assert(0);
+    sphere::get_matrices_AB_EH(this->outer_radius,f2,k,etar,AE,BE,AH,BH);
     break;
   }
 }
