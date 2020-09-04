@@ -35,6 +35,10 @@ int main(){
   computed  = bessel1(100.,hoibc::complex(100.,0.));
   CHECK("bessel1(10.,100.)");
 
+  reference = -0.440050585744933515959682203718914913;
+  computed  = bessel1p(0.,hoibc::complex(1.,0.));
+  CHECK("bessel1p(0.,1.)");
+
   return no_of_errors;
 
 }
