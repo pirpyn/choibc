@@ -127,7 +127,8 @@ big_matrix<complex> hoibc::sphere::reflexion_from_impedance(const array<real>& v
   complex etar = 1.;
   for (unsigned int i=0; i<vn.size();i++) {
     const real n = vn[i];
-    reflexion[i][0] = - MB(radius,n,k,etar,impedance[i][j]) % MA(radius,n,k,etar,impedance[i][j]);
+    const matrix<complex>& B = impedance[i][1];
+    reflexion[i][0] = - MB(radius,n,k,etar,B) % MA(radius,n,k,etar,B);
   }
   return reflexion;
 }
@@ -153,7 +154,7 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
   for (unsigned int i=0; i<vn.size();i++) {
     const real n = vn[i];
 
-    reflexion_ex[i][j] = 
+    reflexion_ex[i][1] = 
       - MB(radius,n,k_upper,etar_upper,material.initial_impedance) 
       % MA(radius,n,k_upper,etar_upper,material.initial_impedance);
   }
@@ -174,7 +175,7 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
     for (unsigned int i=0; i<vn.size();i++) {
       const real n = vn[i];
 
-      const matrix<complex>& B = reflexion_ex[i][j];
+      const matrix<complex>& B = reflexion_ex[i][1];
 
       const matrix<complex> mNE = inv(NE(radius,n,k_lower,B));
       const matrix<complex> mNH = inv(NH(radius,n,k_lower,etar_lower,B));
@@ -185,7 +186,7 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
       const matrix<complex> mAH = AH(radius,n,k_upper,etar_upper);
       const matrix<complex> mBH = BH(radius,n,k_upper,etar_upper);
 
-      reflexion_ex[i][j] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
+      reflexion_ex[i][1] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
     }
   }
 
@@ -202,7 +203,7 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
   for (unsigned int i=0; i<vn.size();i++) {
     const real n = vn[i];
 
-    const matrix<complex>& B = reflexion_ex[i][j];
+    const matrix<complex>& B = reflexion_ex[i][1];
 
     const matrix<complex> mNE = inv(NE(radius,n,k_lower,B));
     const matrix<complex> mNH = inv(NH(radius,n,k_lower,etar_lower,B));
@@ -213,7 +214,7 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
     const matrix<complex> mAH = AH(radius,n,k_upper,etar_upper);
     const matrix<complex> mBH = BH(radius,n,k_upper,etar_upper);
 
-    reflexion_ex[i][j] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
+    reflexion_ex[i][1] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
 
   }
   return reflexion_ex;
@@ -227,17 +228,11 @@ big_matrix<complex> hoibc::sphere::impedance_from_reflexion(const array<real>& v
   real radius = outer_radius;
   for (unsigned int i=0; i<vn.size();i++) {
     const real n = vn[i];
-    const real kz = vkz[j];
-    if (std::abs(std::pow(k,2) - std::pow(kz,2)) > 0.) {
-        matrix<complex> mR = reflexion[i][j];
-        matrix<complex> mNE = NE(radius,n,k,mR);
-        matrix<complex> mNH = NH(radius,n,k,etar,mR);
-        impedance[i][j] = mNE / mNH;
-    } else {
-        std::cerr << "warning: impedance_from_reflexion: can't compute Hankel function at k3*outer_radius for k3 = 0" << std::endl;
-        // With big init we have impedance[i][j] = 0
+    const matrix<complex> mR = reflexion[i][1];
+    const matrix<complex> mNE = NE(radius,n,k,mR);
+    const matrix<complex> mNH = NH(radius,n,k,etar,mR);
+    impedance[i][1] = mNE / mNH;
     }
-  }
   return impedance;
 }
 
@@ -249,27 +244,23 @@ void hoibc::sphere::get_matrices_LD_LR(const real& radius, const array<real>& vn
 
   for (std::size_t i = 0; i < vn.size(); i++){
     real n = vn[i];
-    LD[i][j][0][0] = - std::pow(n/radius,2);
-    LD[i][j][0][1] = - kz*n/radius;
-    LD[i][j][1][0] =   LD[i][j][0][1];
-    LD[i][j][1][1] = - std::pow(kz,2);
+    LD[i][1][1][1] = - n*(n+1)/std::pow(radius,2);
 
-    LR[i][j][0][0] = - LD[i][j][1][1];
-    LR[i][j][0][1] =   LD[i][j][0][1];
-    LR[i][j][1][0] =   LD[i][j][0][1];
-    LR[i][j][1][1] = - LD[i][j][0][0];
+    LR[i][1][0][0] = n*(n+1)/std::pow(radius,2);
+
   }
 }
 
 void hoibc::sphere::get_matrices_AB_EH(const real& radius, const array<real>& vn, const complex& k, const complex& etar, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH){
+  mAE = big_init(vn.size(),1,complex(0.,0.));
+  mBE = big_init(vn.size(),1,complex(0.,0.));
+  mAH = big_init(vn.size(),1,complex(0.,0.));
+  mBH = big_init(vn.size(),1,complex(0.,0.));
   for (std::size_t i = 0; i < vn.size(); i++){
     real n = vn[i];
-    for (std::size_t j = 0; j < vkz.size(); j++){
-      real kz = vkz[j];
-      mAE[i][j] = AE(radius,n,k);
-      mAH[i][j] = AH(radius,n,k,etar);
-      mBE[i][j] = BE(radius,n,k);
-      mBH[i][j] = BH(radius,n,k,etar);
-    }
+    mAE[i][1] = AE(radius,n,k);
+    mAH[i][1] = AH(radius,n,k,etar);
+    mBE[i][1] = BE(radius,n,k);
+    mBH[i][1] = BH(radius,n,k,etar);
   }
 }

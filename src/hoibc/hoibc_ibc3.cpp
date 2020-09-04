@@ -255,7 +255,7 @@ void hoibc::hoibc_ibc3::get_matrices_AB_EH(const real& k0, const array<real>& f1
     plane::get_matrices_AB_EH(f1,f2,k,etar,height,AE,BE,AH,BH);
     break;
   case type_t::C:
-    cylinder::get_matrices_JH_EH(this->outer_radius,f1,f2,k,etar,AE,BE,AH,BH);
+    cylinder::get_matrices_AB_EH(this->outer_radius,f1,f2,k,etar,AE,BE,AH,BH);
     break;
   case type_t::S:
     NOTFINISHED("hoibc::hoibc_ibc3::get_matrices_AB_EH: case type_t::S");
