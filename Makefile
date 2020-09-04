@@ -26,12 +26,10 @@ help:
 
 ############################################################################
 # Sources directories to compile the hoibc library
-SRCDIRS:=./src/hoibc ./src/alglib
-# ./src/bessel ./src/slsqp/src
-LIBNAMES:=hoibc alglib
-# bessel slsqp
+SRCDIRS:=./src/main ./src/hoibc ./src/alglib ./src/bessel
+LIBNAMES:=
 
-EXTENSIONS:=.cpp
+EXTENSIONS:=.cpp .cc
 SUFFIXES:=.d
 # Binaries to build located in SRCDIRS
 BINS:=main
@@ -98,7 +96,10 @@ CXXFLAGS+=$(INCFLAGS)
 dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
 # Static libraries to build
-libs:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
+libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
+
+# Static libraries to use
+libs_depends:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
 
 # Corresponding sources files
 sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(srcdir)/*$(ext))))
@@ -119,19 +120,16 @@ VPATH:=$(SRCDIRS) $(objdir) $(libdir)
 hoibc: info
 	@echo "Compiling the HOIBC library"
 	@$(MAKE) depend
-	@$(MAKE) SRCDIRS=./src/alglib LIBNAMES=alglib lib -j
-	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES=hoibc lib -j
-
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/slsqp/src LIBNAMES=slsqp lib
-#@$(MAKE) -sj CXXC=$(CXXC) MODE=$(MODE) SHARED=$(SHARED) SRCDIRS=./src/bessel LIBNAMES=bessel lib
+	@$(MAKE) SRCDIRS=./src/bessel lib -j
+	@$(MAKE) SRCDIRS=./src/alglib lib -j
+	@$(MAKE) SRCDIRS=./src/hoibc LIBNAMES="alglib bessel" lib -j
 
 .PHONY: main
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES=main lib -j
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib" prog -j
-
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="hoibc alglib bessel" lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" prog -j
 
 .PHONY: link
 link: main | $(lklibdir) $(lkbindir)
@@ -146,6 +144,10 @@ link: main | $(lklibdir) $(lkbindir)
 	    ln -s $$(readlink -m $${bin}) $(lkbindir); \
 	done;
 	@echo "Binaries linked at $(lkbindir)"
+
+.PHONY: link_test
+link_test: test | $(lklibdir) $(lkbindir)
+	@$(MAKE) SRCDIRS="$(TEST_SRCDIR)" libs="" BINS="$(TEST_BINS)" link -j
 
 
 MODES=$(MODE)
@@ -184,6 +186,10 @@ $(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
+$(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
+	@echo "  $<"
+	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
+
 $(libdir)/%.a: $(objects)
 	@echo "Creating $@"
 	@ar crs $@ $(objects)
@@ -192,7 +198,7 @@ $(libdir)/%.so: $(objects)
 	@echo "Creating $@"
 	@$(CXXC) -shared -o $@ $^
 
-$(bindir)/%: $(objdir)/%.o $(libs)
+$(bindir)/%: $(objdir)/%.o $(libs) $(libs_depends)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
@@ -222,6 +228,11 @@ $(objdir)/%.d: %.cpp | $(objdir)
 	@echo "  $@"
 	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
 
+$(objdir)/%.d: %.cc | $(objdir)
+	@echo "  $@"
+	@$(CXXC) $(CXXFLAGS) -MM -MT '$(patsubst %.d,%.o,$@)' $< -MF $@
+
+
 #############################################################################
 TEST_SRCDIR:=./src/test
 TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wildcard $(TEST_SRCDIR)/*$(ext))))
@@ -230,7 +241,7 @@ TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wil
 test: hoibc
 	@echo "Compiling the unit tests"
 	@$(MAKE) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
-	@$(MAKE) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
+	@$(MAKE) SRCDIRS="$(TEST_SRCDIR)" libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc alglib bessel" prog -j
 
 .PHONY: run_test
 run_test: test

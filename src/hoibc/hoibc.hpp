@@ -9,6 +9,8 @@
 #include "hoibc_constants.hpp"
 #include "hoibc_math.hpp"
 #include "hoibc_math_plane.hpp"
+#include "hoibc_math_cylinder.hpp"
+#include "hoibc_math_cylinder.hpp"
 
 namespace hoibc
 {

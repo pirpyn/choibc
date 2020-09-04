@@ -25,11 +25,11 @@ std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const s
 
 #define SEP_WIDTH 82
 
-#include <fstream>
+#include <fstream> // std::ofstream
 #include "read_json.hpp"
 #include "dump_csv.hpp"
 #include <valarray> // std::asin
-
+#include <cassert> // assert
 void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc_class*>& hoibc_list){
 
   // Now we will write many files and print error, ibc coeff & suc values to the screen.
@@ -41,12 +41,12 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   const hoibc::data_t& data = data_out.data_t;
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
-    // ! Set the format character string to write the results in the csv file
-    // ! and the character format string for IBC coefficient
-    // call set_backend(data_extended%out%backend)
+  // ! Set the format character string to write the results in the csv file
+  // ! and the character format string for IBC coefficient
+  // call set_backend(data_extended%out%backend)
 
-    // To print the impedance we will need the value of the Fourier variables
-    // depending on the IBC
+  // To print the impedance we will need the value of the Fourier variables
+  // depending on the IBC
 
   for ( const auto& ibc : hoibc_list ){
     std::cout << std::endl;
@@ -119,7 +119,6 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
 
       if (data_out.reflexion_ex) {
         const std::string filename = data_out.basename+".r_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+".csv";
-        std::cout << "Writing exact reflexion to " << filename << std::endl;
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ex,"theta_1","theta_2","r_ex","");
         } else {
@@ -129,7 +128,6 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
 
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".r_ibc."+ibc->label+".csv";
-        std::cout << "Writing IBC reflexion to " << filename << std::endl;
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","r_"+ibc->name,ibc->label);
         } else {
@@ -141,18 +139,17 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     case hoibc::type_t::C : // For the cylinder, write the reflexion matrices that includes Fourier coefficient
       switch (ibc->mode){
       case hoibc::mode_t::R:
-//        reflexion_ex = hoibc::cylinder::reflexion_infinite_cylinder(f1,f2,k0,data,ibc->inner_radius);
-//        impedance_ex = hoibc::cylinder::impedance_from_reflexion(f1,f2,k0,reflexion_ex,ibc->outer_radius)
+        reflexion_ex = hoibc::cylinder::reflexion_infinite(f1,f2,k0,data.material,ibc->inner_radius);
+        impedance_ex = hoibc::cylinder::impedance_from_reflexion(f1,f2,k0,reflexion_ex,ibc->outer_radius);
         break;
       case hoibc::mode_t::Z:
-//        impedance_ex = hoibc::cylinder::impedance_infinite(f1,f2,k0,data,ibc->inner_radius);
-//        reflexion_ex = hoibc::cylinder::reflexion_from_impedance(f1,f2,k0,Z_ex,ibc->outer_radius);
+        impedance_ex = hoibc::cylinder::impedance_infinite(f1,f2,k0,data.material,ibc->inner_radius);
+        reflexion_ex = hoibc::cylinder::reflexion_from_impedance(f1,f2,k0,impedance_ex,ibc->outer_radius);
         break;
       }
 
       if (data_out.reflexion_ex){
         const std::string filename = data_out.basename+".f_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+"_"+std::to_string(ibc->inner_radius)+"m.csv";
-        std::cout << "Writing exact Fourier coefficient to " << filename << std::endl;
         if (data_out.reflex_vs_theta){
           dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ex,"theta","n","f_ex","");
         } else {
@@ -162,11 +159,10 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
 
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".f_ibc."+ibc->label+".csv";
-        std::cout << "Writing IBC Fourier coefficient to " << filename << std::endl;
         if (data_out.reflex_vs_theta) {
-          dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ibc,"theta","n","f_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"s","n","f_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -186,13 +182,11 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       // Write Mie coefficients
       if (data_out.reflexion_ex){
         const std::string filename = data_out.basename+".m_ex.MODE_"+std::to_string(mode_to_int(ibc->mode))+"_TYPE_"+type_to_char(ibc->type)+"_"+std::to_string(ibc->inner_radius)+"m.csv";
-        std::cout << "Writing exact Mie coefficient to " << filename << std::endl;
         dump_to_csv(filename,f2,reflexion_ex,"n","m_ex","");
       }
 
       if (data_out.reflexion_ibc) {
         const std::string filename = data_out.basename+".m_ibc."+ibc->label+".csv";
-        std::cout << "Writing IBC Mie coefficient to " << filename << std::endl;
         dump_to_csv(filename,f2,reflexion_ibc,"n","m_"+ibc->name,ibc->label);
       }
       break;
@@ -242,62 +236,60 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         break;
       }
       filename += ".csv";
-      std::cout << "Writing exact impedance to " << filename << std::endl;
       dump_to_csv(filename,s1,s2,impedance_ex,"s1","s2","z_ex",ibc->label);
     }
 
     if (data_out.impedance_ibc){
       std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
-      std::cout << "Writing IBC impedance to " << filename << std::endl;
       dump_to_csv(filename,s1,s2,impedance_ibc,"s1","s2","z_"+ibc->name,ibc->label);
     }
 
     if (data_out.impedance_err){
       std::string filename = data_out.basename+".z_err."+ibc->label+".csv";
-      std::cout << "Writing difference of impedance between exact and IBC to " << filename << std::endl;
       dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"s1","s2","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
     }
   }
-    
-    std::cout << std::endl;
-    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
-    std::cout << std::string(SEP_WIDTH,'#') << std::endl;
-    std::cout << std::endl;
 
-    // write(output_unit,'(a,a)') 'Writing CSV files to ',data_extended%out%basename
+  std::cout << std::endl;
+  std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+  std::cout << std::string(SEP_WIDTH,'#') << std::endl;
+  std::cout << std::endl;
 
+  std::cout << "Writing CSV files to " + data_out.basename << std::endl;
+  std::cout << std::endl;
+
+  // When C++20 will be available
+  // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
+  // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
+  const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
+  const std::string fmt_error_value   = "%40s %10s %4c %3c %4d %10.2E %10.2E %10.2E %10.2E %10.2E\n";
+
+  std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
+  std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
+
+  std::cout << std::endl;
+  std::cout << "Sorted L2 squared relative error of Z_ij and the whole matrix" << std::endl;
+  // When C++20 will be available
+  // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+  std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+
+  for (auto i : sort_indexes(errors,4,0)){
+    const hoibc::hoibc_class* ibc = hoibc_list[i];
     // When C++20 will be available
-    // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
-    // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
-    const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
-    const std::string fmt_error_value   = "%40s %10s %4c %3c %4d %10.2E %10.2E %10.2E %10.2E %10.2E\n";
+    // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+  }
 
-    std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
-    std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
+  std::cout << std::endl;
+  std::cout << "Sorted L2 relative error of R_ij and Err(R_11) + Err(R_22)" << std::endl;
+  // When C++20 will be available
+  // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+  std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
 
-    std::cout << std::endl;
-    std::cout << "Sorted L2 squared relative error of Z_ij and the whole matrix" << std::endl;
+  for (auto i : sort_indexes(errors,4,1)){
+    const hoibc::hoibc_class* ibc = hoibc_list[i];
     // When C++20 will be available
-    // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
-    std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
-
-    for (auto i : sort_indexes(errors,4,0)){
-      const hoibc::hoibc_class* ibc = hoibc_list[i];
-      // When C++20 will be available
-      // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-    }
-
-    std::cout << std::endl;
-    std::cout << "Sorted L2 relative error of R_ij and Err(R_11) + Err(R_22)" << std::endl;
-    // When C++20 will be available
-    // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
-    std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
-
-    for (auto i : sort_indexes(errors,4,1)){
-      const hoibc::hoibc_class* ibc = hoibc_list[i];
-      // When C++20 will be available
-      // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-      std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
-    }
+    // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+  }
 }

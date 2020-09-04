@@ -10,7 +10,7 @@ namespace hoibc {
     matrix<complex> BE(const real& kx, const real& ky, const complex& k, const real& z);
     matrix<complex> AH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z);
     matrix<complex> BH(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z);
-    void get_matrices_AB_EH(const array<real>& f1, const array<real>& f2, const complex& k, const complex& etar, const real& z, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH);
+    void get_matrices_AB_EH(const array<real>& vkx, const array<real>& vky, const complex& k, const complex& etar, const real& z, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH);
     big_matrix<complex> impedance_infinite(const array<real>& vkx, const array<real>& vky, const real& k0, const material_t& material);
     big_matrix<complex> reflexion_infinite(const array<real>& vkx, const array<real>& vky, const real& k0, const material_t& material);
     big_matrix<complex> reflexion_from_impedance(const array<real>& vkx,const array<real>& vky, const real& k0,const big_matrix<complex>& impedance);

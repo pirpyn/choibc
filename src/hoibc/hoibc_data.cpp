@@ -45,3 +45,23 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
     out << "# s_1: [start, end, step] = " << data.main.s1[0] << ", " << data.main.s1[1] << ", " << data.main.s1[2] << std::endl;
     out << "# s_2: [start, end, step] = " << data.main.s2[0] << ", " << data.main.s2[1] << ", " << data.main.s2[2] << std::endl;
 }
+
+void hoibc::check_and_set_material(integer layer_index, complex& epsr, complex&mur, complex& etar, complex& nur,const real& loss){
+  if ( (std::imag(mur)==0.) && (std::imag(epsr)==0.) ) {
+    std::cerr << "Layer " << layer_index << ": adding artificial loss of" << loss << std::endl;
+    mur = complex(std::real(mur),-std::abs(loss));
+    epsr = complex(std::real(epsr),-std::abs(loss));
+  }
+
+  etar = std::sqrt(mur/epsr);
+  nur = std::sqrt(mur*epsr);
+
+  if (std::imag(nur)>0.) {
+    std::cerr << "error: hoibc::impedance_infinite_plane: Im(nur) > 0" << std::endl;
+    exit(1);
+  }
+  if (std::real(etar)<0.) {
+    std::cerr << "error: hoibc::impedance_infinite_plane: Re(etar) < 0" << std::endl;
+    exit(1);
+  }
+}

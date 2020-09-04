@@ -117,32 +117,21 @@ big_matrix<complex> hoibc::plane::impedance_infinite(const array<real> &vkx, con
 
   big_matrix<complex> impedance_ex = big_init(vkx.size(), vky.size(), material.initial_impedance);
 
+  if (!((material.thickness.size()==material.epsr.size()) && (material.epsr.size() == material.mur.size()))){
+    std::cerr << "error: hoibc::plane::reflexion_infinite: size(thickness)<>size(epsr)<>size(mur)" << std::endl;
+    std::exit(1);
+  }
+
   const array<real>& thickness = material.thickness;
 
   real h = - std::accumulate(begin(thickness),end(thickness),0.);
 
-  for (std::size_t i = 0; i < thickness.size(); i++) {
-    complex mu = material.mur[i];
-    complex eps = material.epsr[i];
-    real d = thickness[i];
-
-    if ( (std::imag(mu)==0.) && (std::imag(eps)==0.) ) {
-      std::cerr << "Layer " << i+1 << ": adding artificial loss of" << material.loss << std::endl;
-      mu = complex(std::real(mu),-std::abs(material.loss));
-      eps = complex(std::real(eps),-std::abs(material.loss));
-    }
-
-    const complex etar = std::sqrt(mu/eps);
-    const complex nur = std::sqrt(mu*eps);
-
-    if (std::imag(nur)>0.) {
-      std::cerr << "error: hoibc::impedance_infinite_plane: Im(nur) > 0" << std::endl;
-      exit(1);
-    }
-    if (std::real(etar)<0.) {
-      std::cerr << "error: hoibc::impedance_infinite_plane: Re(etar) < 0" << std::endl;
-      exit(1);
-    }
+  for (std::size_t l = 0; l < thickness.size(); l++) {
+    complex mu = material.mur[l];
+    complex eps = material.epsr[l];
+    complex etar, nur;
+    check_and_set_material(l+1, eps, mu, etar, nur,material.loss);
+    real d = thickness[l];
 
     const complex k = k0*nur;
 
@@ -209,23 +198,8 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
   // The deepest interface ( i.e between pec and coating )
   complex mu_upper = material.mur[0];
   complex eps_upper = material.epsr[0];
-  if ((std::abs(std::imag(mu_upper))<=0.)&&(std::abs(std::imag(eps_upper))<=0.)&&(std::abs(material.loss)>0.)){
-    std::cerr << "Layer " << 1 << ": adding artificial loss of" << material.loss << std::endl;
-    mu_upper  = complex(std::real(mu_upper),-std::abs(material.loss));
-    eps_upper = complex(std::real(eps_upper),-std::abs(material.loss));
-  }
-
-  complex etar_upper = std::sqrt(mu_upper/eps_upper);
-  complex nur_upper = std::sqrt(mu_upper*eps_upper);
-
-  if (std::imag(nur_upper) > 0.){
-    std::cerr << "error: hoibc::plane::reflexion_infinite: Im(nur) > 0 (" << std::imag(nur_upper) << ")" << std::endl;
-    exit(1);
-  }
-  if (std::real(etar_upper) < 0.){
-    std::cerr <<"error: hoibc::plane::reflexion_infinite: Re(etar) < 0 (" << std::real(etar_upper) << ")" << std::endl;
-    exit(1);
-  }
+  complex etar_upper, nur_upper;
+  check_and_set_material(1, eps_upper, mu_upper, etar_upper, nur_upper, material.loss);
 
   complex k_upper = k0*nur_upper;
 
@@ -248,34 +222,12 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
 
   // Strictly intermediate interfaces ( i.e label 2 to n-1 )
   for (std::size_t l = 0; l < material.thickness.size() - 1; l++){
-    complex mu_lower = material.mur[l];
-    complex eps_lower = material.epsr[l];
-    if ((std::abs(std::imag(mu_lower))<=0.)&&(std::abs(std::imag(eps_lower))<=0.)){
-      mu_lower  = complex(std::real(mu_lower),-std::abs(material.loss));
-      eps_lower = complex(std::real(eps_lower),-std::abs(material.loss));
-    }
-    complex etar_lower = std::sqrt(mu_lower/eps_lower);
-    complex nur_lower = std::sqrt(mu_lower*eps_lower);
-    complex k_lower = k0*nur_lower;
+    complex etar_lower  = etar_upper;
+    complex k_lower     = k_upper;
 
     mu_upper = material.mur[l+1];
     eps_upper = material.epsr[l+1];
-    if ((std::abs(std::imag(mu_upper))<=0.)&&(std::abs(std::imag(eps_upper))<=0.)&&(std::abs(material.loss)>0.)){
-      std::cerr << "Layer " << l+1 << ": adding artificial loss of" << material.loss << std::endl;
-      mu_upper  = complex(std::real(mu_upper),-std::abs(material.loss));
-      eps_upper = complex(std::real(eps_upper),-std::abs(material.loss));
-    }
-    etar_upper = std::sqrt(mu_upper/eps_upper);
-    nur_upper = std::sqrt(mu_upper*eps_upper);
-    k_upper = k0*nur_upper;
-
-    if (std::imag(nur_upper) > 0.){
-      std::cerr << "error: reflexion_infinite_plane: Im(nur) > 0" << std::endl;
-      exit(1);
-    }
-    if (std::real(etar_upper) < 0.){
-      std::cerr << "error: impedance_infinite_plane: Re(etar) < 0" << std::endl;
-    }
+    check_and_set_material(l+1, eps_upper, mu_upper, etar_upper, nur_upper, material.loss);
 
     h += material.thickness[l];
     for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
@@ -303,22 +255,12 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
   }
   // The coating-vacuum interface (h = 0)
   // last layer
-  complex mu_lower = material.mur[material.mur.size()-1];
-  complex eps_lower = material.epsr[material.epsr.size()-1];
-  if ((std::abs(std::imag(mu_lower))<=0.)&&(std::abs(std::imag(eps_lower))<=0.)){
-    mu_lower  = complex(std::real(mu_lower),-std::abs(material.loss));
-    eps_lower = complex(std::real(eps_lower),-std::abs(material.loss));
-  }
-  complex etar_lower = std::sqrt(mu_lower/eps_lower);
-  complex nur_lower = std::sqrt(mu_lower*eps_lower);
-  complex k_lower = k0*nur_lower;
+  complex etar_lower  = etar_upper;
+  complex k_lower     = k_upper;
 
   // vacuum
   h = 0.;
-  mu_upper = 1.;
-  eps_upper = 1.;
   etar_upper = 1.;
-  nur_upper = 1.;
   k_upper = k0;
 
   for (std::size_t n1 = 0; n1 < vkx.size(); n1++){

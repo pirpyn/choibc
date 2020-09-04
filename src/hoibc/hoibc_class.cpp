@@ -25,7 +25,7 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const array<real>
     break;
   case type_t::C:
     // f1 = n, f2 = kz
-    // TODO ref_ap = reflexion_from_impedance_cylinder(f1,f2,k0,Z,self%outer_radius)
+    reflexion = cylinder::reflexion_from_impedance(f1,f2,k0,impedance,this->outer_radius);
     break;
   case type_t::S:
     // f1 = m, f2 = n
@@ -64,10 +64,10 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
           gex = plane::reflexion_infinite(f1,f2,k0,data.material);
           break;
         case type_t::C :
-          reflexion_infinite_cylinder();
+          gex = cylinder::reflexion_infinite(f1,f2,k0,data.material,this->inner_radius);
           break;
         case type_t::S :
-          reflexion_infinite_sphere();
+          gex = sphere::reflexion_infinite(f1,k0,data.material,this->inner_radius);
           break;
       }
       break;
@@ -77,10 +77,10 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
           gex = plane::impedance_infinite(f1,f2,k0,data.material);
           break;
         case type_t::C :
-          impedance_infinite_cylinder();
+          gex = cylinder::impedance_infinite(f1,f2,k0,data.material,this->inner_radius);
           break;
         case type_t::S :
-          impedance_infinite_sphere();
+          gex = sphere::impedance_infinite(f1,k0,data.material,this->inner_radius);
           break;
       }
       break;
@@ -194,6 +194,12 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
 void hoibc_class::print_coeff(std::ostream& out){
   std::noshowpos(out);
   out << "# IBC " << this->name << " type " << type_to_char(this->type) << " suc " << (this->suc ? "T": "F") << " mode " << mode_to_int(this->mode) << " (" << this->label << ")" << std::endl;
+  switch (this->type) {
+    case type_t::C:
+    case type_t::S:
+      out << "# inner radius " << this->inner_radius << ", outer_radius " << this->outer_radius << std::endl;
+      break;
+  }
   std::showpos(out);
   this->disp_coeff(out);
 }
@@ -325,7 +331,11 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       f1 = linspace(0,n1,n1+1);
       s1 = f1 / (k0*this->outer_radius);
 
-      n2 = int((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      if (data.main.s2[2] != 0){
+        n2 = static_cast<integer>((data.main.s2[1]-data.main.s2[0])/data.main.s2[2]) + 1;
+      } else {
+        n2 = 1;
+      }
       s2 = linspace(data.main.s2[0],data.main.s2[1],n2);
       f2 = s2 * k0;
       break;
@@ -377,7 +387,7 @@ void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_mat
   sI[1][0] = 0.;
   sI[0][1] = 0.;
   sI[1][1] = 1.;
-  I  = big_init<real>(n1,n2,sI);
+  I = big_init<real>(n1,n2,sI);
 
   matrix<real> sI1;
   sI[0][0] = 1.;

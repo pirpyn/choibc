@@ -11,12 +11,12 @@
             "mur"       : [[ 1.0,  0.0 ]]
         },
         "hoibc": {
-            "name"          : ["ibc3","ibc3"],
-            "suc"           : [false,true],
-            "type"          : ["P","P"],
-            "inner_radius"  : [0.0,0.0],
-            "mode"          : [2,2],
-            "normalised"    : [true,true]
+            "name"          : ["ibc3","ibc3","ibc3"],
+            "suc"           : [false,true,false],
+            "type"          : ["P","P","C"],
+            "inner_radius"  : [0.0,0.0,1.0],
+            "mode"          : [2,2,2],
+            "normalised"    : [true,true,true]
         },
         "optim": {
             "grad_delta"        : 1e-4,
@@ -30,11 +30,11 @@
             "basename"          : "/home/pirpyn/choibc/test/test",
             "impedance_ibc"     : true,
             "impedance_ex"      : true,
-            "impedance_err"     : true,
-            "coeff"             : true,
-            "reflexion_ibc"     : true,
-            "reflexion_ex"      : true,
-            "reflex_vs_theta"   : true
+            "impedance_err"     : false,
+            "coeff"             : false,
+            "reflexion_ibc"     : false,
+            "reflexion_ex"      : false,
+            "reflex_vs_theta"   : false
         }
     }
 }

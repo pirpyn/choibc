@@ -16,8 +16,15 @@ namespace hoibc
   template<typename T> using big_matrix = array<array<matrix<T>>>;
 
   static big_matrix<real> empty_bigmatrix_real;
+
+  // template<typename T> bool operator==(const array<T>& V1, const array<T>& V2){
+  //   return (static_cast<std::valarray<T>>(V1) == static_cast<std::valarray<T>>(V2));
+  // }
+
+
 }
 
-#define NOTFINISHED(where) std::cerr << where << ": not finished" << std::endl;
+/* To remove when hitting v1.0 */
+#define NOTFINISHED(where) std::cerr << where << ": not finished." << std::endl;
 
 #endif
