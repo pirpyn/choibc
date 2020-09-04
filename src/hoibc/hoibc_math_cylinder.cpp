@@ -79,7 +79,7 @@ big_matrix<complex> hoibc::cylinder::impedance_infinite(const array<real>& vn, c
 
   real radius = inner_radius;
 
-  for (std::size_t l = 0; l < material.thickness.size() - 1; l++) {
+  for (std::size_t l = 0; l < material.thickness.size(); l++) {
     complex mu = material.mur[l];
     complex eps = material.epsr[l];
     complex etar, nur;
