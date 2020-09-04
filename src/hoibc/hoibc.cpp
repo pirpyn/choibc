@@ -49,7 +49,7 @@ void hoibc::setup(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
     ibc->suc          = (data.hoibc.suc.size()>i)?data.hoibc.suc[i]:false;
     ibc->type         = (data.hoibc.type.size()>i)?data.hoibc.type[i]:type_t::P;
     ibc->inner_radius = (data.hoibc.inner_radius.size()>i)?data.hoibc.inner_radius[i]:0.;
-    ibc->outer_radius = ibc->inner_radius + std::accumulate(begin(data.material.thickness),end(data.material.thickness),0);
+    ibc->outer_radius = ibc->inner_radius + std::accumulate(begin(data.material.thickness),end(data.material.thickness),0.);
     ibc->normalised   = (data.hoibc.normalised.size()>i)?data.hoibc.normalised[i]:true;
     ibc->mode         = (data.hoibc.mode.size()>i)?data.hoibc.mode[i]:mode_t::Z;
     ibc->label        = (data.hoibc.label.size()>i)?data.hoibc.label[i]:"";
