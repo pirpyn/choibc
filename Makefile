@@ -145,6 +145,11 @@ link: main | $(lklibdir) $(lkbindir)
 	done;
 	@echo "Binaries linked at $(lkbindir)"
 
+.PHONY: link_test
+link_test: test | $(lklibdir) $(lkbindir)
+	@$(MAKE) SRCDIRS="$(TEST_SRCDIR)" libs="" BINS="$(TEST_BINS)" link -j
+
+
 MODES=$(MODE)
 CXXCS=$(CXXC)
 SHAREDS=$(SHARED)
@@ -236,7 +241,7 @@ TEST_BINS:=$(foreach ext,$(EXTENSIONS),$(patsubst $(TEST_SRCDIR)/%$(ext),%,$(wil
 test: hoibc
 	@echo "Compiling the unit tests"
 	@$(MAKE) SRCDIRS="$(SRCDIRS) $(TEST_SRCDIR)" depend
-	@$(MAKE) SRCDIRS=$(TEST_SRCDIR) libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc" prog
+	@$(MAKE) SRCDIRS="$(TEST_SRCDIR)" libs="" BINS="$(TEST_BINS)" LIBNAMES="hoibc alglib bessel" prog -j
 
 .PHONY: run_test
 run_test: test

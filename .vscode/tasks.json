@@ -47,6 +47,16 @@
         {
             "label": "make run_test",
             "type": "shell",
+            "command": "make -C ${workspaceFolder} -s run_test",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+
+        },
+        {
+            "label": "make debug run_test",
+            "type": "shell",
             "command": "make -C ${workspaceFolder} MODE=debug -s run_test",
             "problemMatcher": [
                 "$gcc"
@@ -54,7 +64,26 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+        },
+        {
+            "label": "make test",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} -s test",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+
+        },
+        {
+            "label": "make debug link_test",
+            "type": "shell",
+            "command": "make -C ${workspaceFolder} MODE=debug -s link_test",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
         }
     ]
 }

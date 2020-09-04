@@ -28,7 +28,7 @@
         },
         "out": {
             "basename"          : "/home/pirpyn/choibc/test/test",
-            "impedance_ibc"     : false,
+            "impedance_ibc"     : true,
             "impedance_ex"      : true,
             "impedance_err"     : false,
             "coeff"             : false,
