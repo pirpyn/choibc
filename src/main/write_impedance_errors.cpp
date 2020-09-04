@@ -277,7 +277,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     const hoibc::hoibc_class* ibc = hoibc_list[i];
     // When C++20 will be available
     // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
   }
 
   std::cout << std::endl;
@@ -290,6 +290,6 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     const hoibc::hoibc_class* ibc = hoibc_list[i];
     // When C++20 will be available
     // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
-    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),ibc->type,ibc->suc?'T':'F',ibc->mode,errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+    std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
   }
 }
