@@ -37,7 +37,7 @@ matrix<complex> hoibc::cylinder::JH(const real& radius,const real& n, const real
   matrix<complex> JH;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
   JH[0][0] = complex(0.,0.);
-  JH[1][0] = -ci*etar*k/k3*bessel1p(n,k3*radius);
+  JH[1][0] = -ci/etar*k/k3*bessel1p(n,k3*radius);
   JH[0][1] = -bessel1(n,k3*radius);
   JH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel1(n,k3*radius);
   return JH;
@@ -47,7 +47,7 @@ matrix<complex> hoibc::cylinder::HH(const real& radius,const real& n, const real
   matrix<complex> HH;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
   HH[0][0] = complex(0.,0.);
-  HH[1][0] = -ci*etar*k/k3*bessel2p(n,k3*radius);
+  HH[1][0] = -ci/etar*k/k3*bessel2p(n,k3*radius);
   HH[0][1] = -bessel2(n,k3*radius);
   HH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel2(n,k3*radius);
   return HH;
