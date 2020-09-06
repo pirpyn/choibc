@@ -10,7 +10,7 @@
 #include "hoibc_math.hpp"
 #include "hoibc_math_plane.hpp"
 #include "hoibc_math_cylinder.hpp"
-#include "hoibc_math_cylinder.hpp"
+#include "hoibc_math_sphere.hpp"
 
 namespace hoibc
 {

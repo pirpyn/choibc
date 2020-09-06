@@ -29,7 +29,7 @@ big_matrix<complex> hoibc_class::get_reflexion(const real& k0, const array<real>
     break;
   case type_t::S:
     // f1 = m, f2 = n
-    //TODO ref_ap = reflexion_from_impedance_sphere(f2,k0,Z,self%outer_radius)
+    reflexion = sphere::reflexion_from_impedance(f2,k0,impedance,this->outer_radius);
     break;
   }
   return reflexion;
@@ -80,7 +80,7 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
           gex = cylinder::impedance_infinite(f1,f2,k0,data.material,this->inner_radius);
           break;
         case type_t::S :
-          gex = sphere::impedance_infinite(f1,k0,data.material,this->inner_radius);
+          gex = sphere::impedance_infinite(f2,k0,data.material,this->inner_radius);
           break;
       }
       break;

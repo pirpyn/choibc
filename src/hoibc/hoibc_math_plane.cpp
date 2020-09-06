@@ -106,11 +106,11 @@ void hoibc::plane::get_matrices_AB_EH(const array<real>& f1, const array<real>& 
 
 
 matrix<complex> hoibc::MA(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z, const matrix<complex>& imp){
-  return AE(kx,ky,k,z) - matmul(imp,AH(kx,ky,k,etar,z));
+  return AE(kx,ky,k,z) - imp*AH(kx,ky,k,etar,z);
 }
 
 matrix<complex> hoibc::MB(const real& kx, const real& ky, const complex& k, const complex& etar, const real& z, const matrix<complex>& imp){
-  return BE(kx,ky,k,z) - matmul(imp,BH(kx,ky,k,etar,z));
+  return BE(kx,ky,k,z) - imp*BH(kx,ky,k,etar,z);
 }
 
 big_matrix<complex> hoibc::plane::impedance_infinite(const array<real> &vkx, const  array<real> &vky, const real& k0, const material_t& material){
@@ -142,8 +142,8 @@ big_matrix<complex> hoibc::plane::impedance_infinite(const array<real> &vkx, con
 
         const matrix<complex>& B = impedance_ex[i][j];
 
-        const matrix<complex> mMB = inv<complex>(MB(kx,ky,k,etar,h,B));
-        const matrix<complex> mMA = inv<complex>(MA(kx,ky,k,etar,h,B));
+        const matrix<complex> mMB = inv(MB(kx,ky,k,etar,h,B));
+        const matrix<complex> mMA = inv(MA(kx,ky,k,etar,h,B));
 
         const matrix<complex> mAE = AE(kx,ky,k,h+d);
         const matrix<complex> mBE = BE(kx,ky,k,h+d);
