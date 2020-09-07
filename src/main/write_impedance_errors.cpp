@@ -123,7 +123,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         std::stringstream ss;
         ss << data_out.basename << ".z_ex.MODE_" << mode_to_int(ibc->mode) << "_TYPE_" << type_to_char(ibc->type);
         if ( ibc->type != hoibc::type_t::P ) {
-          ss << "_" << std::setprecision(3) << std::showpos << std::scientific;
+          ss << "_" << std::setprecision(3) << std::showpos << std::scientific << std::uppercase;
           ss << ibc->inner_radius  << "m";
         }
         ss << ".csv";
@@ -160,7 +160,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         std::stringstream ss;
         ss << data_out.basename << ".z_ex.MODE_" << mode_to_int(ibc->mode) << "_TYPE_" << type_to_char(ibc->type);
         if ( ibc->type != hoibc::type_t::P ) {
-          ss << "_" << std::setprecision(3) << std::showpos << std::scientific;
+          ss << "_" << std::setprecision(3) << std::showpos << std::scientific << std::uppercase;
           ss << ibc->inner_radius  << "m";
         }
         ss << ".csv";
@@ -198,7 +198,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         std::stringstream ss;
         ss << data_out.basename << ".m_ex.MODE_" << mode_to_int(ibc->mode) << "_TYPE_" << type_to_char(ibc->type);
         if ( ibc->type != hoibc::type_t::P ) {
-          ss << "_" << std::setprecision(3) << std::showpos << std::scientific;
+          ss << "_" << std::setprecision(3) << std::showpos << std::scientific << std::uppercase;
           ss << ibc->inner_radius  << "m";
         }
         ss << ".csv";
@@ -252,7 +252,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       std::stringstream ss;
       ss << data_out.basename << ".z_ex.MODE_" << mode_to_int(ibc->mode) << "_TYPE_" << type_to_char(ibc->type);
       if ( ibc->type != hoibc::type_t::P ) {
-        ss << "_" << std::setprecision(3) << std::showpos << std::scientific;
+        ss << "_" << std::setprecision(3) << std::showpos << std::scientific << std::uppercase;
         ss << ibc->inner_radius  << "m";
       }
       ss << ".csv";

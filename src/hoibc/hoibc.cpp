@@ -57,7 +57,7 @@ void hoibc::setup(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
       ibc->label += "IBC_"+ibc->name+"_SUC_"+ (ibc->suc ? "T" : "F" )+ "_MODE_" + std::to_string(mode_to_int(ibc->mode)) + "_TYPE_" + type_to_char(ibc->type) ;
       if ( ibc->type != type_t::P ) {
         std::stringstream ss;
-        ss << std::setprecision(3) << std::showpos << std::scientific;
+        ss << std::setprecision(3) << std::showpos << std::scientific << std::uppercase;
         ss << ibc->inner_radius;
         ibc->label += ss.str();
       }
