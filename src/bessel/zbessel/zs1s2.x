@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zs1s2(double zrr, double zri, double *__restrict__ s1r, double *__restrict__ s1i, double *__restrict__ s2r,
            double *__restrict__ s2i, int *__restrict__ nz, double ascle, double alim, int *__restrict__ iuf) {
   /* Local variables */

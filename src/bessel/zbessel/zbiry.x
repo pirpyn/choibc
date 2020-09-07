@@ -7,7 +7,7 @@
 
 namespace zbessel {
 
-template <class>
+
 int zbiry(double zr, double zi, int id, int kode, double *__restrict__ bir, double *__restrict__ bii) {
   static const double r1m5 = std::log10(std::numeric_limits<double>::radix);
 

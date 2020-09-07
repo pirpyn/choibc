@@ -7,7 +7,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zbuni(double zr, double zi, double fnu, int kode, int n, double *__restrict__ yr,
            double *__restrict__ yi, int *__restrict__ nz, int nui, int *__restrict__ nlast, double fnul, double tol,
            double elim, double alim) {

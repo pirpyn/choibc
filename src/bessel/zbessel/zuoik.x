@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zuoik(double zr, double zi, double fnu, int kode, int ikflg, int n,
            double *__restrict__ yr, double *__restrict__ yi, int *__restrict__ nuf, double tol, double elim,
            double alim) {

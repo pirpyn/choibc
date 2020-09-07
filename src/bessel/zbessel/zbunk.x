@@ -5,7 +5,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zbunk(double zr, double zi, double fnu, int kode, int mr, int n,
            double *__restrict__ yr, double *__restrict__ yi, int *__restrict__ nz, double tol, double elim,
            double alim) {

@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zrati(double zr, double zi, double fnu, int n, double *__restrict__ cyr,
            double *__restrict__ cyi, double tol) {
   /* Initialized data */
