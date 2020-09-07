@@ -346,13 +346,13 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       s1 = {0.}; // ! we set m to 0 for the correct computation of LD & LR matrices
       f1 = s1;
 
-      // We truncate the number of Mie coefficient to s2*k0*outer_radius*sqrt(2) + 8 (same as Matlab)
+      // We truncate the number of Mie coefficient to s2*k0*outer_radius*sqrt(2) + 1
       // It should be noted that max(s2) should be at least superior or equal to 1 because the Mie coefficient on front
-      // of the spherical bessel functions jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
+      // of the spherical bessel functions C_mn jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
       if (data.main.s2[1] < 1.){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
       }
-      n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 8;
+      n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 1;
       f2 = linspace(0,n2,n2+1);
       s2 = f2 / (k0*this->outer_radius);
       break;
