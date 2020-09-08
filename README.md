@@ -45,6 +45,11 @@ A sample program is provided in the `src/main` folder. This program
   * reads a json filename from the command line and initialise a `hoibc::data_t` structure accordingly,
   * pass this struct the `hoibc::main` function,
   * compute the errors between the IBC and the exact impedance operator.
+  
+To run it, launch
+```shell
+make run ARGS=input.json
+```
 
 ### Compiler support
 
