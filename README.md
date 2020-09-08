@@ -5,13 +5,13 @@ Compute High Order Impedance Boundary Condition (HOIBC) coefficients by a constr
 ### Quick Install
 
 ```shell
-    git clone https://github.com/pirpyn/choibc
+git clone https://github.com/pirpyn/choibc
 ```
 
 ### Quick Build
 
 ```shell
-    make FC=g++ -j
+make CXXC=g++ -j
 ```
 
 ### Description
@@ -25,15 +25,21 @@ Theses coefficient takes curvatures into account, as the local infinite cylinder
 
 This program needs 
 
-  * [LAPACK](http://www.netlib.org/lapack/). On Ubuntu, the apt command is `apt get liblapack-dev`.
+  * [LAPACKE](http://www.netlib.org/lapack/). On Ubuntu, the apt command is `apt get liblapacke-dev`.
 
 ### Building
 
-A Makefile is provided. To print all makefile recipes and options, type
+A Makefile is provided. To print all makefile recipes and options, run
 ```shell
-    make help
+make help
 ```
 ### Testing
+
+A `src/test` folder is present and check accuracy of bessel functions, the overloaded `operator*` and the `hoibc::norm` function.  
+To launch thoses test, run 
+```shell
+make run_test
+```
 
 A sample program is provided in the `src/main` folder. This program
   * reads a json filename from the command line and initialise a `hoibc::data_t` structure accordingly,
