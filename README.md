@@ -56,7 +56,7 @@ This code has been tested with and should run with at least
 Newer version should compile and run fine.
 
 ### References
-
+  * P. Payen, O. Lafitte, B Stupfel, "A high order impedance boundary condition with uniqueness conditions to solve thetime harmonic Maxwell’s equations", Proceedings 	14th International Conference on Mathematical and Numerical Aspects of Wave Propagation. Book of Abstracts, https://doi.org/10.34726/waves2019, [direct link](  https://repositum.tuwien.at/bitstream/20.500.12708/637/2/th%20International%20Conference%20on%20Mathematical%20and%20Numerical%20Aspects%20of%20Wave%20Propagation%20Book%20of%20Abstracts.pdf#157_abstract)
   * P. Payen, "Modélisation précise d'un matériaux hétérogène en hyperfréquence par une condition d'impédance d'ordre élevé", Ph.D Université Paris 13, Dec. 2019, http://theses.fr/s197772
   *  S. Bochkanov, "ALGLIB 3.16.0 for C++" (www.alglib.net)
 
