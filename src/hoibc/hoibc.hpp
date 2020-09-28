@@ -11,6 +11,8 @@
 #include "hoibc_math_plane.hpp"
 #include "hoibc_math_cylinder.hpp"
 #include "hoibc_math_sphere.hpp"
+#include "hoibc_ibc0.hpp"
+#include "hoibc_ibc3.hpp"
 
 namespace hoibc
 {
