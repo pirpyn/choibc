@@ -66,11 +66,28 @@ int main(int argc, char* argv[]) {
       impedance_ap[i][j][1][0] = hoibc::ci*kz*n/(k*k3*eta*r1)*Sn;
       impedance_ap[i][j][0][1] = -hoibc::ci*kz*n/(k*k3*eta*r1)*Sn;
       impedance_ap[i][j][1][1] = hoibc::ci*k3/(k*eta)*Sn;
+      impedance_ap[i][j] = inv(impedance_ap[i][j]);
     }
   }
   const std::string filename = "impedance_cylinder_verif.csv";
-  using hoibc::operator-;
-  dump_to_csv(filename, vn, s2, impedance_ap - impedance_ex, "n", "s2", "Z", "Z_o - Z_p");
+  // using hoibc::operator-;
+  dump_to_csv(filename, vn, s2, impedance_ap - impedance_ex, "n", "s2", "Z_O-Z_P", "");
 
-  return 0;
+  const bool check = abs((impedance_ap - impedance_ex)[0][0][0][0])<1e-8;
+
+  if (!check) {
+    cout << "[FAIL] " << "|(Z_O-Z_P)[0][0][0][0]| > 1e-8" << endl;
+    ifstream myfile;
+    myfile.open(filename);
+    string fileline;
+    for (int i=0; i < 2; i++) {
+      getline(myfile,fileline);
+      cout << fileline << endl;
+    }
+
+    myfile.close();
+  } else {
+    cout << "[OK?] " << "|(Z_O-Z_P)[0][0][0][0]| < 1e-8" << endl;
+  }
+  return (check);
 }
