@@ -53,20 +53,20 @@ int main(int argc, char* argv[]) {
       const hoibc::complex k3 = std::sqrt(k*k - kz*kz);
       
       hoibc::complex Sn = 
-        (hoibc::bessel1p(n,k3*r0)*hoibc::bessel2(n,k3*r1) - hoibc::bessel2p(n,k3*r0)*hoibc::bessel1(n,k3*r1))
+        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2p(n,k3*r0))
         /
-        (hoibc::bessel1p(n,k3*r0)*hoibc::bessel2p(n,k3*r1) - hoibc::bessel2p(n,k3*r0)*hoibc::bessel1p(n,k3*r1));
+        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2p(n,k3*r0));
       
       hoibc::complex Tn = 
-        (hoibc::bessel1(n,k3*r0)*hoibc::bessel2p(n,k3*r1) - hoibc::bessel2(n,k3*r0)*hoibc::bessel1p(n,k3*r1))
+        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2(n,k3*r0))
         /
-        (hoibc::bessel1(n,k3*r0)*hoibc::bessel2(n,k3*r1) - hoibc::bessel2(n,k3*r0)*hoibc::bessel1(n,k3*r1));
+        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2(n,k3*r0));
       
-      impedance_ap[i][j][0][0] = hoibc::ci*k/(k*k3*eta)*Tn - hoibc::ci*kz*kz*n*n/(k3*k3*k3*r1*r1*k*eta)*Sn;
-      impedance_ap[i][j][1][0] = hoibc::ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][0][1] = -hoibc::ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][1][1] = hoibc::ci*k3/(k*eta)*Sn;
-      impedance_ap[i][j] = inv(impedance_ap[i][j]);
+      impedance_ap[i][j][0][0] = ci*k/(k3*eta)*Tn - ci*kz*kz*n*n/(k3*k3*k3*r1*r1*k*eta)*Sn;
+      impedance_ap[i][j][1][0] = ci*kz*n/(k*k3*eta*r1)*Sn;
+      impedance_ap[i][j][0][1] = -ci*kz*n/(k*k3*eta*r1)*Sn;
+      impedance_ap[i][j][1][1] = ci*k3/(k*eta)*Sn;
+      impedance_ex[i][j] = inv(impedance_ex[i][j]);
     }
   }
   const std::string filename = "impedance_cylinder_verif.csv";
