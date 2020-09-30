@@ -19,8 +19,8 @@ help:
 	@echo "   make info             # Prints compiler flags, link flags, library used etc."
 	@echo ""
 	@echo "Cleaning rules"
-	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen" 
-	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible" 
+	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen"
+	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible"
 	@echo ""
 
 

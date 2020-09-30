@@ -91,7 +91,7 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     std::cout << "hoibc: Executing the constrained optimisation algorithm ... " << std::endl;
     alglib::real_1d_array x;
     alglib::real_1d_array scale;
- 
+
     // Get number of unknows from IBC
     this->coeff_to_array(x);
     this->coeff_to_array(scale);
@@ -107,11 +107,11 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
 
     // Set scale of unknowns
     alglib::minnlcsetscale(state, scale);
-  
+
     // Set solver
     // SLP: Robust, slower, non convex, prototyping
     // AUL: Faster, more tuning, convex
-    
+
     // alglib::minnlcsetalgoaul(state, rho, outerits);
     alglib::minnlcsetalgoslp(state);
 
@@ -153,7 +153,7 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
   data.ibc->array_to_coeff(x);
 
   big_matrix<complex> ap;
-  
+
   switch (data.ibc->mode){
   case hoibc::mode_t::R :
     ap = data.ibc->get_reflexion(data.k0, *(data.f1), *(data.f2));
@@ -167,7 +167,7 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
   //   std::cout << x[i] << " ";
   // }
   // std::cout << std::endl;
-  
+
   // Cost function value at current point
   fi[0] = std::pow(norm(ap - *(data.gex)),2) / std::pow(norm(*(data.gex)),2);
 
@@ -217,7 +217,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   array<std::string> sle;
   array<std::string> seq;
   array<std::string> sne;
-  
+
   const char width = 13;
 
   this->get_suc(cle,ceq,cne,sle,seq,sne);
@@ -284,9 +284,9 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   }
 }
 
-// Reads a data struct and creates two array with the values of the Fourier variables 
+// Reads a data struct and creates two array with the values of the Fourier variables
 void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, array<real>& f2, array<real>& s1, array<real>& s2){
-  // data: The struct to contains physics parameters, 
+  // data: The struct to contains physics parameters,
   // f1: The 1st Fourier variable: k_x, n,   m if plane, cylinder, sphere
   // f2: The 2nd Fourier variable: k_y, k_z, n if plane, cylinder, sphere
   // s1, = f1 / free_space_wavenumber
@@ -321,12 +321,12 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       // f1 = n, f2 = kz
 
       // We truncate the number of Fourier coefficient to s2*k0*outer_radius + 1
-      // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in 
+      // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in
       // front of the bessel functions Jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same Hn)
       if (data.main.s1[1]<1){
         std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
       }
-      
+
       n1 = static_cast<integer>(std::max(1.,data.main.s1[1])*k0*this->outer_radius) + 1;
       f1 = linspace(0,n1,n1+1);
       s1 = f1 / (k0*this->outer_radius);

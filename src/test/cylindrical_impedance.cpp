@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
   data.main.frequency = 0.2;
   data.main.s1 = { 0., 1., 0.1};
   data.main.s2 = { 0., 0.9, 0.1};
-  
+
   data.material.thickness = hoibc::array<hoibc::real>({ 0.05 });
   data.material.epsr      = hoibc::array<hoibc::complex>({ hoibc::complex(1.,-1.) });
   data.material.mur       = hoibc::array<hoibc::complex>({ hoibc::complex(1.,0.) });
@@ -51,17 +51,17 @@ int main(int argc, char* argv[]) {
     {
       const hoibc::real kz = vkz[j];
       const hoibc::complex k3 = std::sqrt(k*k - kz*kz);
-      
-      hoibc::complex Sn = 
+
+      hoibc::complex Sn =
         (hoibc::bessel2(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2p(n,k3*r0))
         /
         (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2p(n,k3*r0));
-      
-      hoibc::complex Tn = 
+
+      hoibc::complex Tn =
         (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2(n,k3*r0))
         /
         (hoibc::bessel2(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2(n,k3*r0));
-      
+
       impedance_ap[i][j][0][0] = ci*k3/(k*eta)*Sn;
       impedance_ap[i][j][1][0] = ci*kz*n/(k*k3*eta*r1)*Sn;
       impedance_ap[i][j][0][1] = ci*kz*n/(k*k3*eta*r1)*Sn;

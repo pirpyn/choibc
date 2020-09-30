@@ -13,8 +13,8 @@ using namespace hoibc::plane;
 matrix<complex> hoibc::plane::AE(const real& kx, const real& ky, const complex& k, const real& z){
   complex k3;
   if ((z>=0.)&&(std::abs(std::imag(k))<=0.)) {
-    // On the outside  where z >= 0 and k = k0 is real, we need non-infinite solution 
-    // when z goes to infinity hence we need the imaginary part of k3 to be negative 
+    // On the outside  where z >= 0 and k = k0 is real, we need non-infinite solution
+    // when z goes to infinity hence we need the imaginary part of k3 to be negative
     // for exp(-i k3 z) to go to 0 when z goes to infinity.
     // That's why there is a minus in front of the zero below
     k3 = std::sqrt(complex(std::pow(std::real(k),2) - std::pow(kx,2) - std::pow(ky,2),-0.));
@@ -165,7 +165,7 @@ big_matrix<complex> hoibc::plane::impedance_from_reflexion(const array<real>& vk
   const complex k = k0;
   const complex etar = 1.;
   const real h = 0.;
-  
+
   big_matrix<complex> impedance = big_init(vkx.size(),vky.size(),complex(0.,0.));
 
   for (std::size_t n1 = 0; n1 < vkx.size(); n1++){
@@ -178,7 +178,7 @@ big_matrix<complex> hoibc::plane::impedance_from_reflexion(const array<real>& vk
 
       const matrix<complex> mAH = AH(kx,ky,k,etar,h);
       const matrix<complex> mBH = BH(kx,ky,k,etar,h);
-      
+
       // Using the overloaded % operator A % B = A^{-1}*B
       impedance[n1][n2] = (mAH + mBH*reflexion[n1][n2]) % (mAE + mBE*reflexion[n1][n2]);
     }
@@ -234,7 +234,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
       real kx = vkx[n1];
       for (std::size_t n2 = 0; n2 < vky.size(); n2++){
         real ky = vky[n2];
-        
+
         matrix<complex>& mR = reflexion_ex[n1][n2];
         const matrix<complex> mAE_lower = AE(kx,ky,k_lower,h);
         const matrix<complex> mBE_lower = BE(kx,ky,k_lower,h);
@@ -247,7 +247,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
         const matrix<complex> mBH_upper = BH(kx,ky,k_upper,etar_upper,h);
 
         // Using the custom % operator A % B = A^(-1)*B
-        reflexion_ex[n1][n2] = 
+        reflexion_ex[n1][n2] =
           - ((mAE_lower + mBE_lower*mR)%mBE_upper - (mAH_lower + mBH_lower*mR)%mBH_upper)
           % ((mAE_lower + mBE_lower*mR)%mAE_upper - (mAH_lower + mBH_lower*mR)%mAH_upper);
       }
@@ -296,7 +296,7 @@ big_matrix<complex> hoibc::plane::reflexion_infinite(const array<real>& vkx, con
 }
 
 big_matrix<complex> hoibc::plane::reflexion_from_impedance(const array<real>& vkx,const array<real>& vky,const real& k0, const big_matrix<complex>& impedance){
-  
+
   big_matrix<complex> reflexion = big_init(vkx.size(),vky.size(),complex(0.,0.));
 
   // in the vacuum
@@ -346,7 +346,7 @@ void hoibc::plane::get_matrices_LD_LR(const array<real>& vkx, const array<real>&
 
   // TODO Possible improve perf by doing
   // for n1
-  //    for n2 
+  //    for n2
   //        tmp_vect.push_pack(tmp_mat)
   //    A.push_back(tmp_vect)
 

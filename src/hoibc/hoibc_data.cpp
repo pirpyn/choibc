@@ -17,18 +17,18 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
   out << "# Frequency: " << data.main.frequency << " GHz" <<  endl;
   out << "# " + std::string(60,'-') << endl;
   out << "# Layer 0:" << endl;
-  out << "#   TM Impedance: (" << std::real(data.material.initial_impedance[0][0]) << "," 
+  out << "#   TM Impedance: (" << std::real(data.material.initial_impedance[0][0]) << ","
     << std::imag(data.material.initial_impedance[0][0]) << ")" << endl;
-  out << "#   TE Impedance: (" << std::real(data.material.initial_impedance[1][1]) << "," 
+  out << "#   TE Impedance: (" << std::real(data.material.initial_impedance[1][1]) << ","
     << std::imag(data.material.initial_impedance[1][1]) << ")" << endl;
-  for (unsigned int i=0;i<data.material.epsr.size();i++) 
+  for (unsigned int i=0;i<data.material.epsr.size();i++)
   {
     complex epsr = data.material.epsr[i];
     complex mur = data.material.mur[i];
     out << "# " + std::string(60,'-') << endl;
     out << "# Layer " << i+1 << ":" << endl;
     real ratio = std::abs(2*pi/std::sqrt(mur*epsr)/20.96/data.main.frequency)/data.material.thickness[i];
-    out << "#   Thickness: " << std::noshowpos << data.material.thickness[i] << " m [ λ/" 
+    out << "#   Thickness: " << std::noshowpos << data.material.thickness[i] << " m [ λ/"
       << std::setprecision(1)  << std::fixed << ratio << ", " << std::setprecision(5)  << std::fixed << 1./ratio << "λ ]" << endl;
     out.precision(3);
     std::showpos(out);
@@ -36,12 +36,12 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
     out << "#   Epsilon:   (" << std::real(epsr) << "," << std::imag(epsr) << ")" << endl;
     out << "#   Mu:        (" << std::real(mur) << "," << std::imag(mur) << ")" << endl;
     complex nur = std::sqrt(epsr*mur);
-    out << "#   Nu:        (" << std::real(nur) << "," << std::imag(nur) 
+    out << "#   Nu:        (" << std::real(nur) << "," << std::imag(nur)
       << ") [ index = " << std::noshowpos << std::abs(nur) << std::showpos << "]" << endl;
     complex etar = std::sqrt(mur/epsr);
     out << "#   Eta:       (" << std::real(etar) << "," << std::imag(etar) << ")" << endl;
   }
-    out << "# " + std::string(60,'-') << endl; 
+    out << "# " + std::string(60,'-') << endl;
     out << "# s_1: [start, end, step] = " << data.main.s1[0] << ", " << data.main.s1[1] << ", " << data.main.s1[2] << std::endl;
     out << "# s_2: [start, end, step] = " << data.main.s2[0] << ", " << data.main.s2[1] << ", " << data.main.s2[2] << std::endl;
 }

@@ -85,7 +85,7 @@ data_out_t read_data_from_json(const std::string& filename){
     data.main.frequency         = json_data["data"]["main"]["frequency"].get<hoibc::real>();
     data.main.s1                = json_data["data"]["main"]["s1"].get<std::array<hoibc::real,3>>();
     data.main.s2                = json_data["data"]["main"]["s2"].get<std::array<hoibc::real,3>>();
-    
+
     data.material.thickness     = json_data["data"]["material"]["thickness"].get<hoibc::array<hoibc::real>>();
     data.material.epsr          = json_data["data"]["material"]["epsr"].get<hoibc::array<hoibc::complex>>();
     data.material.mur           = json_data["data"]["material"]["mur"].get<hoibc::array<hoibc::complex>>();

@@ -163,8 +163,8 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
     for (unsigned int j=0; j<vkz.size();j++) {
       const real kz = vkz[j];
 
-      reflexion_ex[i][j] = 
-        - MB(radius,n,kz,k_upper,etar_upper,material.initial_impedance) 
+      reflexion_ex[i][j] =
+        - MB(radius,n,kz,k_upper,etar_upper,material.initial_impedance)
         % MA(radius,n,kz,k_upper,etar_upper,material.initial_impedance);
     }
   }

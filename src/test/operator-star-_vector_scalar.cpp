@@ -8,7 +8,7 @@
         cerr << "[FAIL] " << label << endl; \
         no_of_errors++;\
     }
-  
+
 using namespace std;
 using namespace hoibc;
 int main(){

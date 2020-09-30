@@ -17,7 +17,7 @@ namespace hoibc {
 
   big_matrix<complex> operator*(const complex& x, const big_matrix<real>& A);
 
-  template<typename Tstart, typename Tend> 
+  template<typename Tstart, typename Tend>
   array<real> linspace(const Tstart& start, const Tend& end, const int& n){
 
     array<real> v;

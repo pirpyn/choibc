@@ -14,7 +14,7 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
-  const std::string fmt_head = 
+  const std::string fmt_head =
     "# %15s;%15s;"
     "%15s;%15s;%15s;%15s;"
     "%15s;%15s;%15s;%15s;"
@@ -27,7 +27,7 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1
     ("Re("+label+".12)").c_str(), ("Im("+label+".12)").c_str(), ("Abs("+label+".12)").c_str(), ("Arg("+label+".12)").c_str(),
     ("Re("+label+".22)").c_str(), ("Im("+label+".22)").c_str(), ("Abs("+label+".22)").c_str(), ("Arg("+label+".22)").c_str()) << std::endl;
 
-  const std::string fmt_val = 
+  const std::string fmt_val =
     "  %+15.8E;%+15.8E;"
     "%+15.8E;%+15.8E;%+15.8E;%+15.8E;"
     "%+15.8E;%+15.8E;%+15.8E;%+15.8E;"
@@ -54,13 +54,13 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
-  const std::string fmt_head = 
+  const std::string fmt_head =
     "#%15s;%15s;"
     "%15s;%15s;%15s;%15s";
   myfile << string_format(fmt_head,s1.c_str(),s2.c_str(),
     (label+".11").c_str(), (label+".12").c_str(), (label+".21").c_str(), (label+".22").c_str()) << std::endl;
 
-  const std::string fmt_val = 
+  const std::string fmt_val =
     " %+15.8E;%+15.8E;"
     "%+15.8E;%+15.8E;%+15.8E;%+15.8E";
   for (std::size_t j = 0; j < f2.size(); j++){
@@ -81,7 +81,7 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& x,
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
-  const std::string fmt_head = 
+  const std::string fmt_head =
     "# %15s;"
     " %15s; %15s; %15s; %15s;"
     " %15s; %15s; %15s; %15s;"
@@ -94,7 +94,7 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& x,
     ("Re("+label+".12)").c_str(), ("Im("+label+".12)").c_str(), ("Abs("+label+".12)").c_str(), ("Arg("+label+".12)").c_str(),
     ("Re("+label+".22)").c_str(), ("Im("+label+".22)").c_str(), ("Abs("+label+".22)").c_str(), ("Arg("+label+".22)").c_str()) << std::endl;
 
-    const std::string fmt_val = 
+    const std::string fmt_val =
     "  %15.8E;"
     " %15.8E; %15.8E; %15.8E; %15.8E;"
     " %15.8E; %15.8E; %15.8E; %15.8E;"
@@ -119,13 +119,13 @@ void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& x,
   myfile << std::showpos;
   myfile.flags(std::ios::scientific | std::ios::uppercase | std::ios::right);
 
-  const std::string fmt_head = 
+  const std::string fmt_head =
     "# %15s;"
     " %15s; %15s; %15s; %15s;";
   myfile << string_format(fmt_head,sx.c_str(),
     (label+".11").c_str(), (label+".12").c_str(), (label+".21").c_str(), (label+".22").c_str()) << std::endl;
 
-  const std::string fmt_val = 
+  const std::string fmt_val =
     "  %15.8E;"
     " %15.8E; %15.8E; %15.8E; %15.8E;";
   for (std::size_t j = 0; j < x.size(); j++){
