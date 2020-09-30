@@ -2,8 +2,8 @@
     "data": {
         "main": {
             "frequency" : 0.2,
-            "s1"        : [0.0,0.99,0.01],
-            "s2"        : [0.0,0.0,0.0]
+            "s1"        : [0.0,0.0,0.01],
+            "s2"        : [0.0,0.0,0.01]
         },
         "material": {
             "thickness" : [0.05],
@@ -28,7 +28,7 @@
         },
         "out": {
             "basename"          : "/home/pirpyn/choibc/test/test",
-            "impedance_ibc"     : true,
+            "impedance_ibc"     : false,
             "impedance_ex"      : true,
             "impedance_err"     : false,
             "coeff"             : false,

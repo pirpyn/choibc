@@ -98,7 +98,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
     // Write info depending on the type
 
     switch (ibc->type){
-    case hoibc::type_t::P : // For infinite plane, write reflection coefficients
+    case hoibc::type_t::P: // For infinite plane, write reflection coefficients
     // we're looking for NaN when k^2 - kx^2 = 0, ky = 0
     // do i2=1,size(f2)
     // do i1=1,size(f1)
@@ -130,7 +130,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(ss.str(),180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ex,"theta_1","theta_2","r_ex","");
         } else {
-          dump_to_csv(ss.str(),s1,s2,reflexion_ex,"s1","s2","r_ex","");
+          dump_to_csv(ss.str(),s1,s2,reflexion_ex,"kx/k0","ky/k0","r_ex","");
         }
       }
 
@@ -139,7 +139,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","r_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s2","r_"+ibc->name,ibc->label);
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"kx/k0","kx/k0","r_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -167,7 +167,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta){
           dump_to_csv(ss.str(),180./hoibc::pi*std::asin(s2),f1,reflexion_ex,"theta","n","f_ex","");
         } else {
-          dump_to_csv(ss.str(),s2,f1,reflexion_ex,"s","n","f_ex","");
+          dump_to_csv(ss.str(),s2,f1,reflexion_ex,"kz/k0","n","f_ex","");
         }
       }
 
@@ -176,7 +176,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ibc,"theta","n","f_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s1,s2,reflexion_ibc,"s","n","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,s2,f1,reflexion_ibc,"kz/k0","n","f_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -256,17 +256,47 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         ss << ibc->inner_radius  << "m";
       }
       ss << ".csv";
-      dump_to_csv(ss.str(),s1,s2,impedance_ex,"s1","s2","z_ex",ibc->label);
+      switch (ibc->type){
+      case hoibc::type_t::P:
+        dump_to_csv(ss.str(),s1,s2,impedance_ex,"kx/k0","ky/k0","z_ex",ibc->label);
+        break;
+      case hoibc::type_t::C:
+        dump_to_csv(ss.str(),s2,f1,impedance_ex,"kz/k0","n","z_ex",ibc->label);
+        break;
+      case hoibc::type_t::S:
+        dump_to_csv(ss.str(),f2,impedance_ex,"n","z_ex",ibc->label);
+        break;
+      }
     }
 
     if (data_out.impedance_ibc){
       std::string filename = data_out.basename+".z_ibc."+ibc->label+".csv";
-      dump_to_csv(filename,s1,s2,impedance_ibc,"s1","s2","z_"+ibc->name,ibc->label);
+      switch (ibc->type){
+      case hoibc::type_t::P:
+        dump_to_csv(filename,s1,s2,impedance_ibc,"s1","s2","z_"+ibc->name,ibc->label);
+        break;
+      case hoibc::type_t::C:
+        dump_to_csv(filename,s2,f1,impedance_ibc,"kz/k0","n","z_"+ibc->name,ibc->label);
+        break;
+      case hoibc::type_t::S:
+        dump_to_csv(filename,f2,impedance_ibc,"n","z_"+ibc->name,ibc->label);
+        break;
+      }
     }
 
     if (data_out.impedance_err){
       std::string filename = data_out.basename+".z_err."+ibc->label+".csv";
-      dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"s1","s2","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
+      switch (ibc->type){
+      case hoibc::type_t::P:
+        dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"kx/k0","ky/k0","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
+        break;
+      case hoibc::type_t::C:
+        dump_to_csv(filename,s2,f1,impedance_ex - impedance_ibc,"kz/k0","n","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
+        break;
+      case hoibc::type_t::S:
+        dump_to_csv(filename,f2,impedance_ex - impedance_ibc,"n","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
+        break;
+      }
     }
   }
 
