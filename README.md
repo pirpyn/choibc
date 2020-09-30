@@ -67,4 +67,4 @@ Newer version should compile and run fine.
 
 ### License
 
-  * The original sourcecode and the modifications are released under a [MIT license](https://raw.githubusercontent.com/pirpyn/choibc/master/LICENCE).
+  * The original sourcecode and the modifications are released under a [GNU GPL license](https://raw.githubusercontent.com/pirpyn/choibc/master/LICENCE).
