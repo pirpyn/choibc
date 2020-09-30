@@ -62,10 +62,10 @@ int main(int argc, char* argv[]) {
         /
         (hoibc::bessel2(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2(n,k3*r0));
       
-      impedance_ap[i][j][0][0] = ci*k/(k3*eta)*Tn - ci*kz*kz*n*n/(k3*k3*k3*r1*r1*k*eta)*Sn;
+      impedance_ap[i][j][0][0] = ci*k3/(k*eta)*Sn;
       impedance_ap[i][j][1][0] = ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][0][1] = -ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][1][1] = ci*k3/(k*eta)*Sn;
+      impedance_ap[i][j][0][1] = ci*kz*n/(k*k3*eta*r1)*Sn;
+      impedance_ap[i][j][1][1] = -ci*k/(k3*eta)*Tn + ci*n*n*kz*kz / (k*k3*k3*k3*eta*r1*r1)* Sn;
       impedance_ex[i][j] = inv(impedance_ex[i][j]);
     }
   }
@@ -89,5 +89,5 @@ int main(int argc, char* argv[]) {
   } else {
     cout << "[OK?] " << "|(Z_O-Z_P)[0][0][0][0]| < 1e-8" << endl;
   }
-  return (check);
+  return (!check);
 }
