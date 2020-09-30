@@ -5,7 +5,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zuchk(double yr, double yi, int *__restrict__ nz, double ascle, double tol) {
   double wi, ss, st, wr;
 

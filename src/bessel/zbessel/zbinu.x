@@ -5,7 +5,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zbinu(double zr, double zi, double fnu, int kode, int n, double *__restrict__ cyr,
            double *__restrict__ cyi, int *__restrict__ nz, double rl, double fnul, double tol,
            double elim, double alim) {

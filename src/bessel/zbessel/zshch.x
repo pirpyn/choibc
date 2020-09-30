@@ -4,7 +4,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zshch(double zr, double zi, double *__restrict__ cshr, double *__restrict__ cshi, double *__restrict__ cchr,
            double *__restrict__ cchi) {
   /* Local variables */

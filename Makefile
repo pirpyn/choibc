@@ -247,10 +247,14 @@ test: hoibc
 run_test: test
 	@TESTS=( $(foreach bin,$(TEST_BINS),$(bindir)/$(bin)) ); \
 	echo "Running the $${#TESTS[@]} tests"; \
+	status=0; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
 		printf  "[%3d / %3d] " $$(($${i}+1)) $${#TESTS[@]}; \
 		./$${TESTS[$$i]}; \
-	done
+		status=$$(( $$status + $$? )); \
+	done; \
+	echo "================================================="; \
+	echo "They were $$status tests failling."
 
 #############################################################################
 #############################################################################

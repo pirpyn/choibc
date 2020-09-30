@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zkscl(double zrr, double zri, double fnu, int n, double *__restrict__ yr,
            double *__restrict__ yi, int *__restrict__ nz, double rzr, double rzi, double ascle,
            double tol, double elim) {

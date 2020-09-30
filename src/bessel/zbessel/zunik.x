@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zunik(double zrr, double zri, double fnu, int ikflg, int ipmtr,
            double tol, int init, double *__restrict__ phir, double *__restrict__ phii, double *__restrict__ zeta1r,
            double *__restrict__ zeta1i, double *__restrict__ zeta2r, double *__restrict__ zeta2i, double *__restrict__ sumr,

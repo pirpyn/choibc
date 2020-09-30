@@ -12,9 +12,9 @@
         },
         "hoibc": {
             "name"          : ["ibc3","ibc3","ibc3"],
-            "suc"           : [false,true,false],
-            "type"          : ["P","P","C"],
-            "inner_radius"  : [0.0,0.0,1.0],
+            "suc"           : [false,false,false],
+            "type"          : ["P","C","S"],
+            "inner_radius"  : [0.0,1.0,1.0],
             "mode"          : [2,2,2],
             "normalised"    : [true,true,true]
         },

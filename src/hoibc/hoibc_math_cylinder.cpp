@@ -8,65 +8,65 @@
 using namespace hoibc;
 
   // The tangential part of E / n x H writes in each layer where C1,C2 depends on the layer
-  // E_t(r,theta,z)     = 1/(2 pi) sum_n int_R JE(r,n,kz) C1(kz,n) + HE(r,n,kz) C2(kz,n) dkz
-  // n x H_t(r,theta,z) = 1/(2 pi) sum_n int_R JH(r,n,kz) C1(kz,n) + HH(r,n,kz) C2(kz,n) dkz
+// E_t(r,theta,z)     = 1/(2 pi) sum_n int_R AE(r,n,kz) C1(kz,n) + BE(r,n,kz) C2(kz,n) dkz
+// n x H_t(r,theta,z) = 1/(2 pi) sum_n int_R AH(r,n,kz) C1(kz,n) + BH(r,n,kz) C2(kz,n) dkz
 
   // See hoibc_math_plane.cpp for more
 
-matrix<complex> hoibc::cylinder::JE(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
-  matrix<complex> JE;
+matrix<complex> hoibc::cylinder::AE(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
+  matrix<complex> AE;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
-  JE[0][0] = -n*kz/(radius*std::pow(k3,2))*bessel1(n,k3*radius);
-  JE[1][0] = bessel1(n,k3*radius);
-  JE[0][1] = ci*etar*k/k3*bessel1p(n,k3*radius);
-  JE[1][1] = complex(0.,0.);
-  return JE;
+  AE[0][0] = -n*kz/(radius*std::pow(k3,2))*bessel1(n,k3*radius);
+  AE[1][0] = bessel1(n,k3*radius);
+  AE[0][1] = ci*etar*k/k3*bessel1p(n,k3*radius);
+  AE[1][1] = complex(0.,0.);
+  return AE;
 }
 
-matrix<complex> hoibc::cylinder::HE(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
-  matrix<complex> HE;
+matrix<complex> hoibc::cylinder::BE(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
+  matrix<complex> BE;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
-  HE[0][0] = -n*kz/(radius*std::pow(k3,2))*bessel2(n,k3*radius);
-  HE[1][0] = bessel2(n,k3*radius);
-  HE[0][1] = ci*etar*k/k3*bessel2p(n,k3*radius);
-  HE[1][1] = complex(0.,0.);
-  return HE;
+  BE[0][0] = -n*kz/(radius*std::pow(k3,2))*bessel2(n,k3*radius);
+  BE[1][0] = bessel2(n,k3*radius);
+  BE[0][1] = ci*etar*k/k3*bessel2p(n,k3*radius);
+  BE[1][1] = complex(0.,0.);
+  return BE;
 }
 
-matrix<complex> hoibc::cylinder::JH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
-  matrix<complex> JH;
+matrix<complex> hoibc::cylinder::AH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
+  matrix<complex> AH;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
-  JH[0][0] = complex(0.,0.);
-  JH[1][0] = -ci/etar*k/k3*bessel1p(n,k3*radius);
-  JH[0][1] = -bessel1(n,k3*radius);
-  JH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel1(n,k3*radius);
-  return JH;
+  AH[0][0] = complex(0.,0.);
+  AH[1][0] = -ci/etar*k/k3*bessel1p(n,k3*radius);
+  AH[0][1] = -bessel1(n,k3*radius);
+  AH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel1(n,k3*radius);
+  return AH;
 }
 
-matrix<complex> hoibc::cylinder::HH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
-  matrix<complex> HH;
+matrix<complex> hoibc::cylinder::BH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar){
+  matrix<complex> BH;
   const complex k3 = std::sqrt(std::pow(k,2) - std::pow(kz,2));
-  HH[0][0] = complex(0.,0.);
-  HH[1][0] = -ci/etar*k/k3*bessel2p(n,k3*radius);
-  HH[0][1] = -bessel2(n,k3*radius);
-  HH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel2(n,k3*radius);
-  return HH;
+  BH[0][0] = complex(0.,0.);
+  BH[1][0] = -ci/etar*k/k3*bessel2p(n,k3*radius);
+  BH[0][1] = -bessel2(n,k3*radius);
+  BH[1][1] = -n*kz/(radius*std::pow(k3,2))*bessel2(n,k3*radius);
+  return BH;
 }
 
-matrix<complex> hoibc::cylinder::MJ(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
-  return JE(radius,n,kz,k,etar) - B*JH(radius,n,kz,k,etar);
+matrix<complex> hoibc::cylinder::MA(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
+  return AE(radius,n,kz,k,etar) - B*AH(radius,n,kz,k,etar);
 }
 
-matrix<complex> hoibc::cylinder::MH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
-  return HE(radius,n,kz,k,etar) - B*HH(radius,n,kz,k,etar);
+matrix<complex> hoibc::cylinder::MB(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
+  return BE(radius,n,kz,k,etar) - B*BH(radius,n,kz,k,etar);
 }
 
 matrix<complex> hoibc::cylinder::NE(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
-  return JE(radius,n,kz,k,etar) + HE(radius,n,kz,k,etar)*B;
+  return AE(radius,n,kz,k,etar) + BE(radius,n,kz,k,etar)*B;
 }
 
 matrix<complex> hoibc::cylinder::NH(const real& radius,const real& n, const real& kz, const complex& k, const complex& etar, const matrix<complex>& B){
-  return JH(radius,n,kz,k,etar) + HH(radius,n,kz,k,etar)*B;
+  return AH(radius,n,kz,k,etar) + BH(radius,n,kz,k,etar)*B;
 }
 
 big_matrix<complex> hoibc::cylinder::impedance_infinite(const array<real>& vn, const array<real>& vkz, const real& k0, const material_t& material, const real& inner_radius){
@@ -95,17 +95,17 @@ big_matrix<complex> hoibc::cylinder::impedance_infinite(const array<real>& vn, c
 
         const matrix<complex>& B = impedance_ex[i][j];
 
-        const matrix<complex> mMJ = inv(MJ(radius,n,kz,k,etar,B));
-        const matrix<complex> mMH = inv(MH(radius,n,kz,k,etar,B));
+        const matrix<complex> mMJ = inv(MA(radius,n,kz,k,etar,B));
+        const matrix<complex> mMH = inv(MB(radius,n,kz,k,etar,B));
 
-        const matrix<complex> mJE = JE(radius+d,n,kz,k,etar);
-        const matrix<complex> mHE = HE(radius+d,n,kz,k,etar);
+        const matrix<complex> mAE = AE(radius+d,n,kz,k,etar);
+        const matrix<complex> mBE = BE(radius+d,n,kz,k,etar);
 
-        const matrix<complex> mJH = JH(radius+d,n,kz,k,etar);
-        const matrix<complex> mHH = HH(radius+d,n,kz,k,etar);
+        const matrix<complex> mAH = AH(radius+d,n,kz,k,etar);
+        const matrix<complex> mBH = BH(radius+d,n,kz,k,etar);
 
         // Using the overloaded / operator A / B = A*B^{-1}
-        impedance_ex[i][j] = (mHE*mMH - mJE*mMJ) / (mHH*mMH - mJH*mMJ);
+        impedance_ex[i][j] = (mBE*mMH - mAE*mMJ) / (mBH*mMH - mAH*mMJ);
       }
     }
     radius = radius + d;
@@ -133,7 +133,7 @@ big_matrix<complex> hoibc::cylinder::reflexion_from_impedance(const array<real>&
         reflexion[i][j] = mR0;
       } else {
         //Using the overloaded % operator A % B = A^{-1}*B
-        reflexion[i][j] = - MH(radius,n,kz,k,etar,impedance[i][j]) % MJ(radius,n,kz,k,etar,impedance[i][j]);
+        reflexion[i][j] = - MB(radius,n,kz,k,etar,impedance[i][j]) % MA(radius,n,kz,k,etar,impedance[i][j]);
       }
     }
   }
@@ -164,8 +164,8 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
       const real kz = vkz[j];
 
       reflexion_ex[i][j] = 
-        - MH(radius,n,kz,k_upper,etar_upper,material.initial_impedance) 
-        % MJ(radius,n,kz,k_upper,etar_upper,material.initial_impedance);
+        - MB(radius,n,kz,k_upper,etar_upper,material.initial_impedance) 
+        % MA(radius,n,kz,k_upper,etar_upper,material.initial_impedance);
     }
   }
 
@@ -192,13 +192,13 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
         const matrix<complex> mNE = inv(NE(radius,n,kz,k_lower,etar_lower,B));
         const matrix<complex> mNH = inv(NH(radius,n,kz,k_lower,etar_lower,B));
 
-        const matrix<complex> mJE = JE(radius,n,kz,k_upper,etar_upper);
-        const matrix<complex> mHE = HE(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mAE = AE(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mBE = BE(radius,n,kz,k_upper,etar_upper);
 
-        const matrix<complex> mJH = JH(radius,n,kz,k_upper,etar_upper);
-        const matrix<complex> mHH = HH(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mAH = AH(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mBH = BH(radius,n,kz,k_upper,etar_upper);
 
-        reflexion_ex[i][j] = - ( mNE*mHE - mNH*mHH ) % ( mNE*mJE - mNH*mJH );
+        reflexion_ex[i][j] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
       }
     }
   }
@@ -224,13 +224,13 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
         const matrix<complex> mNE = inv(NE(radius,n,kz,k_lower,etar_lower,B));
         const matrix<complex> mNH = inv(NH(radius,n,kz,k_lower,etar_lower,B));
 
-        const matrix<complex> mJE = JE(radius,n,kz,k_upper,etar_upper);
-        const matrix<complex> mHE = HE(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mAE = AE(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mBE = BE(radius,n,kz,k_upper,etar_upper);
 
-        const matrix<complex> mJH = JH(radius,n,kz,k_upper,etar_upper);
-        const matrix<complex> mHH = HH(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mAH = AH(radius,n,kz,k_upper,etar_upper);
+        const matrix<complex> mBH = BH(radius,n,kz,k_upper,etar_upper);
 
-        reflexion_ex[i][j] = - ( mNE*mHE - mNH*mHH ) % ( mNE*mJE - mNH*mJH );
+        reflexion_ex[i][j] = - ( mNE*mBE - mNH*mBH ) % ( mNE*mAE - mNH*mAH );
 
 //      } else {
 //        std::cerr << "warning: reflexion_infinite_cylinder: can't compute Hankel function at k3*outer_radius for k3 = 0." << std::endl;
@@ -288,15 +288,19 @@ void hoibc::cylinder::get_matrices_LD_LR(const real& radius, const array<real>& 
   }
 }
 
-void hoibc::cylinder::get_matrices_JH_EH(const real& radius, const array<real>& vn, const array<real>& vkz, const complex& k, const complex& etar, big_matrix<complex>& mJE ,big_matrix<complex>& mHE ,big_matrix<complex>& mJH ,big_matrix<complex>& mHH){
+void hoibc::cylinder::get_matrices_AB_EH(const real& radius, const array<real>& vn, const array<real>& vkz, const complex& k, const complex& etar, big_matrix<complex>& mAE ,big_matrix<complex>& mBE ,big_matrix<complex>& mAH ,big_matrix<complex>& mBH){
+  mAE = big_init(vn.size(),vkz.size(),complex(0.,0.));
+  mBE = big_init(vn.size(),vkz.size(),complex(0.,0.));
+  mAH = big_init(vn.size(),vkz.size(),complex(0.,0.));
+  mBH = big_init(vn.size(),vkz.size(),complex(0.,0.));
   for (std::size_t i = 0; i < vn.size(); i++){
     real n = vn[i];
     for (std::size_t j = 0; j < vkz.size(); j++){
       real kz = vkz[j];
-      mJE[i][j] = JE(radius,n,kz,k,etar);
-      mJH[i][j] = JH(radius,n,kz,k,etar);
-      mHE[i][j] = HE(radius,n,kz,k,etar);
-      mHH[i][j] = HH(radius,n,kz,k,etar);
+      mAE[i][j] = AE(radius,n,kz,k,etar);
+      mAH[i][j] = AH(radius,n,kz,k,etar);
+      mBE[i][j] = BE(radius,n,kz,k,etar);
+      mBH[i][j] = BH(radius,n,kz,k,etar);
     }
   }
 }

@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zunhj(double zr, double zi, double fnu, int ipmtr, double tol,
            double *__restrict__ phir, double *__restrict__ phii, double *__restrict__ argr, double *__restrict__ argi,
            double *__restrict__ zeta1r, double *__restrict__ zeta1i, double *__restrict__ zeta2r, double *__restrict__ zeta2i,

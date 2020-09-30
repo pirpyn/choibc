@@ -6,7 +6,7 @@
 
 namespace zbessel {
 
-template <class>
+
 void zwrsk(double zrr, double zri, double fnu, int kode, int n, double *__restrict__ yr,
            double *__restrict__ yi, int *__restrict__ nz, double *__restrict__ cwr, double *__restrict__ cwi, double tol,
            double elim, double alim) {

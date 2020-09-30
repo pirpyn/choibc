@@ -36,28 +36,28 @@ namespace hoibc {
     return v;
   }
 
-  template<typename T>
-  array<real> operator*(const array<real>& v, const T& x){
-    array<real> w (v);
-    for (auto& y : w){
-      y *= x;
-    }
-    return w;
-  }
+  // template<typename T>
+  // array<real> operator*(const array<real>& v, const T& x){
+  //   array<real> w (v);
+  //   for (auto& y : w){
+  //     y *= x;
+  //   }
+  //   return w;
+  // }
 
-  template<typename T>
-  array<real> operator*(const T& x, const array<real>& v){
-      return v*x;
-  }
+  // template<typename T>
+  // array<real> operator*(const T& x, const array<real>& v){
+  //     return v*x;
+  // }
 
-  template<typename T>
-  array<real> operator/(const array<real>& v, const T& x){
-    array<real> w (v);
-    for (auto& y : w){
-      y /= x;
-    }
-    return w;
-  }
+  // template<typename T>
+  // array<real> operator/(const array<real>& v, const T& x){
+  //   array<real> w (v);
+  //   for (auto& y : w){
+  //     y /= x;
+  //   }
+  //   return w;
+  // }
 
   template<typename T>
   matrix<T> matmul(const matrix<T>& A, const matrix<T>& B){
