@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
   hoibc::hoibc_ibc3 ibc;
   ibc.mode = hoibc::mode_t::Z;
   ibc.suc = false;
+  ibc.type = hoibc::type_t::C;
   ibc.normalised = true;
   ibc.inner_radius = 1.;
   ibc.outer_radius = ibc.inner_radius + data.material.thickness[0];
@@ -52,21 +53,21 @@ int main(int argc, char* argv[]) {
       const hoibc::real kz = vkz[j];
       const hoibc::complex k3 = std::sqrt(k*k - kz*kz);
 
-      hoibc::complex Sn =
-        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2p(n,k3*r0))
+      hoibc::complex Sni =
+        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2p(n,k3*r0))
         /
-        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2p(n,k3*r0));
+        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1p(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2p(n,k3*r0));
 
-      hoibc::complex Tn =
-        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2(n,k3*r0))
+      hoibc::complex Tni =
+        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2(n,k3*r0))
         /
-        (hoibc::bessel2(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1(n,k3*r1)*hoibc::bessel2(n,k3*r0));
+        (hoibc::bessel2p(n,k3*r1)*hoibc::bessel1(n,k3*r0) - hoibc::bessel1p(n,k3*r1)*hoibc::bessel2(n,k3*r0));
 
-      impedance_ap[i][j][0][0] = ci*k3/(k*eta)*Sn;
-      impedance_ap[i][j][1][0] = ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][0][1] = ci*kz*n/(k*k3*eta*r1)*Sn;
-      impedance_ap[i][j][1][1] = -ci*k/(k3*eta)*Tn + ci*n*n*kz*kz / (k*k3*k3*k3*eta*r1*r1)* Sn;
-      impedance_ex[i][j] = inv(impedance_ex[i][j]);
+      impedance_ap[i][j][0][0] = -ci*eta*k/k3*Sni + ci*eta*n*n*kz*kz / (k*k*k3*k3*r1*r1)*Tni;
+      impedance_ap[i][j][1][0] = -ci*eta*kz*n/(k*k3*r1)*Tni;
+      impedance_ap[i][j][0][1] = -ci*eta*kz*n/(k*k3*r1)*Tni;
+      impedance_ap[i][j][1][1] = ci*eta*k3/k*Tni;
+
     }
   }
   const std::string filename = "impedance_cylinder_verif.csv";
