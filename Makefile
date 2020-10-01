@@ -98,9 +98,6 @@ dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 # Static libraries to build
 libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
 
-# Static libraries to use
-libs_depends:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
-
 # Corresponding sources files
 sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(srcdir)/*$(ext))))
 
@@ -182,11 +179,9 @@ $(dirs):
 
 #############################################################################
 
-$(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
-	@echo "  $<"
-	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
+# The .d file will contains all prerequisite for each .o target
 
-$(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
+$(objdir)/%.o::
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
@@ -198,7 +193,7 @@ $(libdir)/%.so: $(objects)
 	@echo "Creating $@"
 	@$(CXXC) -shared -o $@ $^
 
-$(bindir)/%: $(objdir)/%.o $(libs) $(libs_depends)
+$(bindir)/%: $(objdir)/%.o $(libs)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
@@ -218,9 +213,12 @@ depend: $(dependencies)
 
 # Don't create dependencies when we're cleaning, for instance
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
-    #Chances are, these files don't exist.  GMake will create them and
-    #clean up automatically afterwards
-    -include $(dependencies)
+    # Chances are, these files don't exist.  GMake will create them and
+    # clean up automatically afterwards
+    # No dependencies at level 0
+    ifneq ($(MAKELEVEL),0)
+        -include $(dependencies)
+    endif
 endif
 
 # This is the rule for creating the dependency files
@@ -249,8 +247,8 @@ run_test: test
 	echo "Running the $${#TESTS[@]} tests"; \
 	status=0; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
-		printf  "[%3d / %3d] " $$(($${i}+1)) $${#TESTS[@]}; \
-		./$${TESTS[$$i]}; \
+		printf  "[%3d / %3d] %s\n" $$(($${i}+1)) $${#TESTS[@]} $${TESTS[$$i]}; \
+		$${TESTS[$$i]}; \
 		status=$$(( $$status + $$? )); \
 	done; \
 	echo "================================================="; \
