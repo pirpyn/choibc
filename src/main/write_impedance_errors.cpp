@@ -11,7 +11,6 @@
 using error_array = std::array<std::array<hoibc::real,2>,5>;
 
 // Function to sort the errors and returns the sort index to get the corresponding ibc.
-
 std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const std::size_t& j, const std::size_t& l) {
 
     // initialize original index locations
@@ -167,7 +166,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta){
           dump_to_csv(ss.str(),180./hoibc::pi*std::asin(s2),f1,reflexion_ex,"theta","n","f_ex","");
         } else {
-          dump_to_csv(ss.str(),s2,f1,reflexion_ex,"kz/k0","n","f_ex","");
+          dump_to_csv(ss.str(),f1,s2,reflexion_ex,"n","kz/k0","f_ex","");
         }
       }
 
@@ -176,7 +175,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ibc,"theta","n","f_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s2,f1,reflexion_ibc,"kz/k0","n","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,f1,s2,reflexion_ibc,"n","kz/k0","f_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -261,7 +260,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         dump_to_csv(ss.str(),s1,s2,impedance_ex,"kx/k0","ky/k0","z_ex",ibc->label);
         break;
       case hoibc::type_t::C:
-        dump_to_csv(ss.str(),s2,f1,impedance_ex,"kz/k0","n","z_ex",ibc->label);
+        dump_to_csv(ss.str(),f1,s2,impedance_ex,"n","kz/k0","z_ex",ibc->label);
         break;
       case hoibc::type_t::S:
         dump_to_csv(ss.str(),f2,impedance_ex,"n","z_ex",ibc->label);
@@ -276,7 +275,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         dump_to_csv(filename,s1,s2,impedance_ibc,"s1","s2","z_"+ibc->name,ibc->label);
         break;
       case hoibc::type_t::C:
-        dump_to_csv(filename,s2,f1,impedance_ibc,"kz/k0","n","z_"+ibc->name,ibc->label);
+        dump_to_csv(filename,f1,s2,impedance_ibc,"n","kz/k0","z_"+ibc->name,ibc->label);
         break;
       case hoibc::type_t::S:
         dump_to_csv(filename,f2,impedance_ibc,"n","z_"+ibc->name,ibc->label);
@@ -291,7 +290,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         dump_to_csv(filename,s1,s2,impedance_ex - impedance_ibc,"kx/k0","ky/k0","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
         break;
       case hoibc::type_t::C:
-        dump_to_csv(filename,s2,f1,impedance_ex - impedance_ibc,"kz/k0","n","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
+        dump_to_csv(filename,f1,s2,impedance_ex - impedance_ibc,"n","kz/k0","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);
         break;
       case hoibc::type_t::S:
         dump_to_csv(filename,f2,impedance_ex - impedance_ibc,"n","z_"+ibc->name,"z_ex - z_ibc "+ibc->label);

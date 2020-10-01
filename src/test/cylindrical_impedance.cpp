@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
   }
   const std::string filename = "impedance_cylinder_verif.csv";
   // using hoibc::operator-;
-  dump_to_csv(filename, vn, s2, impedance_ap - impedance_ex, "n", "s2", "Z_O-Z_P", "");
+  dump_to_csv(filename, vn, s2, impedance_ap - impedance_ex, "n", "kz/k0", "Z_O-Z_P", "");
 
   const bool check = abs((impedance_ap - impedance_ex)[0][0][0][0])<1e-8;
 
