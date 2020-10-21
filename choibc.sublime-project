@@ -17,8 +17,11 @@
             "linux": {
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug",
             },
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug\"",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug\"",
+              // for MinGW / MSYS2
+              "cmd": "make -s -j 4 FC=g++ MODE=debug",
             },
           },
           {
@@ -28,8 +31,11 @@
             "linux": {
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug main",
             },
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug main\"",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c \"make -s -j 4 FC=g++ MODE=debug main\"",
+              // for MinGW / MSYS2
+              "cmd": "make -s -j 4 FC=g++ MODE=debug main",
             },
           },
           {
@@ -39,8 +45,11 @@
             "linux": {
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug run_test",
             },
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run_test'",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run_test'",
+              // for MinGW / MSYS2
+              "cmd": "make -s -j 4 FC=g++ MODE=debug run_test",
             },
           },
 
@@ -51,14 +60,20 @@
             "linux": {
               "shell_cmd" : "make -s -j 4 FC=g++ MODE=debug run",
             },
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run'",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c 'make -s -j 4 FC=g++ MODE=debug run'",
+              // for MinGW / MSYS2
+              "cmd": "make -s -j 4 FC=g++ MODE=debug run",
             },
           },
           {
             "name": "clean",
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make FC=g++ MODE=debug clean'",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c 'make FC=g++ MODE=debug clean'",
+              // for MinGW / MSYS2
+              "cmd": "make FC=g++ MODE=debug clean",
             },
             "linux": {
               "shell_cmd": "make FC=g++ MODE=debug clean",
@@ -67,8 +82,11 @@
           {
             "name": "Run this file",
             "file_regex" : "^([^:\n]+):([0-9]*):([0-9]*):(.*)$",
-            "windows": { // for linux subsystem
-              "cmd": "bash.exe -c 'make run MODE=optim ARGS=\\$(wslpath \"$file\")'",
+            "windows": { 
+              // for linux subsystem
+              // "cmd": "bash.exe -c 'make run MODE=optim ARGS=\\$(wslpath \"$file\")'",
+              // for MinGW / MSYS2
+              "cmd": "make run MODE=optim ARGS=\"$file\"",
             },
             "linux": {
               "shell_cmd": "make run MODE=optim ARGS=$file",

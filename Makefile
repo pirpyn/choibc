@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 SHELL:=/bin/bash
+
 ############################################################################
 .PHONY: help
 help:
@@ -47,11 +48,28 @@ INCFLAGS:=
 .EXTENSIONS: $(EXTENSIONS) .o
 
 # Processor architecture for separate building
-release:=$(shell uname -r)
-ifeq ($(CXXC),g++)
-fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
-else ifeq ($(CXXC),clang)
-fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 |cut -d '-' -f 1)
+ifeq ($(OS),Windows_NT)
+  release:=$(OS)
+  ifeq ($(CXXC),g++)
+    fcvers:=$(shell $(CXXC) --version | head -n 1 | cut -d ' ' -f 3)
+  else
+  	fcvers:=???
+  endif
+  libext_shared:=dll
+  libext_static:=a
+  CXXFLAGS+=-I/mingw64/include
+  # Sadly, Windows don't have the -rpath ld option
+  # https://stackoverflow.com/questions/3272383/linking-with-r-and-rpath-switches-on-windows
+  LDFLAGS:=-L/mingw64/bin -llapacke
+else
+  release:=$(shell uname -r)
+  ifeq ($(CXXC),g++)
+    fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
+  else ifeq ($(CXXC),clang)
+    fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 | cut -d '-' -f 1)
+  endif
+  libext_shared:=so
+  libext_static:=a
 endif
 
 blddir:=./build/$(release)/$(CXXC)/$(fcvers)
@@ -75,12 +93,12 @@ blddir:=$(blddir)/$(MODE)
 
 SHARED=0
 ifeq ($(SHARED),1)
-	libext=so
+	libext:=$(libext_shared)
 	CXXFLAGS+=-fPIC
 	blddir:=$(blddir)/shared
-	LDFLAGS+=-Wl,-R(libdir)
+	LDFLAGS+=-Wl,-R$(libdir)
 else
-	libext=a
+	libext:=$(libext_static)
 	blddir:=$(blddir)/static
 endif
 
@@ -105,7 +123,11 @@ sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(sr
 objects:=$(foreach file,$(sources),$(patsubst %,$(objdir)/%.o,$(basename $(notdir $(file)))))
 
 # Binaries names to build
-bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
+ifeq ($(OS),Windows_NT)
+  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
+else
+	bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%.exe,$(bin)))
+endif
 
 # Path to look for sources files
 VPATH:=$(SRCDIRS) $(objdir) $(libdir)
@@ -197,6 +219,10 @@ $(bindir)/%: $(objdir)/%.o $(libs)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
+$(bindir)/%.exe: $(objdir)/%.o $(libs)
+	@echo "Linking $@"
+	@$(CXXC) -o $@ $< $(LDFLAGS)
+
 #############################################################################
 # Rules for dependencies
 # https://stackoverflow.com/a/313787/8506658
@@ -244,6 +270,7 @@ test: hoibc
 .PHONY: run_test
 run_test: test
 	@TESTS=( $(foreach bin,$(TEST_BINS),$(bindir)/$(bin)) ); \
+	if [[ $(OS) == Windows_NT ]]; then PATH=/mingw64/bin:$${PATH};fi; \
 	echo "Running the $${#TESTS[@]} tests"; \
 	status=0; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
@@ -273,7 +300,8 @@ clean_all:
 
 .PHONY: run
 run: main
-	@for bin in $(bins); do \
+	@if [[ $(OS) == Windows_NT ]]; then PATH=/mingw64/bin:$${PATH};fi; \
+	for bin in $(bins); do \
 		echo ; \
 		echo ">> $(PREFIX) $${bin} $(ARGS)"; \
 		echo ; \
