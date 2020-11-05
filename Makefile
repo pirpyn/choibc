@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 SHELL:=/bin/bash
-
+ifndef (OS)
+  OS:=Linux
+endif
 ############################################################################
 .PHONY: help
 help:
@@ -53,7 +55,7 @@ ifeq ($(OS),Windows_NT)
   ifeq ($(CXXC),g++)
     fcvers:=$(shell $(CXXC) --version | head -n 1 | cut -d ' ' -f 3)
   else
-  	fcvers:=???
+    fcvers:=xxx
   endif
   libext_shared:=dll
   libext_static:=a
@@ -76,30 +78,30 @@ blddir:=./build/$(release)/$(CXXC)/$(fcvers)
 lklibdir:=./build/lib
 lkbindir:=./build/bin
 ifeq ($(DEBUG),1)
-	MODE=debug
+  MODE=debug
 else
-	MODE=optim
+  MODE=optim
 endif
 
 MODE=optim
 ifeq ($(MODE),debug)
-	CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
+  CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
 else ifeq ($(MODE),dev)
-	CXXFLAGS+=-g -O2 -D_DEV
+  CXXFLAGS+=-g -O2 -D_DEV
 else ifeq ($(MODE),optim)
-	CXXFLAGS+=-O2 -D_OPTIM
+  CXXFLAGS+=-O2 -D_OPTIM
 endif
 blddir:=$(blddir)/$(MODE)
 
 SHARED=0
 ifeq ($(SHARED),1)
-	libext:=$(libext_shared)
-	CXXFLAGS+=-fPIC
-	blddir:=$(blddir)/shared
-	LDFLAGS+=-Wl,-R$(libdir)
+  libext:=$(libext_shared)
+  CXXFLAGS+=-fPIC
+  blddir:=$(blddir)/shared
+  LDFLAGS+=-Wl,-R$(libdir)
 else
-	libext:=$(libext_static)
-	blddir:=$(blddir)/static
+  libext:=$(libext_static)
+  blddir:=$(blddir)/static
 endif
 
 # Building subdirectories
@@ -113,6 +115,9 @@ CXXFLAGS+=$(INCFLAGS)
 
 dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
+# Libs for which we want to rebuilt if necessary
+order_libs:=$(foreach lib,$(ORDER_LIBS),$(patsubst %,$(libdir)/lib%.$(libext),$(lib)))
+
 # Static libraries to build
 libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
 
@@ -124,9 +129,9 @@ objects:=$(foreach file,$(sources),$(patsubst %,$(objdir)/%.o,$(basename $(notdi
 
 # Binaries names to build
 ifeq ($(OS),Windows_NT)
-  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
+  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%.exe,$(bin)))
 else
-	bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%.exe,$(bin)))
+  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
 endif
 
 # Path to look for sources files
@@ -147,8 +152,8 @@ hoibc: info
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="hoibc alglib bessel" lib -j
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" prog -j
+	@$(MAKE) SRCDIRS=./src/main lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" ORDER_LIBS="main hoibc alglib bessel" prog -j
 
 .PHONY: link
 link: main | $(lklibdir) $(lkbindir)
@@ -215,11 +220,11 @@ $(libdir)/%.so: $(objects)
 	@echo "Creating $@"
 	@$(CXXC) -shared -o $@ $^
 
-$(bindir)/%: $(objdir)/%.o $(libs)
+$(bindir)/%: $(objdir)/%.o $(libs) $(order_libs)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
-$(bindir)/%.exe: $(objdir)/%.o $(libs)
+$(bindir)/%.exe: $(objdir)/%.o $(libs) $(order_libs)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
