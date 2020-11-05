@@ -88,16 +88,20 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
   if (this->suc){
-    std::cout << "hoibc: Executing the constrained optimisation algorithm ... " << std::endl;
+    std::cout << "hoibc: IBC " << this->label << ": executing the constrained optimisation algorithm ... " << std::endl;
     alglib::real_1d_array x;
     alglib::real_1d_array scale;
 
-    // Get number of unknows from IBC
+    // Get number of unknows from IBC, and initialise ALGLIB quantities.
     this->coeff_to_array(x);
     this->coeff_to_array(scale);
-    // Feasible starting point
+
     for (alglib::ae_int_t i = 0; i < x.length(); i++){
+      /// An always feasible starting point
       x[i] = 0.;
+      // We set the scale to roughly twice the no constraints solution.
+      // The scale can't have zero values.
+      scale[i] = abs(scale[i]) > 0. ? abs(scale[i])*2.0 : 1.0 ;
     }
     alglib::minnlcstate state;
     alglib::minnlccreatef(x, data.optim.grad_delta, state);
@@ -109,8 +113,8 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     alglib::minnlcsetscale(state, scale);
 
     // Set solver
-    // SLP: Robust, slower, non convex, prototyping
-    // AUL: Faster, more tuning, convex
+    // SLP: Robust, slower, work on non convex function, good for prototyping
+    // AUL: Faster, more tuning, needs convexity.
 
     // alglib::minnlcsetalgoaul(state, rho, outerits);
     alglib::minnlcsetalgoslp(state);
@@ -131,7 +135,7 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     costf_data.nle = cle.size();
     costf_data.no_constraints = data.optim.no_constraints;
     if (costf_data.no_constraints){
-      std::cout << "hoibc: IBC " << this->name << " has no constraints." << std::endl;
+      std::cout << "hoibc: IBC " << this->label << " has no constraints." << std::endl;
     }
     // Minimize the cost function
     alglib::minnlcoptimize(state, costf, report_iteration, &(costf_data));
@@ -198,6 +202,8 @@ void hoibc_class::print_coeff(std::ostream& out){
     case type_t::C:
     case type_t::S:
       out << "# inner radius " << this->inner_radius << ", outer_radius " << this->outer_radius << std::endl;
+      break;
+    case type_t::P:
       break;
   }
   std::showpos(out);
@@ -324,7 +330,7 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in
       // front of the bessel functions Jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same Hn)
       if (data.main.s1[1]<1){
-        std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
+        std::cerr << "warning: hoibc_class::set_fourier_variables: IBC " << this->label << ": enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
       }
 
       n1 = static_cast<integer>(std::max(1.,data.main.s1[1])*k0*this->outer_radius) + 1;
@@ -350,14 +356,14 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       // It should be noted that max(s2) should be at least superior or equal to 1 because the Mie coefficient on front
       // of the spherical bessel functions C_mn jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
       if (data.main.s2[1] < 1.){
-        std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
+        std::cerr << "warning: hoibc_class::set_fourier_variables: IBC " << this->label << ": enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
       }
       n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 1;
       f2 = linspace(0,n2,n2+1);
       s2 = f2 / (k0*this->outer_radius);
       break;
     default :
-      std::cerr << "error: hoibc_class::set_fourier_variables: IBC has unknown type " << type_to_char(this->type) << std::endl;
+      std::cerr << "error: hoibc_class::set_fourier_variables: IBC " << this->label << " has unknown type " << type_to_char(this->type) << std::endl;
       std::exit(5);
       break;
   }
