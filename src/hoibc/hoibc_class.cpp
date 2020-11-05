@@ -112,12 +112,8 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     // Set scale of unknowns
     alglib::minnlcsetscale(state, scale);
 
-    // Set solver
-    // SLP: Robust, slower, work on non convex function, good for prototyping
-    // AUL: Faster, more tuning, needs convexity.
-
-    // alglib::minnlcsetalgoaul(state, rho, outerits);
-    alglib::minnlcsetalgoslp(state);
+    // Use SQP solver.
+    alglib::minnlcsetalgosqp(state);
 
     // Get number of equality and inequality constraints
     array<real> ceq, cle;
