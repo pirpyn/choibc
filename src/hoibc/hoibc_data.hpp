@@ -28,7 +28,7 @@ namespace hoibc{
   enum class type_t { // Type of geometry
     P, // Plane
     C, // Cylinder
-    S // Sphere
+    S  // Sphere
   };
 
   // For compatibility with Fortran
@@ -36,7 +36,7 @@ namespace hoibc{
 
   enum class mode_t { // Mode of computation
     Z, // Impedance first
-    R // Reflexion first
+    R  // Reflexion first
   };
 
   struct hoibc_t{
@@ -49,13 +49,19 @@ namespace hoibc{
     array<mode_t>       mode;         // Computing with respect to the impedance or the reflexion
   };
 
+  enum class start_pt_t{
+    feasible,    // Starting point that verify the constraints, but may be far from the optimum
+    best         // Starting point that is at an optimum, but may not verify the constraints
+  };
+
   struct optim_t{
-    integer max_iter { 100 };     // max number of iteration
-    real    tol { 1e-6 };        // tol for suc
-    real    toldx  { 1e-8 };      // if `|xn+1 - xn| < toldx` then stop
-    real    grad_delta { 1e-4 };  // Step to approximation gradient of constraints and cost function
-    bool    no_constraints { false }; // If true, then minimisation is unconstrained (SUC are forced to zero)
-    bool    show_iter { false };  // Display information at each iteration
+    integer     max_iter { 100 };                         // max number of iteration
+    real        tol { 1e-6 };                             // tol for suc
+    real        toldx  { 1e-8 };                          // if `|xn+1 - xn| < toldx` then stop
+    real        grad_delta { 1e-4 };                      // Step to approximation gradient of constraints and cost function
+    bool        no_constraints { false };                 // If true, then minimisation is unconstrained (SUC are forced to zero)
+    bool        show_iter { false };                      // Display information at each iteration
+    start_pt_t  starting_point { start_pt_t::feasible };  // Type of the starting point
   };
 
   struct data_t{

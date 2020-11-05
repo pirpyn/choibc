@@ -44,10 +44,11 @@ struct costf_data_t {
   const array<real>* f2 = NULL;
   const big_matrix<complex>* gex = NULL;
   bool no_constraints = false;
+  bool show_iter = false;
 };
 
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr);
-void report_iteration(const alglib::real_1d_array &x, double func, void *ptr);
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr = NULL, bool reset = false);
 
 void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const array<real>& f2){
 
@@ -97,8 +98,16 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     this->coeff_to_array(scale);
 
     for (alglib::ae_int_t i = 0; i < x.length(); i++){
-      /// An always feasible starting point
-      x[i] = 0.;
+      switch (data.optim.starting_point){
+        case start_pt_t::feasible:
+          // An always feasible starting point
+          x[i] = 0.;
+          break;
+        case start_pt_t::best:
+          // Already done by getting the coefficient without SUC
+          break;
+      }
+
       // We set the scale to roughly twice the no constraints solution.
       // The scale can't have zero values.
       scale[i] = abs(scale[i]) > 0. ? abs(scale[i])*2.0 : 1.0 ;
@@ -130,11 +139,17 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     costf_data.neq = ceq.size();
     costf_data.nle = cle.size();
     costf_data.no_constraints = data.optim.no_constraints;
+    costf_data.show_iter = data.optim.show_iter;
+
     if (costf_data.no_constraints){
       std::cout << "hoibc: IBC " << this->label << " has no constraints." << std::endl;
     }
+  
     // Minimize the cost function
-    alglib::minnlcoptimize(state, costf, report_iteration, &(costf_data));
+    if (data.optim.show_iter){
+      report_iteration(x,0.,NULL,true);
+    }
+    alglib::minnlcoptimize(state, costf, NULL, &(costf_data));
 
     // Get solution and termination status
     alglib::minnlcreport rep;
@@ -144,8 +159,37 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
   }
 }
 
-void report_iteration(const alglib::real_1d_array &x, double func, void *ptr){
-  std::cout << func << std::endl;
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr, bool reset){
+  static int iter = 0;
+  if (reset){
+    iter = 0;
+  }
+  constexpr const int width = 11;
+  if (iter == 0){
+    std::stringstream ss;
+    ss << "iter";
+    std::string s = ss.str();
+    std::cout << s.insert(0,width-s.length(),' ') << " ";
+    for (alglib::ae_int_t i = 0; i < x.length(); i++){
+      std::stringstream ss;
+      ss << "x[" << static_cast<int>(i) << "]";
+      std::string s = ss.str();
+      std::cout << s.insert(0,width-s.length(),' ') << " ";
+    }
+    std::cout << std::endl;
+    std::cout.precision(width-7);
+    std::cout.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
+  }
+  std::cout << std::noshowpos;
+  std::stringstream ss;
+  ss << iter;
+  std::string s = ss.str();
+  std::cout << s.insert(0,width-s.length(),' ') << " ";
+  for (alglib::ae_int_t i = 0; i < x.length(); i++){
+    std::cout << std::showpos << x[i] << " ";
+  }
+  std::cout << std::endl;
+  iter++ ;
 }
 
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr){
@@ -163,13 +207,13 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
     break;
   }
 
-  // for (alglib::ae_int_t i = 0; i < x.length(); i++){
-  //   std::cout << x[i] << " ";
-  // }
-  // std::cout << std::endl;
-
   // Cost function value at current point
   fi[0] = std::pow(norm(ap - *(data.gex)),2) / std::pow(norm(*(data.gex)),2);
+
+
+  if (data.show_iter){
+    report_iteration(x,fi[0],NULL,false);
+  }
 
   // Get constraints
   if (data.no_constraints) {
@@ -197,7 +241,7 @@ void hoibc_class::print_coeff(std::ostream& out){
   switch (this->type) {
     case type_t::C:
     case type_t::S:
-      out << "# inner radius " << this->inner_radius << ", outer_radius " << this->outer_radius << std::endl;
+      out << "# inner radius " << this->inner_radius << "m, outer_radius " << this->outer_radius << "m" << std::endl;
       break;
     case type_t::P:
       break;
