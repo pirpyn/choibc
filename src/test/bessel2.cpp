@@ -18,7 +18,7 @@ int main(){
   int no_of_errors {0};
   hoibc::complex reference;
   hoibc::complex computed;
-  
+
   reference = hoibc::complex(0.7651976865579665514497175261026632209092742897553252418, -0.08825696421567695798292676602351516282781752309067554671);
   computed  = bessel2(0.,hoibc::complex(1.,0.));
   CHECK("bessel2(0.,1.)  ");

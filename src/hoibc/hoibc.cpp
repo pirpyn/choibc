@@ -14,12 +14,12 @@ enum class hoibc::hoibc_names {
   unknown
 };
 
-void hoibc::main(const data_t& data, std::vector<hoibc_class*>& hoibc_list) { 
+void hoibc::main(const data_t& data, std::vector<hoibc_class*>& hoibc_list) {
   setup(data,hoibc_list);
 
   for ( auto&& ibc : hoibc_list ) {
     if (!ibc){ // for unknown ibc, ibc is a nullptr, so we skip
-      continue; 
+      continue;
     }
     array<real> f1, f2;
     ibc->set_fourier_variables(data,f1,f2);

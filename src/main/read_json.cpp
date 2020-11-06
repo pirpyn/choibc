@@ -71,6 +71,28 @@ namespace std {
         }
     }
 
+    void to_json(json& j, const hoibc::start_pt_t& d)
+    {
+        switch (d){
+        case hoibc::start_pt_t::feasible:
+            j = { "feasible" };
+            break;
+        case hoibc::start_pt_t::best:
+            j = { "best" };
+            break;
+        }
+    }
+
+    void from_json(const json& j, hoibc::start_pt_t& d)
+    {
+        if (j.get<std::string>() == "feasible"){
+            d = hoibc::start_pt_t::feasible;
+        }
+        else if (j.get<std::string>() == "best"){
+            d = hoibc::start_pt_t::best;
+        }
+    }  
+
 }
 
 data_out_t read_data_from_json(const std::string& filename){
@@ -85,7 +107,7 @@ data_out_t read_data_from_json(const std::string& filename){
     data.main.frequency         = json_data["data"]["main"]["frequency"].get<hoibc::real>();
     data.main.s1                = json_data["data"]["main"]["s1"].get<std::array<hoibc::real,3>>();
     data.main.s2                = json_data["data"]["main"]["s2"].get<std::array<hoibc::real,3>>();
-    
+
     data.material.thickness     = json_data["data"]["material"]["thickness"].get<hoibc::array<hoibc::real>>();
     data.material.epsr          = json_data["data"]["material"]["epsr"].get<hoibc::array<hoibc::complex>>();
     data.material.mur           = json_data["data"]["material"]["mur"].get<hoibc::array<hoibc::complex>>();
@@ -103,6 +125,7 @@ data_out_t read_data_from_json(const std::string& filename){
     data.optim.show_iter        = json_data["data"]["optim"]["show_iter"].get<bool>();
     data.optim.tol              = json_data["data"]["optim"]["tol"].get<hoibc::real>();
     data.optim.toldx            = json_data["data"]["optim"]["toldx"].get<hoibc::real>();
+    data.optim.starting_point   = json_data["data"]["optim"]["starting_point"].get<hoibc::start_pt_t>();
 
     data_out_t data_out;
     data_out.data_t = data;

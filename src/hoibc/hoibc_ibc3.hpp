@@ -7,7 +7,7 @@
 
 namespace hoibc
 {
-  
+
   class hoibc_ibc3 : public hoibc_class {
     public:
 
@@ -34,7 +34,7 @@ namespace hoibc
       void coeff_to_array(alglib::real_1d_array& x);
 
       void get_suc(array<real>& cle = empty_vector_real, array<real>& ceq = empty_vector_real, array<real>& cne = empty_vector_real, array<std::string>& sle = empty_vector_string, array<std::string>& seq = empty_vector_string, array<std::string>& sne = empty_vector_string);
-      
+
       void disp_coeff(std::ostream& out=std::cout);
 
     private:

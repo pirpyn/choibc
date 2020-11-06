@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 SHELL:=/bin/bash
+ifndef (OS)
+  OS:=Linux
+endif
 ############################################################################
 .PHONY: help
 help:
@@ -19,8 +22,8 @@ help:
 	@echo "   make info             # Prints compiler flags, link flags, library used etc."
 	@echo ""
 	@echo "Cleaning rules"
-	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen" 
-	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible" 
+	@echo "   make clean CXXC=g++ MODE=optim                       # Remove the build folder associated with the CXXC/MODE chosen"
+	@echo "   make clean_all CXXCS=\"g++ ...\" MODES=\"optim ...\" # Same for every CXXC/MODE pair possible"
 	@echo ""
 
 
@@ -47,41 +50,58 @@ INCFLAGS:=
 .EXTENSIONS: $(EXTENSIONS) .o
 
 # Processor architecture for separate building
-release:=$(shell uname -r)
-ifeq ($(CXXC),g++)
-fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
-else ifeq ($(CXXC),clang)
-fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 |cut -d '-' -f 1)
+ifeq ($(OS),Windows_NT)
+  release:=$(OS)
+  ifeq ($(CXXC),g++)
+    fcvers:=$(shell $(CXXC) --version | head -n 1 | cut -d ' ' -f 3)
+  else
+    fcvers:=xxx
+  endif
+  libext_shared:=dll
+  libext_static:=a
+  CXXFLAGS+=-I/mingw64/include
+  # Sadly, Windows don't have the -rpath ld option
+  # https://stackoverflow.com/questions/3272383/linking-with-r-and-rpath-switches-on-windows
+  LDFLAGS:=-L/mingw64/bin -llapacke
+else
+  release:=$(shell uname -r)
+  ifeq ($(CXXC),g++)
+    fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 4)
+  else ifeq ($(CXXC),clang)
+    fcvers:=$(shell $(CXXC) --version 2>&1 | head -n 1 | cut -d ' ' -f 3 | cut -d '-' -f 1)
+  endif
+  libext_shared:=so
+  libext_static:=a
 endif
 
 blddir:=./build/$(release)/$(CXXC)/$(fcvers)
 lklibdir:=./build/lib
 lkbindir:=./build/bin
 ifeq ($(DEBUG),1)
-	MODE=debug
+  MODE=debug
 else
-	MODE=optim
+  MODE=optim
 endif
 
 MODE=optim
 ifeq ($(MODE),debug)
-	CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
+  CXXFLAGS+=$(DFLAGS) -g -O0 -D_DEBUG
 else ifeq ($(MODE),dev)
-	CXXFLAGS+=-g -O2 -D_DEV
+  CXXFLAGS+=-g -O2 -D_DEV
 else ifeq ($(MODE),optim)
-	CXXFLAGS+=-O2 -D_OPTIM
+  CXXFLAGS+=-O2 -D_OPTIM
 endif
 blddir:=$(blddir)/$(MODE)
 
 SHARED=0
 ifeq ($(SHARED),1)
-	libext=so
-	CXXFLAGS+=-fPIC
-	blddir:=$(blddir)/shared
-	LDFLAGS+=-Wl,-R(libdir)
+  libext:=$(libext_shared)
+  CXXFLAGS+=-fPIC
+  blddir:=$(blddir)/shared
+  LDFLAGS+=-Wl,-R$(libdir)
 else
-	libext=a
-	blddir:=$(blddir)/static
+  libext:=$(libext_static)
+  blddir:=$(blddir)/static
 endif
 
 # Building subdirectories
@@ -95,11 +115,11 @@ CXXFLAGS+=$(INCFLAGS)
 
 dirs:=$(blddir) $(objdir) $(moddir) $(libdir) $(bindir) $(lklibdir) $(lkbindir)
 
+# Libs for which we want to rebuilt if necessary
+order_libs:=$(foreach lib,$(ORDER_LIBS),$(patsubst %,$(libdir)/lib%.$(libext),$(lib)))
+
 # Static libraries to build
 libs:=$(foreach dir,$(SRCDIRS),$(patsubst %,$(libdir)/lib%.$(libext),$(basename $(notdir $(dir)))))
-
-# Static libraries to use
-libs_depends:=$(patsubst %,$(libdir)/lib%.$(libext),$(LIBNAMES))
 
 # Corresponding sources files
 sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(srcdir)/*$(ext))))
@@ -108,7 +128,11 @@ sources:=$(foreach srcdir,$(SRCDIRS),$(foreach ext,$(EXTENSIONS),$(wildcard $(sr
 objects:=$(foreach file,$(sources),$(patsubst %,$(objdir)/%.o,$(basename $(notdir $(file)))))
 
 # Binaries names to build
-bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
+ifeq ($(OS),Windows_NT)
+  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%.exe,$(bin)))
+else
+  bins:=$(foreach bin,$(BINS),$(patsubst %,$(bindir)/%,$(bin)))
+endif
 
 # Path to look for sources files
 VPATH:=$(SRCDIRS) $(objdir) $(libdir)
@@ -128,8 +152,8 @@ hoibc: info
 main: hoibc
 	@echo "Compiling the program to compute HOIBC coefficient"
 	@$(MAKE) SRCDIRS=./src/main depend
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="hoibc alglib bessel" lib -j
-	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" prog -j
+	@$(MAKE) SRCDIRS=./src/main lib -j
+	@$(MAKE) SRCDIRS=./src/main LIBNAMES="main hoibc alglib bessel" ORDER_LIBS="main hoibc alglib bessel" prog -j
 
 .PHONY: link
 link: main | $(lklibdir) $(lkbindir)
@@ -182,11 +206,9 @@ $(dirs):
 
 #############################################################################
 
-$(objdir)/%.o: %.cpp %.hpp %.d | $(objdir)
-	@echo "  $<"
-	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
+# The .d file will contains all prerequisite for each .o target
 
-$(objdir)/%.o: %.cc %.hh %.h %.d | $(objdir)
+$(objdir)/%.o::
 	@echo "  $<"
 	@$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
@@ -198,7 +220,11 @@ $(libdir)/%.so: $(objects)
 	@echo "Creating $@"
 	@$(CXXC) -shared -o $@ $^
 
-$(bindir)/%: $(objdir)/%.o $(libs) $(libs_depends)
+$(bindir)/%: $(objdir)/%.o $(libs) $(order_libs)
+	@echo "Linking $@"
+	@$(CXXC) -o $@ $< $(LDFLAGS)
+
+$(bindir)/%.exe: $(objdir)/%.o $(libs) $(order_libs)
 	@echo "Linking $@"
 	@$(CXXC) -o $@ $< $(LDFLAGS)
 
@@ -218,9 +244,12 @@ depend: $(dependencies)
 
 # Don't create dependencies when we're cleaning, for instance
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(nodeps))))
-    #Chances are, these files don't exist.  GMake will create them and
-    #clean up automatically afterwards
-    -include $(dependencies)
+    # Chances are, these files don't exist.  GMake will create them and
+    # clean up automatically afterwards
+    # No dependencies at level 0
+    ifneq ($(MAKELEVEL),0)
+        -include $(dependencies)
+    endif
 endif
 
 # This is the rule for creating the dependency files
@@ -246,11 +275,16 @@ test: hoibc
 .PHONY: run_test
 run_test: test
 	@TESTS=( $(foreach bin,$(TEST_BINS),$(bindir)/$(bin)) ); \
+	if [[ $(OS) == Windows_NT ]]; then PATH=/mingw64/bin:$${PATH};fi; \
 	echo "Running the $${#TESTS[@]} tests"; \
+	status=0; \
 	for ((i=0;i<$${#TESTS[@]};i++)); do \
-		printf  "[%3d / %3d] " $$(($${i}+1)) $${#TESTS[@]}; \
-		./$${TESTS[$$i]}; \
-	done
+		printf  "[%3d / %3d] %s\n" $$(($${i}+1)) $${#TESTS[@]} $${TESTS[$$i]}; \
+		$${TESTS[$$i]}; \
+		status=$$(( $$status + $$? )); \
+	done; \
+	echo "================================================="; \
+	echo "They were $$status tests failling."
 
 #############################################################################
 #############################################################################
@@ -271,7 +305,8 @@ clean_all:
 
 .PHONY: run
 run: main
-	@for bin in $(bins); do \
+	@if [[ $(OS) == Windows_NT ]]; then PATH=/mingw64/bin:$${PATH};fi; \
+	for bin in $(bins); do \
 		echo ; \
 		echo ">> $(PREFIX) $${bin} $(ARGS)"; \
 		echo ; \

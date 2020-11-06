@@ -44,10 +44,11 @@ struct costf_data_t {
   const array<real>* f2 = NULL;
   const big_matrix<complex>* gex = NULL;
   bool no_constraints = false;
+  bool show_iter = false;
 };
 
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr);
-void report_iteration(const alglib::real_1d_array &x, double func, void *ptr);
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr = NULL, bool reset = false);
 
 void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const array<real>& f2){
 
@@ -88,16 +89,28 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
   this->get_coeff_no_suc(f1,f2,gex,k0);
 
   if (this->suc){
-    std::cout << "hoibc: Executing the constrained optimisation algorithm ... " << std::endl;
+    std::cout << "hoibc: IBC " << this->label << ": executing the constrained optimisation algorithm ... " << std::endl;
     alglib::real_1d_array x;
     alglib::real_1d_array scale;
- 
-    // Get number of unknows from IBC
+
+    // Get number of unknows from IBC, and initialise ALGLIB quantities.
     this->coeff_to_array(x);
     this->coeff_to_array(scale);
-    // Feasible starting point
+
     for (alglib::ae_int_t i = 0; i < x.length(); i++){
-      x[i] = 0.;
+      switch (data.optim.starting_point){
+        case start_pt_t::feasible:
+          // An always feasible starting point
+          x[i] = 0.;
+          break;
+        case start_pt_t::best:
+          // Already done by getting the coefficient without SUC
+          break;
+      }
+
+      // We set the scale to roughly twice the no constraints solution.
+      // The scale can't have zero values.
+      scale[i] = abs(scale[i]) > 0. ? abs(scale[i])*2.0 : 1.0 ;
     }
     alglib::minnlcstate state;
     alglib::minnlccreatef(x, data.optim.grad_delta, state);
@@ -107,13 +120,9 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
 
     // Set scale of unknowns
     alglib::minnlcsetscale(state, scale);
-  
-    // Set solver
-    // SLP: Robust, slower, non convex, prototyping
-    // AUL: Faster, more tuning, convex
-    
-    // alglib::minnlcsetalgoaul(state, rho, outerits);
-    alglib::minnlcsetalgoslp(state);
+
+    // Use SQP solver.
+    alglib::minnlcsetalgosqp(state);
 
     // Get number of equality and inequality constraints
     array<real> ceq, cle;
@@ -130,11 +139,17 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
     costf_data.neq = ceq.size();
     costf_data.nle = cle.size();
     costf_data.no_constraints = data.optim.no_constraints;
+    costf_data.show_iter = data.optim.show_iter;
+
     if (costf_data.no_constraints){
-      std::cout << "hoibc: IBC " << this->name << " has no constraints." << std::endl;
+      std::cout << "hoibc: IBC " << this->label << " has no constraints." << std::endl;
     }
+  
     // Minimize the cost function
-    alglib::minnlcoptimize(state, costf, report_iteration, &(costf_data));
+    if (data.optim.show_iter){
+      report_iteration(x,0.,NULL,true);
+    }
+    alglib::minnlcoptimize(state, costf, NULL, &(costf_data));
 
     // Get solution and termination status
     alglib::minnlcreport rep;
@@ -144,8 +159,62 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
   }
 }
 
-void report_iteration(const alglib::real_1d_array &x, double func, void *ptr){
-  std::cout << func << std::endl;
+void report_iteration(const alglib::real_1d_array &x, double func, void *ptr, bool reset){
+  static int iter = 0;
+  static double previous_func = func;
+  static alglib::real_1d_array previous_x = x;
+
+  if (reset){
+    iter = 0;
+  }
+  constexpr const int width = 11;
+  if (iter == 0){
+    // Header of the optimisation statistics
+    std::stringstream ss;
+    ss << "iter";
+    std::string s = ss.str();
+    std::cout << s.insert(s.length(),width-s.length(),' ');
+    ss.str("");
+    ss.clear();
+    ss << "f";
+    s = ss.str();
+    std::cout << " " << s.insert(0,width-s.length(),' ');
+    ss.str("");
+    ss.clear();
+    ss << "df";
+    s = ss.str();
+    std::cout << " " << s.insert(0,width-s.length(),' ');
+    for (alglib::ae_int_t i = 0; i < x.length(); i++){
+      ss.str("");
+      ss.clear();
+      ss << "x[" << static_cast<int>(i) << "]";
+      s = ss.str();
+      std::cout  << " " << s.insert(0,width-s.length(),' ');
+    }
+    ss.str("");
+    ss.clear();
+    ss << "||dx||";
+    s = ss.str();
+    std::cout << s.insert(0,width-s.length(),' ');
+    std::cout << std::endl;
+  }
+  std::cout.precision(width-7);
+  std::cout.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);;
+  std::stringstream ss;
+  ss << std::noshowpos << iter;
+  std::string s = ss.str();
+  std::cout << s.insert(s.length(),width-s.length(),' ');
+  std::cout << " " << std::showpos << func << " " << func-previous_func;
+  for (alglib::ae_int_t i = 0; i < x.length(); i++){
+    std::cout << " " << std::showpos << x[i];
+  }
+  alglib::real_1d_array dx = x;
+  alglib::vsub(dx.getcontent(),previous_x.getcontent(),dx.length());
+  std::cout << " " << std::sqrt(alglib::vdotproduct(dx.getcontent(),dx.getcontent(),dx.length()));
+  std::cout << std::endl;
+  iter++;
+  previous_func = func;
+  previous_x = x;
 }
 
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr){
@@ -153,7 +222,7 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
   data.ibc->array_to_coeff(x);
 
   big_matrix<complex> ap;
-  
+
   switch (data.ibc->mode){
   case hoibc::mode_t::R :
     ap = data.ibc->get_reflexion(data.k0, *(data.f1), *(data.f2));
@@ -163,13 +232,13 @@ void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr)
     break;
   }
 
-  // for (alglib::ae_int_t i = 0; i < x.length(); i++){
-  //   std::cout << x[i] << " ";
-  // }
-  // std::cout << std::endl;
-  
   // Cost function value at current point
   fi[0] = std::pow(norm(ap - *(data.gex)),2) / std::pow(norm(*(data.gex)),2);
+
+
+  if (data.show_iter){
+    report_iteration(x,fi[0],NULL,false);
+  }
 
   // Get constraints
   if (data.no_constraints) {
@@ -197,7 +266,9 @@ void hoibc_class::print_coeff(std::ostream& out){
   switch (this->type) {
     case type_t::C:
     case type_t::S:
-      out << "# inner radius " << this->inner_radius << ", outer_radius " << this->outer_radius << std::endl;
+      out << "# inner radius " << this->inner_radius << "m, outer_radius " << this->outer_radius << "m" << std::endl;
+      break;
+    case type_t::P:
       break;
   }
   std::showpos(out);
@@ -217,7 +288,7 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   array<std::string> sle;
   array<std::string> seq;
   array<std::string> sne;
-  
+
   const char width = 13;
 
   this->get_suc(cle,ceq,cne,sle,seq,sne);
@@ -284,9 +355,9 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   }
 }
 
-// Reads a data struct and creates two array with the values of the Fourier variables 
+// Reads a data struct and creates two array with the values of the Fourier variables
 void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, array<real>& f2, array<real>& s1, array<real>& s2){
-  // data: The struct to contains physics parameters, 
+  // data: The struct to contains physics parameters,
   // f1: The 1st Fourier variable: k_x, n,   m if plane, cylinder, sphere
   // f2: The 2nd Fourier variable: k_y, k_z, n if plane, cylinder, sphere
   // s1, = f1 / free_space_wavenumber
@@ -321,12 +392,12 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       // f1 = n, f2 = kz
 
       // We truncate the number of Fourier coefficient to s2*k0*outer_radius + 1
-      // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in 
+      // It should be noted that max(s2) should be at least superior or equal to 1 because Fourier coefficient in
       // front of the bessel functions Jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same Hn)
       if (data.main.s1[1]<1){
-        std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
+        std::cerr << "warning: hoibc_class::set_fourier_variables: IBC " << this->label << ": enforcing max(s1) to be at least 1 to have enough Fourier coefficients ( s1 was " << data.main.s1[1] << " )" << std::endl;
       }
-      
+
       n1 = static_cast<integer>(std::max(1.,data.main.s1[1])*k0*this->outer_radius) + 1;
       f1 = linspace(0,n1,n1+1);
       s1 = f1 / (k0*this->outer_radius);
@@ -350,14 +421,14 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
       // It should be noted that max(s2) should be at least superior or equal to 1 because the Mie coefficient on front
       // of the spherical bessel functions C_mn jn(k0*outer_radius) decrease exponentially as n/(k0*outer_radius) increase (same hn)
       if (data.main.s2[1] < 1.){
-        std::cerr << "warning: hoibc_class::set_fourier_variables: enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
+        std::cerr << "warning: hoibc_class::set_fourier_variables: IBC " << this->label << ": enforcing max(s2) to be at least 1 to have enough Mie coefficients ( s2 was " << data.main.s2[1] << " )" << std::endl;
       }
       n2 = static_cast<integer>(std::max(1.,data.main.s2[1])*k0*this->outer_radius*(sqrt_two)) + 1;
       f2 = linspace(0,n2,n2+1);
       s2 = f2 / (k0*this->outer_radius);
       break;
     default :
-      std::cerr << "error: hoibc_class::set_fourier_variables: IBC has unknown type " << type_to_char(this->type) << std::endl;
+      std::cerr << "error: hoibc_class::set_fourier_variables: IBC " << this->label << " has unknown type " << type_to_char(this->type) << std::endl;
       std::exit(5);
       break;
   }

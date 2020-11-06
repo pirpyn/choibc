@@ -12,13 +12,13 @@
 using namespace hoibc;
 
 void hoibc::hoibc_ibc3::get_coeff_no_suc(const array<real>& f1, const array<real>& f2, const big_matrix<complex>& gex, const real& k0){
-  
+
   big_matrix<real> I;
   const std::size_t n1 = f1.size();
   const std::size_t n2 = f2.size();
 
   get_matrices_I(n1,n2,I=I);
-  
+
   // Theses are used when this->type = 1
   big_matrix<complex> AE, AH, BE, BH;
   big_matrix<complex> ME, MH;
@@ -28,14 +28,14 @@ void hoibc::hoibc_ibc3::get_coeff_no_suc(const array<real>& f1, const array<real
   // Theses are used when this->type = 2
   big_matrix<complex> LDZ;
   big_matrix<complex> LRZ;
-  
+
   big_matrix<real> LD, LR;
   this->get_matrices_LD_LR(k0,f1,f2,LD,LR);
 
   lapack_int m = n1*n2*4;
   assert(m>0);
   lapack_int n = 5;
-  // The array to pass to LAPACK that contains the matrix in the 
+  // The array to pass to LAPACK that contains the matrix in the
   // least square resolution and its rhs.
   complex **a = new complex*[m];
   a[0] = new complex[m * n];
@@ -151,8 +151,8 @@ big_matrix<complex> hoibc::hoibc_ibc3::get_impedance(const real& k0, const array
 
   this->get_matrices_LD_LR(k0,f1,f2,LD,LR);
 
-  big_matrix<complex> impedance_ap = 
-      ( complex(1.,0.)*I + this->coeff.b1*LD - this->coeff.b2*LR ) 
+  big_matrix<complex> impedance_ap =
+      ( complex(1.,0.)*I + this->coeff.b1*LD - this->coeff.b2*LR )
     % ( this->coeff.a0*I + this->coeff.a1*LD - this->coeff.a2*LR );
   return impedance_ap;
 }
@@ -216,7 +216,7 @@ void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
   } else {
     out << "# Z = (I + b1*LD - b2*LR)^{-1} (a0*I + a1*LD - a2*LR)" << std::endl;
   }
-  
+
   print_complex(this->coeff.a0,"  a0",out);
   print_complex(this->coeff.a1,"  a1",out);
   print_complex(this->coeff.a2,"  a2",out);

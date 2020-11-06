@@ -154,8 +154,8 @@ big_matrix<complex> hoibc::sphere::reflexion_infinite(const array<real>& vn, con
   for (unsigned int i=0; i<vn.size();i++) {
     const real n = vn[i];
 
-    reflexion_ex[0][i] = 
-      - MB(radius,n,k_upper,etar_upper,material.initial_impedance) 
+    reflexion_ex[0][i] =
+      - MB(radius,n,k_upper,etar_upper,material.initial_impedance)
       % MA(radius,n,k_upper,etar_upper,material.initial_impedance);
   }
 

@@ -17,11 +17,6 @@ namespace hoibc
 
   static big_matrix<real> empty_bigmatrix_real;
 
-  // template<typename T> bool operator==(const array<T>& V1, const array<T>& V2){
-  //   return (static_cast<std::valarray<T>>(V1) == static_cast<std::valarray<T>>(V2));
-  // }
-
-
 }
 
 /* To remove when hitting v1.0 */

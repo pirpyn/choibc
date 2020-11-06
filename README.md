@@ -23,7 +23,7 @@ Theses coefficient takes curvatures into account, as the local infinite cylinder
 
 ### Dependencies
 
-This program needs 
+This program needs
 
   * [LAPACKE](http://www.netlib.org/lapack/). On Ubuntu, the apt command is `apt get liblapacke-dev`.
 
@@ -35,8 +35,8 @@ make help
 ```
 ### Testing
 
-A `src/test` folder is present and check accuracy of bessel functions, the overloaded `operator*` and the `hoibc::norm` function.  
-To launch thoses test, run 
+A `src/test` folder is present and check accuracy of bessel functions, the overloaded `operator*` and the `hoibc::norm` function.
+To launch thoses test, run
 ```shell
 make run_test
 ```
@@ -45,7 +45,7 @@ A sample program is provided in the `src/main` folder. This program
   * reads a json filename from the command line and initialise a `hoibc::data_t` structure accordingly,
   * pass this struct the `hoibc::main` function,
   * compute the errors between the IBC and the exact impedance operator.
-  
+
 To run it, launch
 ```shell
 make run ARGS=input.json

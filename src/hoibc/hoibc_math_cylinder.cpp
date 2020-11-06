@@ -8,8 +8,8 @@
 using namespace hoibc;
 
   // The tangential part of E / n x H writes in each layer where C1,C2 depends on the layer
-// E_t(r,theta,z)     = 1/(2 pi) sum_n int_R AE(r,n,kz) C1(kz,n) + BE(r,n,kz) C2(kz,n) dkz
-// n x H_t(r,theta,z) = 1/(2 pi) sum_n int_R AH(r,n,kz) C1(kz,n) + BH(r,n,kz) C2(kz,n) dkz
+// E_t(r,theta,z)     = 1/(2 pi) sum_n int_R AE(r,n,kz) C1(n,kz) + BE(r,n,kz) C2(n,kz) dkz
+// n x H_t(r,theta,z) = 1/(2 pi) sum_n int_R AH(r,n,kz) C1(n,kz) + BH(r,n,kz) C2(n,kz) dkz
 
   // See hoibc_math_plane.cpp for more
 
@@ -163,8 +163,8 @@ big_matrix<complex> hoibc::cylinder::reflexion_infinite(const array<real>& vn, c
     for (unsigned int j=0; j<vkz.size();j++) {
       const real kz = vkz[j];
 
-      reflexion_ex[i][j] = 
-        - MB(radius,n,kz,k_upper,etar_upper,material.initial_impedance) 
+      reflexion_ex[i][j] =
+        - MB(radius,n,kz,k_upper,etar_upper,material.initial_impedance)
         % MA(radius,n,kz,k_upper,etar_upper,material.initial_impedance);
     }
   }
