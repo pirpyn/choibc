@@ -161,35 +161,60 @@ void hoibc_class::get_coeff(const data_t& data, const array<real>& f1, const arr
 
 void report_iteration(const alglib::real_1d_array &x, double func, void *ptr, bool reset){
   static int iter = 0;
+  static double previous_func = func;
+  static alglib::real_1d_array previous_x = x;
+
   if (reset){
     iter = 0;
   }
   constexpr const int width = 11;
   if (iter == 0){
+    // Header of the optimisation statistics
     std::stringstream ss;
     ss << "iter";
     std::string s = ss.str();
-    std::cout << s.insert(0,width-s.length(),' ') << " ";
+    std::cout << s.insert(s.length(),width-s.length(),' ');
+    ss.str("");
+    ss.clear();
+    ss << "f";
+    s = ss.str();
+    std::cout << " " << s.insert(0,width-s.length(),' ');
+    ss.str("");
+    ss.clear();
+    ss << "df";
+    s = ss.str();
+    std::cout << " " << s.insert(0,width-s.length(),' ');
     for (alglib::ae_int_t i = 0; i < x.length(); i++){
-      std::stringstream ss;
+      ss.str("");
+      ss.clear();
       ss << "x[" << static_cast<int>(i) << "]";
-      std::string s = ss.str();
-      std::cout << s.insert(0,width-s.length(),' ') << " ";
+      s = ss.str();
+      std::cout  << " " << s.insert(0,width-s.length(),' ');
     }
+    ss.str("");
+    ss.clear();
+    ss << "||dx||";
+    s = ss.str();
+    std::cout << s.insert(0,width-s.length(),' ');
     std::cout << std::endl;
-    std::cout.precision(width-7);
-    std::cout.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
   }
-  std::cout << std::noshowpos;
+  std::cout.precision(width-7);
+  std::cout.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);;
   std::stringstream ss;
-  ss << iter;
+  ss << std::noshowpos << iter;
   std::string s = ss.str();
-  std::cout << s.insert(0,width-s.length(),' ') << " ";
+  std::cout << s.insert(s.length(),width-s.length(),' ');
+  std::cout << " " << std::showpos << func << " " << func-previous_func;
   for (alglib::ae_int_t i = 0; i < x.length(); i++){
-    std::cout << std::showpos << x[i] << " ";
+    std::cout << " " << std::showpos << x[i];
   }
+  alglib::real_1d_array dx = x;
+  alglib::vsub(dx.getcontent(),previous_x.getcontent(),dx.length());
+  std::cout << " " << std::sqrt(alglib::vdotproduct(dx.getcontent(),dx.getcontent(),dx.length()));
   std::cout << std::endl;
-  iter++ ;
+  iter++;
+  previous_func = func;
+  previous_x = x;
 }
 
 void costf(const alglib::real_1d_array &x, alglib::real_1d_array &fi, void *ptr){
