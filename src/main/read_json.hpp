@@ -13,6 +13,7 @@ struct data_out_t {
     bool        reflexion_ibc   = false;
     bool        reflexion_ex    = false;
     bool        reflex_vs_theta = false;
+    std::string backend         = "csv";
 };
 
 data_out_t read_data_from_json(const std::string& filename);

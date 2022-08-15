@@ -1,41 +1,39 @@
 {
-    "data": {
-        "main": {
-            "frequency" : 0.2,
-            "s1"        : [0.0,1.0,0.01],
-            "s2"        : [0.0,0.0,0.01]
-        },
-        "material": {
-            "thickness" : [0.05],
-            "epsr"      : [[ 1.0, -1.0 ]],
-            "mur"       : [[ 1.0,  0.0 ]]
-        },
-        "hoibc": {
-            "name"          : ["ibc3","ibc3","ibc3","ibc3","ibc3","ibc3"],
-            "suc"           : [false,true,false,true,false,true],
-            "type"          : ["P","P","C","C","S","S"],
-            "inner_radius"  : [0.0,0.0,1.0,1.0,1.0,1.0],
-            "mode"          : [2,2,2,2,2,2],
-            "normalised"    : [true,true,true,true,true,true]
-        },
-        "optim": {
-            "grad_delta"        : 1e-4,
-            "max_iter"          : 100,
-            "no_constraints"    : true,
-            "show_iter"         : true,
-            "starting_point"    : "feasible",
-            "tol"               : 1e-6,
-            "toldx"             : 1e-4
-        },
-        "out": {
-            "basename"          : "test/test",
-            "impedance_ibc"     : false,
-            "impedance_ex"      : true,
-            "impedance_err"     : false,
-            "coeff"             : false,
-            "reflexion_ibc"     : false,
-            "reflexion_ex"      : false,
-            "reflex_vs_theta"   : false
-        }
+    "main": {
+        "frequency" : 0.2,
+        "s1"        : [0.0,1.0,0.01],
+        "s2"        : [0.0,0.0,0.01]
+    },
+    "material": {
+        "thickness" : [0.05],
+        "epsr"      : [[ 1.0, -1.0 ]],
+        "mur"       : [[ 1.0,  0.0 ]]
+    },
+    "hoibc": {
+        "name"          : ["ibc3","ibc3","ibc3","ibc3","ibc3","ibc3"],
+        "suc"           : [false,true,false,true,false,true],
+        "type"          : ["P","P","C","C","S","S"],
+        "inner_radius"  : [0.0,0.0,1.0,1.0,1.0,1.0],
+        "mode"          : [2,2,2,2,2,2],
+        "normalised"    : [true,true,true,true,true,true]
+    },
+    "optim": {
+        "grad_delta"        : 1e-4,
+        "max_iter"          : 100,
+        "no_constraints"    : true,
+        "show_iter"         : true,
+        "starting_point"    : "feasible",
+        "tol"               : 1e-6,
+        "toldx"             : 1e-4
+    },
+    "out": {
+        "basename"          : "test/test",
+        "impedance_ibc"     : false,
+        "impedance_ex"      : true,
+        "impedance_err"     : false,
+        "coeff"             : false,
+        "reflexion_ibc"     : false,
+        "reflexion_ex"      : false,
+        "reflex_vs_theta"   : false
     }
 }
