@@ -65,6 +65,6 @@ void hoibc::hoibc_ibc0::get_suc(array<real>& cle, array<real>& ceq, array<real>&
 }
 
 void hoibc::hoibc_ibc0::disp_coeff(std::ostream& out){
-  out << "# Z = a0*I" << std::endl;
-  print_complex(this->coeff.a0,"  a0",out);
+  out << " Z = a0*I" << std::endl;
+  disp_cmplx(out,this->coeff.a0,"  a0");
 }

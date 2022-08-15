@@ -4,10 +4,19 @@
 #include <iomanip>
 #include <fstream>
 #include <cmath>
+#include <filesystem>
+
+void set_backend(const std::string &backend)
+{
+  hoibc::set_cmt(backend);
+  hoibc::set_fmt_cmplx(backend);
+}
 
 void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1, const hoibc::array<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std::string& header){
   std::ofstream myfile;
-  myfile.open(filename);
+  std::filesystem::path filepath { filename };
+  std::filesystem::create_directories(filepath.parent_path());
+  myfile.open(filename,std::ios_base::out);
   assert(myfile.is_open());
 
   // myfile << "# " << header << std::endl;

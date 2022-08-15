@@ -48,7 +48,12 @@ void hoibc::disp_data(const data_t& data, std::ostream& out) {
 
 void hoibc::check_and_set_material(integer layer_index, complex& epsr, complex&mur, complex& etar, complex& nur,const real& loss){
   if ( (std::imag(mur)==0.) && (std::imag(epsr)==0.) ) {
-    std::cerr << "Layer " << layer_index << ": adding artificial loss of" << loss << std::endl;
+    if (loss >= 0){
+      std::cerr << "Layer " << layer_index << ": adding artificial loss of " << loss << std::endl;
+    }
+    // The minus is very important : in the case of lossless material (ie loss == 0),
+    // Then this complex ( 0., -0. ) will garantee numericaly exponential decaying waves at infinity,
+    // Due to the way floating complex works.
     mur = complex(std::real(mur),-std::abs(loss));
     epsr = complex(std::real(epsr),-std::abs(loss));
   }

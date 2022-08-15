@@ -167,51 +167,58 @@ void report_iteration(const alglib::real_1d_array &x, double func, void *ptr, bo
   if (reset){
     iter = 0;
   }
-  constexpr const int width = 11;
+
   if (iter == 0){
     // Header of the optimisation statistics
-    std::stringstream ss;
-    ss << "iter";
-    std::string s = ss.str();
-    std::cout << s.insert(s.length(),width-s.length(),' ');
-    ss.str("");
-    ss.clear();
-    ss << "f";
-    s = ss.str();
-    std::cout << " " << s.insert(0,width-s.length(),' ');
-    ss.str("");
-    ss.clear();
-    ss << "df";
-    s = ss.str();
-    std::cout << " " << s.insert(0,width-s.length(),' ');
+    #ifdef _HOIBC_IO_FORMAT
+    std::cout << get_cmt() << " ";
+    const std::string fmt_head = "%9s, %10s, %10s, ";
+    std::cout << string_format(fmt_head,"iteration","f","df");
+    #else
+    const std::string = "{9s}, {10s}, {10s}";
+    std::cout << std::format(fmt_head,"iter","f","df");
+    #endif
     for (alglib::ae_int_t i = 0; i < x.length(); i++){
-      ss.str("");
-      ss.clear();
-      ss << "x[" << static_cast<int>(i) << "]";
-      s = ss.str();
-      std::cout  << " " << s.insert(0,width-s.length(),' ');
+      #ifdef _HOIBC_IO_FORMAT
+      std::cout << string_format("%10s, ",string_format("%s[%d]","x",i));
+      #else
+      std::cout << std::format("{10s}, ",std::format("{s}[{d}]","x",i));
+      #endif
     }
-    ss.str("");
-    ss.clear();
-    ss << "||dx||";
-    s = ss.str();
-    std::cout << s.insert(0,width-s.length(),' ');
+    #ifdef _HOIBC_IO_FORMAT
+    std::cout << string_format("%10s, ", "|dx|");
+    #else
+    std::cout << std::format("{10s}, ", "|dx|");
+    #endif
     std::cout << std::endl;
   }
-  std::cout.precision(width-7);
-  std::cout.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);;
-  std::stringstream ss;
-  ss << std::noshowpos << iter;
-  std::string s = ss.str();
-  std::cout << s.insert(s.length(),width-s.length(),' ');
-  std::cout << " " << std::showpos << func << " " << func-previous_func;
+  #ifdef _HOIBC_IO_FORMAT
+  const std::string fmt_head = "%9d, %10.3E, %10.3E, ";
+  std::cout << string_format(fmt_head,iter,func,func-previous_func);
+  #else
+  const std::string = "{9d}, {10.3E}, {10.3E}";
+  std::cout << std::format(fmt_head,iter,func,func-previous_func);
+  #endif
   for (alglib::ae_int_t i = 0; i < x.length(); i++){
-    std::cout << " " << std::showpos << x[i];
+    #ifdef _HOIBC_IO_FORMAT
+    std::cout << string_format("%10E, ",x[i]);
+    #else
+    std::cout << std::format("{10.3E}, ",x[i]);
+    #endif
   }
+
   alglib::real_1d_array dx = x;
   alglib::vsub(dx.getcontent(),previous_x.getcontent(),dx.length());
-  std::cout << " " << std::sqrt(alglib::vdotproduct(dx.getcontent(),dx.getcontent(),dx.length()));
+  real norm = std::sqrt(alglib::vdotproduct(dx.getcontent(),dx.getcontent(),dx.length()));
+
+  #ifdef _HOIBC_IO_FORMAT
+  std::cout << string_format("%10.3E, ", norm );
+  #else
+  std::cout << std::format("{10.3E}, ", norm);
+  #endif
+
   std::cout << std::endl;
+
   iter++;
   previous_func = func;
   previous_x = x;
@@ -266,12 +273,14 @@ void hoibc_class::print_coeff(std::ostream& out){
   switch (this->type) {
     case type_t::C:
     case type_t::S:
-      out << "# inner radius " << this->inner_radius << "m, outer_radius " << this->outer_radius << "m" << std::endl;
+      out << get_cmt() << " inner radius " << this->inner_radius << "m, outer_radius " << this->outer_radius << "m" << std::endl;
       break;
     case type_t::P:
       break;
   }
+
   std::showpos(out);
+  out << get_cmt();
   this->disp_coeff(out);
 }
 
@@ -294,23 +303,25 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
   this->get_suc(cle,ceq,cne,sle,seq,sne);
 
   out << "# Verifying the Sufficient Uniqueness Conditions (SUC)" << std::endl;
-  out.precision(6);
+  out.precision(3);
   out.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
   out << std::noshowpos;
   if (cle.size()){
     if (any(cle, x <= tol)){
-      out << "#    [OK] SUC, Negative inequality constraints, IN <= " << tol << std::endl;
+      out << get_cmt() << "    [OK] SUC, Negative inequality constraints, IN <= " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] <= tol){
-        out << "#    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
+          out << get_cmt() << "    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
     if (any(cle, x > tol)){
-      out << "#  [FAIL] SUC, Positive inequality constraints, IN > " << tol << std::endl;
+      out << get_cmt() << "  [FAIL] SUC, Positive inequality constraints, IN > " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i < cle.size(); i++){
         if (cle[i] > tol){
-        out << "#    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
+          out << get_cmt() << "    IN(" << i+1 << ") = " << std::setw(width) << cle[i] << " ! " << sle[i] << std::endl;
         }
       }
     }
@@ -318,18 +329,20 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
   if (ceq.size()){
     if (any(ceq, std::abs(x) <= tol)){
-      out << "#    [OK] SUC, Zero equality constraints, |EQ| <= " << tol << std::endl;
+      out << get_cmt() << "    [OK] SUC, Zero equality constraints, |EQ| <= " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i < ceq.size(); i++){
         if (ceq[i] <= tol){
-        out << "#    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
+          out << get_cmt() << "    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
     if (any(ceq, std::abs(x) > tol)){
-      out << "#  [FAIL] SUC, Non-zero equality constraints, |EQ| > " << tol << std::endl;
+      out << get_cmt() << "  [FAIL] SUC, Non-zero equality constraints, |EQ| > " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i+1 < ceq.size(); i++){
         if (cle[i] > tol){
-        out << "#    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
+          out << get_cmt() << "    EQ(" << i+1 << ") = " << std::setw(width) << ceq[i] << " ! " << seq[i] << std::endl;
         }
       }
     }
@@ -337,18 +350,20 @@ void hoibc_class::print_suc(const real& tol, std::ostream& out){
 
   if (cne.size()){
     if (any(cne, std::abs(x) <= tol)){
-      out << "#    [OK] SUC, Non-zero equality constraints, |NE| => " << tol << std::endl;
+      out << get_cmt() << "    [OK] SUC, Non-zero equality constraints, |NE| => " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] <= tol){
-        out << "#    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
+          out << get_cmt() << "    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
     if (any(cne, std::abs(x) > tol)){
-      out << "#  [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << tol << std::endl;
+      out << get_cmt() << "  [FAIL] [FAIL] SUC, Zero equality constraints, |NE| < " << std::setw(10) << tol << std::endl;
+      out.precision(6);
       for (std::size_t i = 0; i < cne.size(); i++){
         if (cne[i] > tol){
-        out << "#    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
+          out << get_cmt() << "    NE(" << i+1 << ") = " << std::setw(width) << cne[i] << " ! " << sne[i] << std::endl;
         }
       }
     }
@@ -438,14 +453,6 @@ void hoibc_class::set_fourier_variables(const data_t& data, array<real>& f1, arr
   array<real> s1;
   array<real> s2;
   hoibc_class::set_fourier_variables(data,f1,f2,s1,s2);
-}
-
-#include <iomanip> // std::setw
-void hoibc::print_complex(const complex& z, const std::string& name, std::ostream& out){
-  out.precision(8);
-  out << std::noshowpos;
-  out.flags(std::ios::right | std::ios::scientific | std::ios::uppercase);
-  out << name << " = (" << std::setw(15) << std::real(z) << "," <<  std::setw(15) << std::imag(z) << ")" << std::endl;
 }
 
 void hoibc::get_matrices_I(const std::size_t& n1, const std::size_t& n2, big_matrix<real>& I, big_matrix<real>& I1, big_matrix<real>& I2){

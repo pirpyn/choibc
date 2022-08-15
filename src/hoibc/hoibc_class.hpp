@@ -6,6 +6,7 @@
 #include <vector>
 #include "hoibc_types.hpp"
 #include "hoibc_data.hpp"
+#include "hoibc_io.hpp"
 #include "../alglib/ap.h"
 
 namespace hoibc

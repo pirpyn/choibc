@@ -186,7 +186,14 @@ void hoibc::hoibc_ibc3::get_suc(array<real>& cle, array<real>& ceq, array<real>&
     sne.resize(0);
 
     coeff_t &c = this->coeff;
-    const complex z = std::pow(std::abs(c.a1),2)*std::pow(std::abs(c.a2),2) - c.b1*c.a0*conj(c.a1)*std::pow(std::abs(c.a2),2) - c.b2*c.a0*conj(c.a2)*std::pow(std::abs(c.a1),2);
+    complex z;
+    if ( std::norm<double>(c.a1) <= 0.0 || std::norm<double>(c.a2) <= 0.0 ){
+      z = complex(1.);
+    }
+    else {
+    // const complex z = std::pow(std::abs(c.a1),2)*std::pow(std::abs(c.a2),2) - c.b1*c.a0*conj(c.a1)*std::pow(std::abs(c.a2),2) - c.b2*c.a0*conj(c.a2)*std::pow(std::abs(c.a1),2);
+      z = complex(1.) - c.b1*c.a0/c.a1 - c.b2*c.a0/c.a2;
+    }
 
     cle.resize(9);
     cle[0] = -std::real(conj(c.a0)*z);
@@ -199,9 +206,12 @@ void hoibc::hoibc_ibc3::get_suc(array<real>& cle, array<real>& ceq, array<real>&
     cle[7] =  std::real(c.a1);
     cle[8] =  std::real(c.a2);
     sle.resize(9);
-    sle[0] = "-Re(a0*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
-    sle[1] = " Re(a1*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
-    sle[2] = " Re(a2*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    // sle[0] = "-Re(a0*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    // sle[1] = " Re(a1*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    // sle[2] = " Re(a2*.z); z = |a1|^2.|a2|^2 - b1.a0.a1*.|a2|^2 - b2.a0.a2*.|a1|^2";
+    sle[0] = "-Re(a0*.z); z = 1 - b1.a0/a1 - b2.a0/a2";
+    sle[1] = " Re(a1*.z); z = 1 - b1.a0/a1 - b2.a0/a2";
+    sle[2] = " Re(a2*.z); z = 1 - b1.a0/a1 - b2.a0/a2";
     sle[3] = "-Re(b1.a1*)";
     sle[4] = "-Re(b2.a2*)";
     sle[5] = " Re(b1.(a2.a1)*.a0)";
@@ -212,16 +222,16 @@ void hoibc::hoibc_ibc3::get_suc(array<real>& cle, array<real>& ceq, array<real>&
 
 void hoibc::hoibc_ibc3::disp_coeff(std::ostream& out){
   if (this->normalised){
-    out << "# Z = (I + b1*LD/k0^2 - b2*LR/k0^2)^{-1} (a0*I + a1*LD/k0^2 - a2*LR/k0^2)" << std::endl;
+    out << " Z = (I + b1*LD/k0^2 - b2*LR/k0^2)^{-1} (a0*I + a1*LD/k0^2 - a2*LR/k0^2)" << std::endl;
   } else {
-    out << "# Z = (I + b1*LD - b2*LR)^{-1} (a0*I + a1*LD - a2*LR)" << std::endl;
+    out << " Z = (I + b1*LD - b2*LR)^{-1} (a0*I + a1*LD - a2*LR)" << std::endl;
   }
 
-  print_complex(this->coeff.a0,"  a0",out);
-  print_complex(this->coeff.a1,"  a1",out);
-  print_complex(this->coeff.a2,"  a2",out);
-  print_complex(this->coeff.b1,"  b1",out);
-  print_complex(this->coeff.b2,"  b2",out);
+  disp_cmplx(out,this->coeff.a0,"  a0");
+  disp_cmplx(out,this->coeff.a1,"  a1");
+  disp_cmplx(out,this->coeff.a2,"  a2");
+  disp_cmplx(out,this->coeff.b1,"  b1");
+  disp_cmplx(out,this->coeff.b2,"  b2");
 }
 
 void hoibc::hoibc_ibc3::get_matrices_LD_LR(const real& k0, const array<real>& f1, const array<real>& f2, big_matrix<real>& LD, big_matrix<real>& LR){

@@ -3,8 +3,9 @@
 // https://stackoverflow.com/a/12399290
 #include <limits> // std::max
 #include <cmath> // std::pow
-// When C++20 will be available
-// #include <format> // std::format
+#ifndef _HOIBC_IO_FORMAT
+#include <format> // std::format
+#endif
 #include <numeric>      // std::iota
 #include <algorithm>    // std::sort, std::for_each
 
@@ -42,9 +43,9 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   const hoibc::data_t& data = data_out.data_t;
   const hoibc::real k0 = hoibc::free_space_wavenumber(data.main.frequency);
 
-  // ! Set the format character string to write the results in the csv file
-  // ! and the character format string for IBC coefficient
-  // call set_backend(data_extended%out%backend)
+  // Set the format character string to write the results in the csv file
+  // and the character format string for IBC coefficient
+  set_backend(data_out.backend);
 
   // To print the impedance we will need the value of the Fourier variables
   // depending on the IBC
@@ -307,38 +308,47 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   std::cout << "Writing CSV files to " + data_out.basename << std::endl;
   std::cout << std::endl;
 
-  // When C++20 will be available
-  // const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
-  // const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
+  #ifdef _HOIBC_IO_FORMAT
   const std::string fmt_error_header  = "%40s %10s %4s %3s %4s %10s %10s %10s %10s %10s\n";
   const std::string fmt_error_value   = "%40s %10s %4c %3c %4d %10.2E %10.2E %10.2E %10.2E %10.2E\n";
-
+  #else
+  const string fmt_error_header  = "{40s} {10s} {4s} {3s} {4s} {10s} {10s} {10s} {10s} {10s}\n";
+  const string fmt_error_vaue    = "{40s} {10s} {4s} {3s} {4d} {10e} {10e} {10e} {10e} {10e}\n";
+  #endif
   std::cout << "For the following tables, NaN values for the antidiagonal terms (21,12) should be expected when theses matrices are diagonal." << std::endl;
   std::cout << "i.e. for the plane when kx or ky = 0, for the cylinder when kz = 0, and always for the sphere." << std::endl;
 
   std::cout << std::endl;
   std::cout << "Sorted L2 squared relative error of Z_ij and the whole matrix" << std::endl;
-  // When C++20 will be available
-  // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+  #ifdef _HOIBC_IO_FORMAT
   std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+  #else
+  std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","Frobenius");
+  #endif
 
   for (auto i : sort_indexes(errors,4,0)){
     const hoibc::hoibc_class* ibc = hoibc_list[i];
-    // When C++20 will be available
-    // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    #ifdef _HOIBC_IO_FORMAT
     std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    #else
+    std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    #endif
   }
 
   std::cout << std::endl;
   std::cout << "Sorted L2 relative error of R_ij and Err(R_11) + Err(R_22)" << std::endl;
-  // When C++20 will be available
-  // std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+  #ifdef _HOIBC_IO_FORMAT
   std::cout << string_format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+  #else
+  std::cout << std::format(fmt_error_header,"LABEL","NAME","TYPE","SUC","MODE","11","22","21","12","SUM(11,22)");
+  #endif
 
   for (auto i : sort_indexes(errors,4,1)){
     const hoibc::hoibc_class* ibc = hoibc_list[i];
-    // When C++20 will be available
-    // std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    #ifdef _HOIBC_IO_FORMAT
     std::cout << string_format(fmt_error_value,ibc->label.c_str(),ibc->name.c_str(),type_to_char(ibc->type),ibc->suc?'T':'F',mode_to_int(ibc->mode),errors[i][0][1],errors[i][1][1],errors[i][2][1],errors[i][3][1],errors[i][4][1]);
+    #else
+    std::cout << std::format(fmt_error_value,ibc->label,ibc->name,ibc->type,ibc->suc,ibc->mode,errors[i][0][0],errors[i][1][0],errors[i][2][0],errors[i][3][0],errors[i][4][0]);
+    #endif
   }
 }
