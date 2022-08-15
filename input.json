@@ -28,7 +28,7 @@
             "toldx"             : 1e-4
         },
         "out": {
-            "basename"          : "/home/pirpyn/choibc/test/test",
+            "basename"          : "test/test",
             "impedance_ibc"     : false,
             "impedance_ex"      : true,
             "impedance_err"     : false,

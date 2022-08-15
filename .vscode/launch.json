@@ -10,15 +10,18 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/main",
             "args": [
-                "/home/pirpyn/choibc/input.json",
+                "input.json",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
             "MIMode": "gdb",
             "preLaunchTask": "make debug link",
             "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "description": "Enable GDB pretty printing",
+                    "ignoreFailures": true
+                },
                 {
                     "description": "Skip standard function",
                     "text": "skip -rfu ^std::",
