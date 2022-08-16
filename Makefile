@@ -40,7 +40,7 @@ BINS:=main
 # C++ compiler
 CXXC:=g++
 
-CXXFLAGS:=
+CXXFLAGS:=--std=c++17
 DFLAGS:=-Wall
 LDFLAGS:=-llapacke
 INCFLAGS:=

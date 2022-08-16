@@ -3,7 +3,5 @@
         "*.sublime-project": "jsonc",
         "*.hpp": "cpp",
         "*.d": "makefile",
-        "*.x": "cpp",
-        "*.cc": "cpp"
     }
 }
