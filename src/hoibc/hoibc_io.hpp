@@ -7,14 +7,16 @@
 
 namespace hoibc
 {
+    void set_backend(const std::string &backend);
     void disp_cmplx(std::ostream &out, const hoibc::complex &x, const std::string &s);
-    void set_cmt(const std::string &backend);
     const std::string get_cmt(void);
-    void set_fmt_cmplx(const std::string &backend);
 }
 
-#if (__cplusplus < 202002L )
-#define _HOIBC_IO_FORMAT
+#ifdef _HOIBC_HAS_CPP20
+#include <format>
+using string_format=std::format
+#else
+#warning C++20 is needed to use std::format. The custom function string_format will emulate it.
 
 // Until C++20 is available
 // https://stackoverflow.com/a/26221725

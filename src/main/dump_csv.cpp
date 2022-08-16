@@ -4,18 +4,18 @@
 #include <iomanip>
 #include <fstream>
 #include <cmath>
+#ifdef _HOIBC_HAS_CPP17
 #include <filesystem>
-
-void set_backend(const std::string &backend)
-{
-  hoibc::set_cmt(backend);
-  hoibc::set_fmt_cmplx(backend);
-}
+#endif
 
 void dump_to_csv(const std::string filename, const hoibc::array<hoibc::real>& f1, const hoibc::array<hoibc::real>& f2, const hoibc::big_matrix<hoibc::complex>& gex, const std::string& s1, const std::string& s2, const std::string& label, const std::string& header){
   std::ofstream myfile;
+  #ifdef _HOIBC_HAS_CPP17
   std::filesystem::path filepath { filename };
   std::filesystem::create_directories(filepath.parent_path());
+  #else
+  #warning C++17 is needed to use std::filesystem::create_directories. We will not create output directories.
+  #endif
   myfile.open(filename,std::ios_base::out);
   assert(myfile.is_open());
 

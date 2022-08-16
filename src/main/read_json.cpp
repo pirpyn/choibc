@@ -1,8 +1,7 @@
 #include "read_json.hpp"
-#include <fstream>
 #include "json.hpp"
+#include <fstream>
 #include <vector>
-
 using json = nlohmann::json;
 
 // https://github.com/nlohmann/json/issues/2207 Addint support for complex type

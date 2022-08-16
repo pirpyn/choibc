@@ -5,6 +5,13 @@
 #include <array>
 #include <valarray>
 
+#if (__cplusplus >= 202002L )
+#define _HOIBC_HAS_CPP20
+#endif
+#if (__cplusplus >= 201703L )
+#define _HOIBC_HAS_CPP17
+#endif
+
 namespace hoibc
 {
   using integer = long int;
@@ -18,8 +25,5 @@ namespace hoibc
   static big_matrix<real> empty_bigmatrix_real;
 
 }
-
-/* To remove when hitting v1.0 */
-#define NOTFINISHED(where) std::cerr << where << ": not finished." << std::endl;
 
 #endif

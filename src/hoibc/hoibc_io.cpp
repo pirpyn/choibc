@@ -5,17 +5,7 @@ using namespace hoibc;
 static std::string cmt = "";
 static std::string fmt_cmplx = "";
 
-const std::string hoibc::get_cmt(void)
-{
-    return cmt;
-}
-
-void hoibc::disp_cmplx(std::ostream &out, const hoibc::complex &x, const std::string &s)
-{
-    out << string_format(fmt_cmplx,s.c_str(),x.real(),x.imag()) << std::endl;
-}
-
-void hoibc::set_fmt_cmplx(const std::string &backend)
+static void set_fmt_cmplx(const std::string &backend)
 {
     if (backend == "csv" || backend == "comma" || backend == "paraview" || backend == "libreoffice" ){
         fmt_cmplx = "  %s,%15.8E,%15.8E";
@@ -34,7 +24,7 @@ void hoibc::set_fmt_cmplx(const std::string &backend)
     }
 }
 
-void hoibc::set_cmt(const std::string &backend)
+static void set_cmt(const std::string &backend)
 {
     if (backend == "matlab" || backend == "octave"){
         cmt = "%";
@@ -45,4 +35,20 @@ void hoibc::set_cmt(const std::string &backend)
     else{
         cmt = "#";
     }
+}
+
+void hoibc::disp_cmplx(std::ostream &out, const hoibc::complex &x, const std::string &s)
+{
+    out << string_format(fmt_cmplx,s.c_str(),x.real(),x.imag()) << std::endl;
+}
+
+void hoibc::set_backend(const std::string &backend)
+{
+    set_cmt(backend);
+    set_fmt_cmplx(backend);
+}
+
+const std::string hoibc::get_cmt(void)
+{
+    return cmt;
 }
