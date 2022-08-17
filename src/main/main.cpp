@@ -43,11 +43,11 @@ using error_array = std::array<std::array<hoibc::real,2>,5>;
 // Function to sort the errors and returns the sort index to get the corresponding ibc.
 std::vector<std::size_t> sort_indexes(const std::vector<error_array> &v, const std::size_t& j, const std::size_t& l) {
 
-    // initialize original index locations
-    std::vector<std::size_t> idx(v.size());
-    std::iota(idx.begin(), idx.end(), 0);
+  // initialize original index locations
+  std::vector<std::size_t> idx(v.size());
+  std::iota(idx.begin(), idx.end(), 0);
 
-    std::sort(idx.begin(), idx.end(),[&v,&j,&l](std::size_t i1, std::size_t i2) {return v[i1][j][l] < v[i2][j][l];});
+  std::sort(idx.begin(), idx.end(),[&v,&j,&l](std::size_t i1, std::size_t i2) {return v[i1][j][l] < v[i2][j][l];});
 
   return idx;
 }
@@ -75,6 +75,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
   // Set the format character string to write the results in the csv file
   // and the character format string for IBC coefficient
   hoibc::set_backend(data_out.backend);
+  set_backend(data_out.backend);
 
   // To print the impedance we will need the value of the Fourier variables
   // depending on the IBC
@@ -159,7 +160,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(ss.str(),180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ex,"theta_1","theta_2","r_ex","");
         } else {
-          dump_to_csv(ss.str(),s1,s2,reflexion_ex,"kx/k0","ky/k0","r_ex","");
+          dump_to_csv(ss.str(),s1,s2,reflexion_ex,"s1","s2","r_ex","");
         }
       }
 
@@ -168,7 +169,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s1),180./hoibc::pi*std::asin(s2),reflexion_ibc,"theta_1","theta_2","r_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,s1,s2,reflexion_ibc,"kx/k0","kx/k0","r_"+ibc->name,ibc->label);
+          dump_to_csv(filename,s1,s2,reflexion_ibc,"s1","s1","r_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -196,7 +197,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta){
           dump_to_csv(ss.str(),180./hoibc::pi*std::asin(s2),f1,reflexion_ex,"theta","n","f_ex","");
         } else {
-          dump_to_csv(ss.str(),f1,s2,reflexion_ex,"n","kz/k0","f_ex","");
+          dump_to_csv(ss.str(),f1,s2,reflexion_ex,"n","s2","f_ex","");
         }
       }
 
@@ -205,7 +206,7 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
         if (data_out.reflex_vs_theta) {
           dump_to_csv(filename,180./hoibc::pi*std::asin(s2),f1,reflexion_ibc,"theta","n","f_"+ibc->name,ibc->label);
         } else {
-          dump_to_csv(filename,f1,s2,reflexion_ibc,"n","kz/k0","f_"+ibc->name,ibc->label);
+          dump_to_csv(filename,f1,s2,reflexion_ibc,"n","s2","f_"+ibc->name,ibc->label);
         }
       }
       break;
@@ -287,10 +288,10 @@ void write_impedance_errors(const data_out_t& data_out, std::vector<hoibc::hoibc
       ss << ".csv";
       switch (ibc->type){
       case hoibc::type_t::P:
-        dump_to_csv(ss.str(),s1,s2,impedance_ex,"kx/k0","ky/k0","z_ex",ibc->label);
+        dump_to_csv(ss.str(),s1,s2,impedance_ex,"s1","s2","z_ex",ibc->label);
         break;
       case hoibc::type_t::C:
-        dump_to_csv(ss.str(),f1,s2,impedance_ex,"n","kz/k0","z_ex",ibc->label);
+        dump_to_csv(ss.str(),f1,s2,impedance_ex,"n","s2","z_ex",ibc->label);
         break;
       case hoibc::type_t::S:
         dump_to_csv(ss.str(),f2,impedance_ex,"n","z_ex",ibc->label);
